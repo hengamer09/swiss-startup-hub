@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  passwordHash    String?
+  image           String?
+  bio             String?
+  location        String?
+  canton          String?
+  roles           String   @default("[\"PROFESSIONAL\"]")
+  activityStatus  String   @default("ACTIVE_THIS_WEEK")
+  emailVerified   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastLoginAt     DateTime?
+
+  investmentFocus String?
+  preferredStage  String?
+  ticketSizeMin   Int?
+  ticketSizeMax   Int?
+  portfolio       String?
+  openToMessages  Boolean  @default(true)
+
+  identityVerified Boolean @default(false)
+  isEarlyMember    Boolean @default(false)
+
+  averageRating   Float    @default(0)
+  ratingCount     Int      @default(0)
+
+  skills             UserSkill[]
+  memberships        ProjectMember[]
+  ownedProjects      Project[]      @relation("ProjectOwner")
+  followedProjects   ProjectFollower[]
+  joinRequests       JoinRequest[]
+  sentMessages       Message[]      @relation("SentMessages")
+  receivedMessages   Message[]      @relation("ReceivedMessages")
+  conversations      ConversationParticipant[]
+  ratingsGiven       Rating[]       @relation("RatingsGiven")
+  ratingsReceived    Rating[]       @relation("RatingsReceived")
+  notifications      Notification[]
+  blockedUsers       BlockedUser[]  @relation("Blocker")
+  blockedBy          BlockedUser[]  @relation("Blocked")
+  reports            Report[]       @relation("Reporter")
+  eventAttendance    EventAttendee[]
+  organizedEvents    Event[]        @relation("EventOrganizer")
+
+  @@index([email])
+  @@index([location])
+}
+
+model Skill {
+  id    String @id @default(cuid())
+  name  String @unique
+  users UserSkill[]
+}
+
+model UserSkill {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId String
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  name            String
+  logo            String?
+  problem         String?
+  solution        String?
+  industry        String?
+  secondaryIndustry String?
+  stage           String   @default("IDEA")
+  location        String   @default("Zurich")
+  isRemote        Boolean  @default(false)
+  teamSize        Int      @default(1)
+  targetCustomer  String?
+  scope           String?
+  competitiveLandscape String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isDormant       Boolean  @default(false)
+  followerCount   Int      @default(0)
+
+  ownerId String
+  owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  investorPitch   String?
+  fundingAmount   Int?
+  useOfFunds      String?
+  tractionMetrics String?
+  investorVisible Boolean  @default(false)
+
+  members      ProjectMember[]
+  followers    ProjectFollower[]
+  joinRequests JoinRequest[]
+  faqs         FAQ[]
+  posts        ProjectPost[]
+  openRoles    OpenRole[]
+  conversations Conversation[]
+  ratings      Rating[]
+
+  @@index([stage])
+  @@index([industry])
+  @@index([location])
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  roleTitle String
+  isFounder Boolean  @default(false)
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, projectId])
+}
+
+model ProjectFollower {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  isApproved Boolean  @default(false)
+  followedAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+}
+
+model JoinRequest {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  motivation   String
+  experience   String
+  availability String
+  links        String?
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  reviewedAt   DateTime?
+
+  @@unique([userId, projectId])
+  @@index([projectId, status])
+}
+
+model OpenRole {
+  id          String @id @default(cuid())
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  skills      String
+  commitment  String
+  description String
+}
+
+model FAQ {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  question  String
+  answer    String
+  order     Int     @default(0)
+}
+
+model ProjectPost {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  content        String
+  createdAt      DateTime @default(now())
+  isAnnouncement Boolean  @default(false)
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages     Message[]
+  participants ConversationParticipant[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId     String?
+  receiver       User?     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content        String
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Rating {
+  id         String   @id @default(cuid())
+  fromUserId String
+  fromUser   User     @relation("RatingsGiven", fields: [fromUserId], references: [id])
+  toUserId   String
+  toUser     User     @relation("RatingsReceived", fields: [toUserId], references: [id])
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id])
+  stars      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@unique([fromUserId, toUserId, projectId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  content   String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+model BlockedUser {
+  blockerId String
+  blocker   User   @relation("Blocker", fields: [blockerId], references: [id])
+  blockedId String
+  blocked   User   @relation("Blocked", fields: [blockedId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reporter   User     @relation("Reporter", fields: [reporterId], references: [id])
+  targetId   String
+  targetType String
+  reason     String
+  createdAt  DateTime @default(now())
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  eventType   String
+  organizerId String
+  organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id])
+
+  attendees EventAttendee[]
+  maxAttendees Int?
+  requireApproval Boolean @default(false)
+  locationScope String? // Local / National / International / Online
+}
+
+model EventAttendee {
+  id        String @id @default(cuid())
+  eventId   String
+  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  intention String
+
+  @@unique([eventId, userId])
+}
