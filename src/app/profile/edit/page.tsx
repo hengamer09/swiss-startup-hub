@@ -12,6 +12,7 @@ export default function EditProfilePage() {
   const { data: session, update: updateSession } = useSession();
   const [name, setName] = useState(session?.user?.name || "");
   const [bio, setBio] = useState("");
+  const [image, setImage] = useState(session?.user?.image || "");
   const [location, setLocation] = useState("");
   const [canton, setCanton] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
@@ -22,7 +23,25 @@ export default function EditProfilePage() {
   const [ticketSizeMin, setTicketSizeMin] = useState("");
   const [ticketSizeMax, setTicketSizeMax] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  async function handleUpload(file: File) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Image upload failed");
+      setImage(data.url);
+    } catch (err: any) {
+      alert(err.message || "Image upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,6 +53,7 @@ export default function EditProfilePage() {
       body: JSON.stringify({
         name,
         bio,
+        image,
         location,
         canton,
         portfolioUrl,
@@ -82,15 +102,13 @@ export default function EditProfilePage() {
           <h2 className="text-sm font-semibold text-zinc-900">Basic Info</h2>
 
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-xl font-bold text-zinc-500">
-              <User className="h-6 w-6" />
+            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-xl font-bold text-zinc-500">
+              {image ? <img src={image} alt="Profile" className="h-full w-full object-cover" /> : <User className="h-6 w-6" />}
             </div>
-            <button
-              type="button"
-              className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
-            >
-              Change Photo
-            </button>
+            <label className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer">
+              {uploading ? "Uploading..." : "Change Photo"}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
+            </label>
           </div>
 
           <div>

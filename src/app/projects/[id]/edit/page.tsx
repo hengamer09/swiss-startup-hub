@@ -10,6 +10,7 @@ export default function EditProjectPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [name, setName] = useState("");
@@ -24,9 +25,30 @@ export default function EditProjectPage() {
   const [competitiveLandscape, setCompetitiveLandscape] = useState("");
   const [investorPitch, setInvestorPitch] = useState("");
   const [fundingAmount, setFundingAmount] = useState("");
+  const [seriousness, setSeriousness] = useState("SERIOUS_STARTUP");
+  const [teamCompensation, setTeamCompensation] = useState("PAID");
+  const [logo, setLogo] = useState("");
   const [useOfFunds, setUseOfFunds] = useState("");
   const [tractionMetrics, setTractionMetrics] = useState("");
   const [investorVisible, setInvestorVisible] = useState(false);
+
+  async function handleUpload(file: File) {
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Image upload failed");
+      setLogo(data.url);
+    } catch (err: any) {
+      setError(err.message || "Image upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -48,6 +70,9 @@ export default function EditProjectPage() {
         setUseOfFunds(p.useOfFunds || "");
         setTractionMetrics(p.tractionMetrics || "");
         setInvestorVisible(p.investorVisible || false);
+        setSeriousness(p.seriousness || "SERIOUS_STARTUP");
+        setTeamCompensation(p.teamCompensation || "PAID");
+        setLogo(p.logo || "");
       }
       setFetching(false);
     }
@@ -66,7 +91,7 @@ export default function EditProjectPage() {
         name, problem, solution, industry, stage, location, isRemote,
         targetCustomer, scope, competitiveLandscape,
         investorPitch, fundingAmount: fundingAmount ? parseInt(fundingAmount) : null,
-        useOfFunds, tractionMetrics, investorVisible,
+        useOfFunds, tractionMetrics, investorVisible, seriousness, teamCompensation, logo,
       }),
     });
 
@@ -148,6 +173,31 @@ export default function EditProjectPage() {
                 Remote
               </label>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Project image / logo</label>
+            <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
+            {uploading && <p className="mt-1 text-xs text-zinc-500">Uploading image…</p>}
+            {logo && <img src={logo} alt="Project logo preview" className="mt-3 h-20 w-20 rounded-xl object-cover border" />}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Project seriousness</label>
+            <select value={seriousness} onChange={(e) => setSeriousness(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+              <option value="SCHOOL_PROJECT">School project</option>
+              <option value="SIDE_PROJECT">Side project</option>
+              <option value="SERIOUS_STARTUP">Serious startup</option>
+              <option value="FULL_TIME_FUNDING">Full-time / looking for funding</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Team compensation</label>
+            <select value={teamCompensation} onChange={(e) => setTeamCompensation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+              <option value="UNPAID">Unpaid / volunteer</option>
+              <option value="PAID">Paid</option>
+            </select>
           </div>
 
           <div>

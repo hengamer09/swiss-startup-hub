@@ -3,6 +3,29 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const project = await prisma.project.findUnique({
+    where: { id },
+    include: {
+      owner: { select: { id: true, name: true, image: true } },
+      members: { include: { user: { select: { id: true, name: true, image: true } } } },
+      openRoles: true,
+      faqs: true,
+    },
+  });
+
+  if (!project) {
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(project);
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -39,6 +62,9 @@ export async function PUT(
     if (data.useOfFunds !== undefined) updateData.useOfFunds = data.useOfFunds;
     if (data.tractionMetrics !== undefined) updateData.tractionMetrics = data.tractionMetrics;
     if (data.investorVisible !== undefined) updateData.investorVisible = data.investorVisible;
+    if (data.logo !== undefined) updateData.logo = data.logo;
+    if (data.seriousness !== undefined) updateData.seriousness = data.seriousness;
+    if (data.teamCompensation !== undefined) updateData.teamCompensation = data.teamCompensation;
 
     const updated = await prisma.project.update({
       where: { id },

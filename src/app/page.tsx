@@ -1,7 +1,17 @@
 import Link from "next/link";
-import { Mountain, ArrowRight, Users, Briefcase, Banknote, Sparkles } from "lucide-react";
+import { ArrowRight, Users, Briefcase, Banknote, Sparkles } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const projects = await prisma.project.findMany({
+    take: 6,
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: {
+        select: { members: true, followers: true },
+      },
+    },
+  });
   return (
     <div className="flex flex-col">
       <section className="relative overflow-hidden border-b border-zinc-100">
@@ -91,9 +101,13 @@ export default function HomePage() {
           </div>
 
           <div className="space-y-4">
-            {previewProjects.map((project, i) => (
-              <PreviewProjectCard key={project.name} project={project} index={i} />
-            ))}
+            {projects.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
+                No projects are live yet. Be the first to publish one.
+              </div>
+            ) : (
+              projects.map((project) => <ProjectCard key={project.id} project={project} />)
+            )}
           </div>
         </div>
       </section>
@@ -119,22 +133,18 @@ export default function HomePage() {
   );
 }
 
-function PreviewProjectCard({
-  project,
-  index,
-}: {
-  project: PreviewProject;
-  index: number;
-}) {
+function ProjectCard({ project }: { project: any }) {
   return (
-    <div
-      className={`rounded-xl border border-zinc-200 bg-white p-5 transition-all hover:shadow-md hover:border-zinc-300 ${index < 2 ? "animate-fade-in-up" : "animate-fade-in-up-delayed"}`}
-    >
+    <div className="rounded-xl border border-zinc-200 bg-white p-5 transition-all hover:shadow-md hover:border-zinc-300">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-lg font-bold text-zinc-600 shrink-0">
-              {project.name.charAt(0)}
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-zinc-100 text-lg font-bold text-zinc-600 shrink-0">
+              {project.logo ? (
+                <img src={project.logo} alt={project.name} className="h-full w-full object-cover" />
+              ) : (
+                project.name.charAt(0)
+              )}
             </div>
             <div>
               <h3 className="font-semibold text-zinc-900 truncate">
@@ -142,7 +152,7 @@ function PreviewProjectCard({
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
-                  {project.industry}
+                  {project.industry || "Startup"}
                 </span>
                 <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
                   {project.stage}
@@ -152,122 +162,31 @@ function PreviewProjectCard({
             </div>
           </div>
           <p className="mt-2 text-sm text-zinc-600 line-clamp-1">
-            {project.problem}
+            {project.problem || "A new project is waiting to be discovered."}
           </p>
           <p className="mt-0.5 text-sm text-zinc-500 line-clamp-1">
-            {project.solution}
+            {project.solution || "Visit the project page to learn more."}
           </p>
           <div className="mt-3 flex items-center gap-4 text-xs text-zinc-400">
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              {project.members} members
+              {project._count.members} members
             </span>
-            <span>{project.followers} followers</span>
+            <span>{project._count.followers} followers</span>
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-2">
-          <button className="rounded-full border border-zinc-300 px-4 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition-colors cursor-default">
-            Follow
-          </button>
+          <Link
+            href={`/projects/${project.id}`}
+            className="rounded-full border border-zinc-300 px-4 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+          >
+            View project
+          </Link>
         </div>
       </div>
     </div>
   );
 }
-
-interface PreviewProject {
-  name: string;
-  industry: string;
-  stage: string;
-  location: string;
-  problem: string;
-  solution: string;
-  members: number;
-  followers: number;
-}
-
-const previewProjects: PreviewProject[] = [
-  {
-    name: "CarbonClear",
-    industry: "Climate",
-    stage: "MVP",
-    location: "Zürich",
-    problem: "Companies struggle to track and offset their carbon footprint accurately",
-    solution: "Automated carbon tracking and offset verification platform",
-    members: 4,
-    followers: 23,
-  },
-  {
-    name: "FreelancePay",
-    industry: "FinTech",
-    stage: "Idea",
-    location: "Geneva",
-    problem: "Cross-border freelancers face high fees and slow payments in EU/CH corridor",
-    solution: "Instant, low-cost cross-border payment solution for freelancers",
-    members: 2,
-    followers: 15,
-  },
-  {
-    name: "MedConnect",
-    industry: "Health",
-    stage: "Early Revenue",
-    location: "Basel",
-    problem: "Patients wait weeks for specialist appointments",
-    solution: "Platform connecting patients with specialists in days, not weeks",
-    members: 6,
-    followers: 42,
-  },
-  {
-    name: "RoboLogix",
-    industry: "DeepTech",
-    stage: "MVP",
-    location: "Zürich",
-    problem: "Warehouse automation is expensive and inflexible for SMEs",
-    solution: "Modular, affordable robotics solution for small warehouses",
-    members: 3,
-    followers: 31,
-  },
-  {
-    name: "SkillUp CH",
-    industry: "EdTech",
-    stage: "Idea",
-    location: "Bern",
-    problem: "Swiss vocational training lacks modern digital tools",
-    solution: "Interactive platform for Swiss vocational education and apprenticeships",
-    members: 2,
-    followers: 8,
-  },
-  {
-    name: "LogiSwift",
-    industry: "B2B SaaS",
-    stage: "Scaling",
-    location: "Lausanne",
-    problem: "Swiss SMEs struggle with fragmented logistics management",
-    solution: "All-in-one logistics platform tailored for Swiss SMEs",
-    members: 8,
-    followers: 67,
-  },
-  {
-    name: "LocalBite",
-    industry: "Consumer",
-    stage: "MVP",
-    location: "Zürich",
-    problem: "Local food producers lack direct-to-consumer sales channels",
-    solution: "Marketplace connecting Swiss food producers directly with consumers",
-    members: 4,
-    followers: 19,
-  },
-  {
-    name: "ContractAI",
-    industry: "Legal",
-    stage: "Early Revenue",
-    location: "Zug",
-    problem: "Swiss employment contracts are time-consuming and error-prone",
-    solution: "AI-powered tool that generates compliant Swiss employment contracts",
-    members: 5,
-    followers: 28,
-  },
-];
 
 function Rocket(props: React.SVGProps<SVGSVGElement>) {
   return (

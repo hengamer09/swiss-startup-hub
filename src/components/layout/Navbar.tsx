@@ -69,9 +69,13 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
-              <button className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors">
+              <Link
+                href="/dashboard"
+                className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors"
+                aria-label="Open dashboard"
+              >
                 <Bell className="h-5 w-5" />
-              </button>
+              </Link>
               <Link
                 href="/profile"
                 className="flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition-colors"

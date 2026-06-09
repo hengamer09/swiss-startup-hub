@@ -28,6 +28,9 @@ model User {
   ticketSizeMin   Int?
   ticketSizeMax   Int?
   portfolio       String?
+  portfolioUrl    String?
+  githubUrl       String?
+  linkedinUrl     String?
   openToMessages  Boolean  @default(true)
 
   identityVerified Boolean @default(false)
@@ -100,6 +103,8 @@ model Project {
   useOfFunds      String?
   tractionMetrics String?
   investorVisible Boolean  @default(false)
+  seriousness     String?  @default("SIDE_PROJECT")
+  teamCompensation String? @default("UNPAID")
 
   members      ProjectMember[]
   followers    ProjectFollower[]
@@ -280,6 +285,7 @@ model Event {
   eventType   String
   organizerId String
   organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id])
+  image       String?
 
   attendees EventAttendee[]
   maxAttendees Int?

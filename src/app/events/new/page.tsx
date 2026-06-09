@@ -13,9 +13,28 @@ export default function NewEventPage() {
   const [location, setLocation] = useState("");
   const [eventType, setEventType] = useState("");
   const [locationScope, setLocationScope] = useState("");
+  const [image, setImage] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [maxAttendees, setMaxAttendees] = useState<number | "">("");
   const [requireApproval, setRequireApproval] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  async function handleUpload(file: File) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Image upload failed");
+      setImage(data.url);
+    } catch (err: any) {
+      alert(err.message || "Image upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +52,7 @@ export default function NewEventPage() {
       locationScope,
       maxAttendees: maxAttendees || null,
       requireApproval,
+      image,
     };
 
     const res = await fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -98,6 +118,13 @@ export default function NewEventPage() {
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={requireApproval} onChange={(e) => setRequireApproval(e.target.checked)} /> Require approval for registrations
           </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700">Event image</label>
+          <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2" />
+          {uploading && <p className="mt-1 text-xs text-zinc-500">Uploading image…</p>}
+          {image && <img src={image} alt="Event preview" className="mt-3 h-20 w-20 rounded-xl object-cover border" />}
         </div>
 
         <div>

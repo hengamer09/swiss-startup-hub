@@ -12,8 +12,27 @@ export async function POST(request: Request) {
   const userId = session.user.id;
 
   try {
-    const { name, problem, solution, industry, stage, location, isRemote } =
-      await request.json();
+    const data = await request.json();
+    const {
+      name,
+      problem,
+      solution,
+      industry,
+      stage,
+      location,
+      isRemote,
+      targetCustomer,
+      scope,
+      competitiveLandscape,
+      investorPitch,
+      fundingAmount,
+      useOfFunds,
+      tractionMetrics,
+      investorVisible,
+      seriousness,
+      teamCompensation,
+      logo,
+    } = data;
 
     const project = await prisma.project.create({
       data: {
@@ -24,6 +43,17 @@ export async function POST(request: Request) {
         stage: stage || "IDEA",
         location: location || "Zurich",
         isRemote: isRemote || false,
+        targetCustomer: targetCustomer || null,
+        scope: scope || null,
+        competitiveLandscape: competitiveLandscape || null,
+        investorPitch: investorPitch || null,
+        fundingAmount: fundingAmount ?? null,
+        useOfFunds: useOfFunds || null,
+        tractionMetrics: tractionMetrics || null,
+        investorVisible: investorVisible || false,
+        seriousness: seriousness || "SIDE_PROJECT",
+        teamCompensation: teamCompensation || "UNPAID",
+        logo: logo || null,
         ownerId: userId,
         teamSize: 1,
         members: {
@@ -32,6 +62,15 @@ export async function POST(request: Request) {
             roleTitle: "Founder",
             isFounder: true,
           },
+        },
+      },
+    });
+
+    await prisma.conversation.create({
+      data: {
+        projectId: project.id,
+        participants: {
+          create: [{ userId }],
         },
       },
     });

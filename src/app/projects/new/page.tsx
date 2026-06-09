@@ -16,7 +16,33 @@ export default function NewProjectPage() {
   const [location, setLocation] = useState("Zurich");
   const [isRemote, setIsRemote] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [targetCustomer, setTargetCustomer] = useState("");
+  const [scope, setScope] = useState("");
+  const [competitiveLandscape, setCompetitiveLandscape] = useState("");
+  const [investorPitch, setInvestorPitch] = useState("");
+  const [seriousness, setSeriousness] = useState("SERIOUS_STARTUP");
+  const [teamCompensation, setTeamCompensation] = useState("PAID");
+  const [logo, setLogo] = useState("");
+
+  async function handleUpload(file: File) {
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Image upload failed");
+      setLogo(data.url);
+    } catch (err: any) {
+      setError(err.message || "Image upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +58,22 @@ export default function NewProjectPage() {
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, problem, solution, industry, stage, location, isRemote }),
+        body: JSON.stringify({
+          name,
+          problem,
+          solution,
+          industry,
+          stage,
+          location,
+          isRemote,
+          targetCustomer,
+          scope,
+          competitiveLandscape,
+          investorPitch,
+          seriousness,
+          teamCompensation,
+          logo,
+        }),
       });
 
       if (!res.ok) {
@@ -153,6 +194,61 @@ export default function NewProjectPage() {
             placeholder="What problem does your startup solve?"
           />
           <p className="mt-1 text-xs text-zinc-400">{problem.length}/500</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700">Project image / logo</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+          />
+          {uploading && <p className="mt-1 text-xs text-zinc-500">Uploading image…</p>}
+          {logo && <img src={logo} alt="Project logo preview" className="mt-3 h-20 w-20 rounded-xl object-cover border" />}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700">Project seriousness</label>
+          <select value={seriousness} onChange={(e) => setSeriousness(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+            <option value="SCHOOL_PROJECT">School project</option>
+            <option value="SIDE_PROJECT">Side project</option>
+            <option value="SERIOUS_STARTUP">Serious startup</option>
+            <option value="FULL_TIME_FUNDING">Full-time / looking for funding</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700">Team compensation</label>
+          <select value={teamCompensation} onChange={(e) => setTeamCompensation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+            <option value="UNPAID">Unpaid / volunteer</option>
+            <option value="PAID">Paid</option>
+          </select>
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-4">
+          <h2 className="text-sm font-semibold text-zinc-900">Market & Competition</h2>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Target customer</label>
+            <input value={targetCustomer} onChange={(e) => setTargetCustomer(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Scope</label>
+            <select value={scope} onChange={(e) => setScope(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+              <option value="">Select</option>
+              <option value="Swiss">Swiss</option>
+              <option value="International">International</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Competitive landscape</label>
+            <textarea value={competitiveLandscape} onChange={(e) => setCompetitiveLandscape(e.target.value)} rows={3} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-4">
+          <h2 className="text-sm font-semibold text-zinc-900">Investor Pitch</h2>
+          <textarea value={investorPitch} onChange={(e) => setInvestorPitch(e.target.value)} rows={3} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="Brief investor summary…" />
         </div>
 
         <div>

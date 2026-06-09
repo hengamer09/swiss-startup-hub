@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { title, description, date, location, eventType, locationScope, maxAttendees, requireApproval }
+    const { title, description, date, location, eventType, locationScope, maxAttendees, requireApproval, image }
       = body;
 
     if (!title || !description || !date || !eventType || !location) {
@@ -77,7 +77,10 @@ export async function POST(request: Request) {
         date: eventDate,
         location: location.trim(),
         eventType,
-        // store scope in location field or additional field if needed
+        image: image || null,
+        locationScope: locationScope || null,
+        maxAttendees: maxAttendees ?? null,
+        requireApproval: Boolean(requireApproval),
         organizerId: session.user.id,
       },
     });

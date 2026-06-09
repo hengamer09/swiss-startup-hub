@@ -17,8 +17,12 @@ export async function PUT(request: Request) {
     const updateData: Record<string, unknown> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.image !== undefined) updateData.image = data.image;
     if (data.location !== undefined) updateData.location = data.location;
     if (data.canton !== undefined) updateData.canton = data.canton;
+    if (data.portfolioUrl !== undefined) updateData.portfolioUrl = data.portfolioUrl;
+    if (data.githubUrl !== undefined) updateData.githubUrl = data.githubUrl;
+    if (data.linkedinUrl !== undefined) updateData.linkedinUrl = data.linkedinUrl;
     if (data.openToMessages !== undefined)
       updateData.openToMessages = data.openToMessages;
     if (data.preferredStage !== undefined)
