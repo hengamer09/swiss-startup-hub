@@ -73,26 +73,57 @@ export async function POST(request: Request) {
     });
 
     if (project) {
-      const recipients = [project.owner, ...project.members.map((member) => member.user)].filter(
-        (user) => user && user.id !== session.user.id
-      );
+      const requesterName = session.user.name || "Someone";
+      const projectLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/projects/${project.id}`;
+      const recipients = [project.owner, ...project.members.map((member) => member.user)]
+        .filter(
+          (user): user is { id: string; name: string; email: string } =>
+            Boolean(user) && user.id !== session.user.id
+        )
+        .filter((user, index, list) => list.findIndex((item) => item.id === user.id) === index);
 
-      await prisma.notification.createMany({
-        data: recipients.map((user) => ({
-          userId: user.id,
-          type: "join_request",
-          content: `${session.user.name || "Someone"} applied to join ${project.name}.`,
-          link: `/projects/${project.id}`,
-        })),
-      });
-
-      if (project.owner.email) {
-        await sendEmail({
-          to: project.owner.email,
-          subject: "New join request for your project",
-          text: `${session.user.name || "A founder"} applied to join ${project.name}. Review the application in the app.`,
-          html: `<p>${session.user.name || "A founder"} applied to join <strong>${project.name}</strong>.</p><p>Review the application in the app.</p>`,
+      if (recipients.length > 0) {
+        await prisma.notification.createMany({
+          data: recipients.map((user) => ({
+            userId: user.id,
+            type: "join_request",
+            content: `${requesterName} requested to join ${project.name}.`,
+            link: projectLink,
+          })),
         });
+
+        await Promise.all(
+          recipients.map(async (user) => {
+            if (!user.email) return;
+
+            await sendEmail({
+              to: user.email,
+              subject: `${requesterName} wants to join ${project.name}`,
+              text: [
+                `Hi ${user.name || "there"},`,
+                `${requesterName} requested to join ${project.name}.`,
+                `Message: ${motivation.trim()}`,
+                `Experience: ${experience.trim()}`,
+                `Availability: ${availability?.trim() || "Flexible"}`,
+                links?.trim() ? `Links: ${links.trim()}` : undefined,
+                `Project link: ${projectLink}`,
+              ]
+                .filter(Boolean)
+                .join("\n\n"),
+              html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #18181b;">
+                  <p>Hi ${user.name || "there"},</p>
+                  <p><strong>${requesterName}</strong> requested to join <strong>${project.name}</strong>.</p>
+                  <p><strong>Motivation:</strong> ${motivation.trim()}</p>
+                  <p><strong>Experience:</strong> ${experience.trim()}</p>
+                  <p><strong>Availability:</strong> ${availability?.trim() || "Flexible"}</p>
+                  ${links?.trim() ? `<p><strong>Links:</strong> ${links.trim()}</p>` : ""}
+                  <p><a href="${projectLink}" style="color:#dc2626;">View the project</a></p>
+                </div>
+              `,
+            });
+          })
+        );
       }
     }
 

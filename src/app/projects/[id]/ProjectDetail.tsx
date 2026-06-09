@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Settings,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn, formatStage } from "@/lib/utils";
 import RateUserModal from "@/components/projects/RateUserModal";
@@ -28,6 +28,52 @@ export default function ProjectDetail({
   const [showAskModal, setShowAskModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState<{ id: string; name: string } | null>(null);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postDraft, setPostDraft] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [toast, setToast] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+
+  useEffect(() => {
+    if (!toast.open) return;
+
+    const timer = window.setTimeout(() => {
+      setToast((current) => ({ ...current, open: false }));
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [toast.open]);
+
+  useEffect(() => {
+    async function loadPosts() {
+      const res = await fetch(`/api/projects/${project.id}/posts`);
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data);
+      }
+    }
+
+    loadPosts();
+  }, [project.id]);
+
+  async function handlePostSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userId || !postDraft.trim()) return;
+
+    setPosting(true);
+    const res = await fetch(`/api/projects/${project.id}/posts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: postDraft.trim() }),
+    });
+
+    if (res.ok) {
+      const post = await res.json();
+      setPosts((prev) => [post, ...prev]);
+      setPostDraft("");
+    }
+
+    setPosting(false);
+  }
 
   async function handleFollow() {
     if (!userId) return;
@@ -102,7 +148,7 @@ export default function ProjectDetail({
                     onClick={() => setShowAskModal(true)}
                     className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
                   >
-                    Ask the Founder
+                    Message Founder
                   </button>
                 </>
               )}
@@ -141,6 +187,85 @@ export default function ProjectDetail({
               </h2>
               <p className="text-sm text-zinc-600">{project.solution}</p>
             </div>
+          </div>
+
+          <div className="mt-6 border-t border-zinc-100 pt-6 space-y-6">
+            <section className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-zinc-900">Public Chat / Discussion Board</h2>
+                  <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
+                </div>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">Live discussion</span>
+              </div>
+
+              {userId ? (
+                <form onSubmit={handlePostSubmit} className="mb-4 space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
+                  <textarea
+                    value={postDraft}
+                    onChange={(e) => setPostDraft(e.target.value)}
+                    rows={3}
+                    maxLength={500}
+                    placeholder="Share an update, ask a question, or welcome the team..."
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs text-zinc-400">{postDraft.length}/500</p>
+                    <button
+                      type="submit"
+                      disabled={posting || !postDraft.trim()}
+                      className="rounded-full bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {posting ? "Posting..." : "Post update"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="mb-4 rounded-xl border border-dashed border-zinc-300 bg-white p-3 text-sm text-zinc-500">
+                  Sign in to post on the project discussion board.
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {posts.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500">No discussion posts yet. Be the first to start the conversation.</div>
+                ) : (
+                  posts.map((post: any) => (
+                    <article key={post.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700 overflow-hidden">
+                          {post.author?.image ? (
+                            <img src={post.author.image} alt={post.author.name || "User"} className="h-full w-full object-cover" />
+                          ) : (
+                            (post.author?.name || "U").charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-semibold text-zinc-900">{post.author?.name || "Anonymous"}</span>
+                            <span className="text-xs text-zinc-400">{new Date(post.createdAt).toLocaleString()}</span>
+                          </div>
+                          <p className="mt-1 text-sm text-zinc-600 whitespace-pre-wrap">{post.content}</p>
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-zinc-200 bg-white p-4">
+              <div className="mb-2">
+                <h2 className="text-sm font-semibold text-zinc-900">Private Chat</h2>
+                <p className="text-xs text-zinc-500">Use the founder message option to open a private conversation in your inbox.</p>
+              </div>
+              <button
+                onClick={() => setShowAskModal(true)}
+                className="rounded-full bg-zinc-900 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-800 transition-colors"
+              >
+                Message Founder
+              </button>
+            </section>
           </div>
 
           {project.members?.length > 0 && (
@@ -252,10 +377,20 @@ export default function ProjectDetail({
         </div>
       </div>
 
+      {toast.open && (
+        <div className="fixed bottom-4 right-4 z-[60] rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-lg">
+          {toast.message}
+        </div>
+      )}
+
       {showJoinModal && (
         <JoinModal
           projectId={project.id}
           onClose={() => setShowJoinModal(false)}
+          onSuccess={() => {
+            setShowJoinModal(false);
+            setToast({ open: true, message: "Request sent successfully" });
+          }}
         />
       )}
 
@@ -284,16 +419,17 @@ export default function ProjectDetail({
 function JoinModal({
   projectId,
   onClose,
+  onSuccess,
 }: {
   projectId: string;
   onClose: () => void;
+  onSuccess: () => void;
 }) {
   const [motivation, setMotivation] = useState("");
   const [experience, setExperience] = useState("");
   const [availability, setAvailability] = useState("FLEXIBLE");
   const [links, setLinks] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -303,30 +439,12 @@ function JoinModal({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ projectId, motivation, experience, availability, links }),
     });
-    if (res.ok) setSent(true);
-    setLoading(false);
-  }
+    if (res.ok) {
+      onSuccess();
+      return;
+    }
 
-  if (sent) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="w-full max-w-md rounded-xl bg-white p-6 text-center">
-          <UserPlus className="mx-auto h-10 w-10 text-green-500" />
-          <h3 className="mt-3 text-lg font-semibold text-zinc-900">
-            Application sent!
-          </h3>
-          <p className="mt-1 text-sm text-zinc-500">
-            The founder will review your request.
-          </p>
-          <button
-            onClick={onClose}
-            className="mt-4 rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
-          >
-            Done
-          </button>
-        </div>
-      </div>
-    );
+    setLoading(false);
   }
 
   return (

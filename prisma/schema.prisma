@@ -49,6 +49,7 @@ model User {
   joinRequests       JoinRequest[]
   sentMessages       Message[]      @relation("SentMessages")
   receivedMessages   Message[]      @relation("ReceivedMessages")
+  projectPosts       ProjectPost[]
   conversations      ConversationParticipant[]
   ratingsGiven       Rating[]       @relation("RatingsGiven")
   ratingsReceived    Rating[]       @relation("RatingsReceived")
@@ -191,6 +192,8 @@ model ProjectPost {
   id             String   @id @default(cuid())
   projectId      String
   project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId       String?
+  author         User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
   content        String
   createdAt      DateTime @default(now())
   isAnnouncement Boolean  @default(false)

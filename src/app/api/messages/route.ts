@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -112,6 +113,31 @@ export async function POST(request: Request) {
         content: content.trim(),
       },
     });
+
+    const recipient = await prisma.user.findUnique({
+      where: { id: receiverId },
+      select: { id: true, name: true, email: true },
+    });
+
+    if (recipient) {
+      await prisma.notification.create({
+        data: {
+          userId: recipient.id,
+          type: "message",
+          content: `${session.user.name || "Someone"} sent you a message.`,
+          link: "/messages",
+        },
+      });
+
+      if (recipient.email) {
+        await sendEmail({
+          to: recipient.email,
+          subject: "New message on Swiss Startup Hub",
+          text: `${session.user.name || "Someone"} sent you a private message:\n\n${content.trim()}\n\nOpen your inbox: ${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/messages`,
+          html: `<div style="font-family: Arial, sans-serif; line-height: 1.5; color: #18181b;"><p>Hi ${recipient.name || "there"},</p><p><strong>${session.user.name || "Someone"}</strong> sent you a private message.</p><p>${content.trim()}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/messages" style="color:#dc2626;">Open your inbox</a></p></div>`,
+        });
+      }
+    }
 
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
