@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Compass, MapPin, Users, Star, RefreshCw, Sparkles } from "lucide-react";
 import ProfileCompletionNudge from "@/components/layout/ProfileCompletionNudge";
 import { formatStage } from "@/lib/utils";
 
 export default function FeedContent({ userId }: { userId: string }) {
+  const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -14,15 +16,16 @@ export default function FeedContent({ userId }: { userId: string }) {
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const fetchProjects = useCallback(async (pageNum: number, append: boolean) => {
-    const res = await fetch(`/api/search?type=projects&sort=newest&page=${pageNum}`);
+    const res = await fetch(`/api/feed?page=${pageNum}`);
     if (res.ok) {
       const data = await res.json();
+      const items = data.projects || [];
       if (append) {
-        setProjects((prev) => [...prev, ...data.results]);
+        setProjects((prev) => [...prev, ...items]);
       } else {
-        setProjects(data.results);
+        setProjects(items);
       }
-      setHasMore(pageNum < data.totalPages);
+      setHasMore(Boolean(data.hasMore) && pageNum < (data.totalPages || 1));
     }
     setLoading(false);
   }, []);
@@ -63,16 +66,18 @@ export default function FeedContent({ userId }: { userId: string }) {
         <ProfileCompletionNudge />
       </div>
 
-      <div className="mb-4">
-        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-          <p className="text-xs text-blue-700 flex items-center gap-1">
-            <Sparkles className="h-3.5 w-3.5" />
-            <strong>3 new projects</strong> match your skills &mdash;{" "}
-            <Link href="/search" className="underline font-medium">
-              View all
-            </Link>
-          </p>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
+        <p className="text-xs text-blue-700 flex items-center gap-1">
+          <Sparkles className="h-3.5 w-3.5" />
+          <strong>{projects.length}</strong> project{projects.length === 1 ? "" : "s"} in your feed.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push("/projects/new")}
+          className="rounded-full bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 transition-colors"
+        >
+          Create a project
+        </button>
       </div>
 
       {loading && projects.length === 0 ? (

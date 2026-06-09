@@ -117,11 +117,11 @@ export default function ProfileContent({
               </div>
 
               <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-sm text-zinc-500 sm:justify-start">
-                {user.location && (
+                {(user.country || user.location) && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5" />
-                    {user.location}
-                    {user.canton && ` (${user.canton})`}
+                    {user.country ? `${user.country}` : ""}
+                    {user.location ? ` · ${user.location}` : ""}
                   </span>
                 )}
                 <span className={cn("flex items-center gap-1 text-xs", activityColor)}>

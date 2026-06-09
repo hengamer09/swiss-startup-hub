@@ -1,0 +1,41 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const page = Math.max(1, Number(searchParams.get("page") || 1));
+  const pageSize = 10;
+
+  const [items, total] = await Promise.all([
+    prisma.projectFollower.findMany({
+      where: { userId: session.user.id },
+      include: {
+        project: {
+          include: {
+            owner: { select: { id: true, name: true, image: true, averageRating: true } },
+            _count: { select: { members: true, followers: true } },
+          },
+        },
+      },
+      orderBy: { followedAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.projectFollower.count({ where: { userId: session.user.id } }),
+  ]);
+
+  return NextResponse.json({
+    projects: items.map((item) => ({ ...item.project, owner: item.project.owner })),
+    count: items.length,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+    hasMore: page * pageSize < total,
+  });
+}

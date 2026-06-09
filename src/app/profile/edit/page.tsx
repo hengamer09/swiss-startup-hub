@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, User, Save } from "lucide-react";
+import { ArrowLeft, User, Save, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { swissCities, industries } from "@/lib/utils";
+import { parseRoles } from "@/lib/utils";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -13,11 +13,15 @@ export default function EditProfilePage() {
   const [name, setName] = useState(session?.user?.name || "");
   const [bio, setBio] = useState("");
   const [image, setImage] = useState(session?.user?.image || "");
+  const [country, setCountry] = useState("");
   const [location, setLocation] = useState("");
-  const [canton, setCanton] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [roles, setRoles] = useState<string[]>([]);
+  const [customRole, setCustomRole] = useState("");
+  const [portfolioProjects, setPortfolioProjects] = useState<any[]>([]);
   const [openToMessages, setOpenToMessages] = useState(true);
   const [preferredStage, setPreferredStage] = useState("");
   const [ticketSizeMin, setTicketSizeMin] = useState("");
@@ -25,6 +29,26 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    async function loadProfile() {
+      const res = await fetch("/api/users/me");
+      if (!res.ok) return;
+      const user = await res.json();
+      setName(user.name || "");
+      setBio(user.bio || "");
+      setImage(user.image || "");
+      setCountry(user.country || "");
+      setLocation(user.location || "");
+      setWebsiteUrl(user.websiteUrl || "");
+      setPortfolioUrl(user.portfolioUrl || "");
+      setGithubUrl(user.githubUrl || "");
+      setLinkedinUrl(user.linkedinUrl || "");
+      setRoles(parseRoles(user.roles || "[]"));
+      setPortfolioProjects(Array.isArray(user.portfolioProjects) ? user.portfolioProjects : []);
+    }
+    loadProfile();
+  }, []);
 
   async function handleUpload(file: File) {
     if (!file) return;
@@ -54,11 +78,14 @@ export default function EditProfilePage() {
         name,
         bio,
         image,
+        country,
         location,
-        canton,
+        websiteUrl,
         portfolioUrl,
         githubUrl,
         linkedinUrl,
+        roles,
+        portfolioProjects,
         openToMessages,
         preferredStage,
         ticketSizeMin: ticketSizeMin ? parseInt(ticketSizeMin) : null,
@@ -68,8 +95,8 @@ export default function EditProfilePage() {
 
     if (res.ok) {
       await updateSession();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      router.push(`/profile/${session?.user?.id}`);
+      return;
     }
     setLoading(false);
   }
@@ -136,34 +163,47 @@ export default function EditProfilePage() {
             <p className="mt-1 text-xs text-zinc-400">{bio.length}/280</p>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Roles</label>
+            <p className="mt-1 text-xs text-zinc-500">Choose one or more roles and add custom ones if needed.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {['FOUNDER','PROFESSIONAL','INVESTOR'].map((role) => (
+                <button
+                  type="button"
+                  key={role}
+                  onClick={() => setRoles((prev) => prev.includes(role) ? prev.filter((item) => item !== role) : [...prev, role])}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${roles.includes(role) ? 'border-red-500 bg-red-50 text-red-700' : 'border-zinc-300 text-zinc-700 hover:bg-zinc-50'}`}
+                >
+                  {role}
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {roles.filter((item) => !['FOUNDER','PROFESSIONAL','INVESTOR'].includes(item)).map((item) => (
+                <span key={item} className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">{item}<button type="button" onClick={() => setRoles((prev) => prev.filter((role) => role !== item))} className="text-zinc-400 hover:text-red-500">×</button></span>
+              ))}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <input value={customRole} onChange={(e) => setCustomRole(e.target.value)} placeholder="Add a custom role" className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
+              <button type="button" onClick={() => { const trimmed = customRole.trim(); if (!trimmed || roles.includes(trimmed.toUpperCase())) return; setRoles((prev) => [...prev, trimmed.toUpperCase()]); setCustomRole(''); }} className="rounded-full border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">Add</button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700">City</label>
-              <select
-                value={location}
-                onChange={(e) => {
-                  setLocation(e.target.value);
-                  const found = swissCities().find((c) => c.city === e.target.value);
-                  if (found) setCanton(found.canton);
-                }}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-              >
-                <option value="">Select a city</option>
-                {swissCities().map((c) => (
-                  <option key={c.city} value={c.city}>
-                    {c.city}
-                  </option>
-                ))}
+              <label className="block text-sm font-medium text-zinc-700">Country</label>
+              <select value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                <option value="">Select a country</option>
+                <option value="Switzerland">Switzerland</option>
+                <option value="Germany">Germany</option>
+                <option value="France">France</option>
+                <option value="Italy">Italy</option>
+                <option value="Other">Other</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700">Canton</label>
-              <input
-                type="text"
-                value={canton}
-                readOnly
-                className="mt-1 block w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500"
-              />
+              <label className="block text-sm font-medium text-zinc-700">City</label>
+              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="e.g. Zurich" />
             </div>
           </div>
         </div>
@@ -172,16 +212,12 @@ export default function EditProfilePage() {
           <h2 className="text-sm font-semibold text-zinc-900">Portfolio & Links</h2>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700">
-              Portfolio / Personal website
-            </label>
-            <input
-              type="url"
-              value={portfolioUrl}
-              onChange={(e) => setPortfolioUrl(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-              placeholder="https://"
-            />
+            <label className="block text-sm font-medium text-zinc-700">Personal website</label>
+            <input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Portfolio / CV</label>
+            <input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://" />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">GitHub</label>
@@ -195,13 +231,28 @@ export default function EditProfilePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">LinkedIn</label>
-            <input
-              type="url"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-              placeholder="https://linkedin.com/in/..."
-            />
+            <input type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://linkedin.com/in/..." />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">GitHub / Code</label>
+            <input type="url" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://github.com/..." />
+          </div>
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-zinc-900">Portfolio projects</h3>
+              <button type="button" onClick={() => setPortfolioProjects((prev) => [...prev, { title: '', description: '', link: '' }])} className="inline-flex items-center gap-1 rounded-full border border-zinc-300 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-100"><Plus className="h-3.5 w-3.5" />Add entry</button>
+            </div>
+            {portfolioProjects.map((entry, idx) => (
+              <div key={idx} className="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-zinc-700">Entry {idx + 1}</p>
+                  <button type="button" onClick={() => setPortfolioProjects((prev) => prev.filter((_, index) => index !== idx))} className="text-zinc-400 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
+                <input value={entry.title || ''} onChange={(e) => setPortfolioProjects((prev) => prev.map((item, index) => index === idx ? { ...item, title: e.target.value } : item))} placeholder="Project title" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
+                <textarea value={entry.description || ''} onChange={(e) => setPortfolioProjects((prev) => prev.map((item, index) => index === idx ? { ...item, description: e.target.value } : item))} rows={2} placeholder="Describe the project or achievement" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
+                <input value={entry.link || ''} onChange={(e) => setPortfolioProjects((prev) => prev.map((item, index) => index === idx ? { ...item, link: e.target.value } : item))} placeholder="https://example.com" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
+              </div>
+            ))}
           </div>
         </div>
 

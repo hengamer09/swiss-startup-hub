@@ -141,18 +141,28 @@ export default function SearchPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search projects, skills, people..."
-            className="w-full rounded-lg border border-zinc-300 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-          />
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex flex-1 items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search projects, skills, people..."
+              className="w-full rounded-lg border border-zinc-300 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            />
+          </div>
+          <Link
+            href="/projects/new"
+            className="rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+          >
+            Create project
+          </Link>
         </div>
+
         <button
+          type="button"
           onClick={() => setShowFilters(!showFilters)}
           className={cn(
             "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",

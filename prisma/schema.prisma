@@ -15,6 +15,7 @@ model User {
   image           String?
   bio             String?
   location        String?
+  country         String?
   canton          String?
   roles           String   @default("[\"PROFESSIONAL\"]")
   activityStatus  String   @default("ACTIVE_THIS_WEEK")
@@ -28,7 +29,9 @@ model User {
   ticketSizeMin   Int?
   ticketSizeMax   Int?
   portfolio       String?
+  websiteUrl      String?
   portfolioUrl    String?
+  portfolioProjects Json?
   githubUrl       String?
   linkedinUrl     String?
   openToMessages  Boolean  @default(true)
@@ -55,6 +58,8 @@ model User {
   reports            Report[]       @relation("Reporter")
   eventAttendance    EventAttendee[]
   organizedEvents    Event[]        @relation("EventOrganizer")
+  reviewsGiven       Review[]       @relation("ReviewAuthor")
+  reviewsReceived    Review[]       @relation("ReviewTarget")
 
   @@index([email])
   @@index([location])
@@ -226,6 +231,19 @@ model Message {
   createdAt      DateTime  @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  reviewerId  String
+  reviewer    User     @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+  targetId    String
+  target      User     @relation("ReviewTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  targetType  String
+  rating      Int
+  feedback    String
+  emailSent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 model Rating {

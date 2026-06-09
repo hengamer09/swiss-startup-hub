@@ -19,10 +19,14 @@ export async function PUT(request: Request) {
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.image !== undefined) updateData.image = data.image;
     if (data.location !== undefined) updateData.location = data.location;
+    if (data.country !== undefined) updateData.country = data.country;
     if (data.canton !== undefined) updateData.canton = data.canton;
     if (data.portfolioUrl !== undefined) updateData.portfolioUrl = data.portfolioUrl;
+    if (data.websiteUrl !== undefined) updateData.websiteUrl = data.websiteUrl;
     if (data.githubUrl !== undefined) updateData.githubUrl = data.githubUrl;
     if (data.linkedinUrl !== undefined) updateData.linkedinUrl = data.linkedinUrl;
+    if (data.portfolioProjects !== undefined) updateData.portfolioProjects = data.portfolioProjects;
+    if (data.roles !== undefined) updateData.roles = JSON.stringify(data.roles);
     if (data.openToMessages !== undefined)
       updateData.openToMessages = data.openToMessages;
     if (data.preferredStage !== undefined)
