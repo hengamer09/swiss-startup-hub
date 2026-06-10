@@ -4,6 +4,7 @@ import "./globals.css";
 import SessionProvider from "@/components/layout/SessionProvider";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import FloatingFeedbackButton from "@/components/FloatingFeedbackButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
         </div>
         <SessionProvider>
           <Navbar />
+          <FloatingFeedbackButton />
           <main className="flex-1 flex flex-col">{children}</main>
           <Footer />
         </SessionProvider>

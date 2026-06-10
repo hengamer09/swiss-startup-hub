@@ -190,6 +190,16 @@ export default function ProjectDetail({
               </h2>
               <p className="text-sm text-zinc-600">{project.solution}</p>
             </div>
+            {project.rolesNeeded && (
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <h2 className="text-sm font-semibold text-zinc-900 mb-2">
+                  Who We&apos;re Looking For
+                </h2>
+                <p className="text-sm text-zinc-700 whitespace-pre-wrap">
+                  {project.rolesNeeded}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="mt-6 border-t border-zinc-100 pt-6 space-y-6">
@@ -396,12 +406,13 @@ export default function ProjectDetail({
       {showJoinModal && (
         <JoinModal
           projectId={project.id}
+          projectName={project.name}
           onClose={() => setShowJoinModal(false)}
           onSuccess={() => {
             setShowJoinModal(false);
             setToast({
               open: true,
-              message: "Request sent successfully!",
+              message: "Your request has been sent!",
               tone: "success",
             });
           }}
@@ -439,37 +450,41 @@ export default function ProjectDetail({
 
 function JoinModal({
   projectId,
+  projectName,
   onClose,
   onSuccess,
   onError,
 }: {
   projectId: string;
+  projectName: string;
   onClose: () => void;
   onSuccess: () => void;
   onError: () => void;
 }) {
-  const [motivation, setMotivation] = useState("");
-  const [experience, setExperience] = useState("");
-  const [availability, setAvailability] = useState("FLEXIBLE");
-  const [links, setLinks] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (loading) return;
+    if (loading || !message.trim()) return;
 
     setLoading(true);
     try {
       const res = await fetch("/api/join-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, motivation, experience, availability, links }),
+        // Map single textarea to motivation; use defaults for experience/availability
+        body: JSON.stringify({
+          projectId,
+          motivation: message.trim(),
+          experience: "",
+          availability: "FLEXIBLE",
+        }),
       });
       if (res.ok) {
         onSuccess();
         return;
       }
-
       onError();
     } catch {
       onError();
@@ -481,59 +496,22 @@ function JoinModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl bg-white p-6">
-        <h3 className="text-lg font-semibold text-zinc-900">Request to Join</h3>
+        <h3 className="text-lg font-semibold text-zinc-900">
+          Request to Join {projectName}
+        </h3>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700">
-              Why are you interested? <span className="text-red-500">*</span>
+              Introduce yourself <span className="text-red-500">*</span>
             </label>
             <textarea
               required
-              maxLength={500}
-              value={motivation}
-              onChange={(e) => setMotivation(e.target.value)}
-              rows={3}
+              maxLength={1000}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={5}
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700">
-              What skills do you bring? <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              required
-              maxLength={500}
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              rows={3}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700">
-              Availability <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={availability}
-              onChange={(e) => setAvailability(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-            >
-              <option value="FULL_TIME">Full-time</option>
-              <option value="PART_TIME">Part-time</option>
-              <option value="ADVISORY">Advisory</option>
-              <option value="FLEXIBLE">Flexible</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700">
-              Links (portfolio, GitHub, LinkedIn)
-            </label>
-            <input
-              type="text"
-              value={links}
-              onChange={(e) => setLinks(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-              placeholder="Optional"
+              placeholder="Tell the founder who you are, what you can do, and why you want to join this project..."
             />
           </div>
           <div className="flex gap-3">
@@ -546,10 +524,10 @@ function JoinModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !message.trim()}
               className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
             >
-              {loading ? "Sending..." : "Send Join Request"}
+              {loading ? "Sending..." : "Send Request"}
             </button>
           </div>
         </form>

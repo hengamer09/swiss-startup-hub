@@ -135,6 +135,14 @@ export default function FeedContent({ userId }: { userId: string }) {
                   <p className="mt-2 text-sm text-zinc-600 line-clamp-1">
                     {project.problem}
                   </p>
+                  {project.rolesNeeded && (
+                    <p className="mt-1 text-xs text-zinc-500">
+                      🔍 Looking for:{" "}
+                      {project.rolesNeeded.length > 60
+                        ? project.rolesNeeded.slice(0, 60) + "..."
+                        : project.rolesNeeded}
+                    </p>
+                  )}
                   <div className="mt-2 flex items-center gap-4 text-xs text-zinc-400">
                     <span className="flex items-center gap-1">
                       <Users className="h-3 w-3" />

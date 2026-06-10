@@ -16,7 +16,16 @@ import {
   UserPlus,
   TrendingUp,
   FolderHeart,
+  Calendar,
+  Pencil,
 } from "lucide-react";
+
+// Convert ISO date string to datetime-local input value (local time)
+function toDatetimeLocal(isoString: string): string {
+  const d = new Date(isoString);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 type Tab = "overview" | "applications" | "followers" | "analytics" | "watchlist";
 
@@ -29,12 +38,53 @@ function getRoles(rolesStr: string): string[] {
 }
 
 export default function DashboardContent({ data }: { data: any }) {
-  const { user, followedProjects, myJoinRequests } = data;
+  const { user, followedProjects, myJoinRequests, hostedEvents } = data;
   const projects = user?.ownedProjects || [];
   const roles = getRoles(user?.roles || "[]");
   const isInvestor = roles.includes("INVESTOR");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // State for the hosted-event edit modal
+  const [editingEvent, setEditingEvent] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [editSaving, setEditSaving] = useState(false);
+
+  function openEditEvent(event: any) {
+    setEditingEvent(event);
+    setEditForm({
+      title: event.title,
+      description: event.description,
+      date: toDatetimeLocal(event.date),
+      location: event.location,
+      eventType: event.eventType,
+      maxAttendees: event.maxAttendees ?? "",
+      requireApproval: event.requireApproval ?? false,
+      locationScope: event.locationScope ?? "",
+    });
+  }
+
+  async function handleEditEvent() {
+    if (!editingEvent || editSaving) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/events/${editingEvent.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...editForm,
+          date: new Date(editForm.date).toISOString(),
+          maxAttendees: editForm.maxAttendees !== "" ? Number(editForm.maxAttendees) : null,
+        }),
+      });
+      if (res.ok) {
+        setEditingEvent(null);
+        window.location.reload();
+      }
+    } finally {
+      setEditSaving(false);
+    }
+  }
 
   const handleJoinRequest = useCallback(
     async (requestId: string, status: "APPROVED" | "REJECTED") => {
@@ -243,6 +293,50 @@ export default function DashboardContent({ data }: { data: any }) {
             </div>
           )}
 
+          {/* Your Hosted Events section */}
+          <div>
+            <h2 className="mb-3 text-sm font-semibold text-zinc-700 flex items-center gap-1.5">
+              <Calendar className="h-4 w-4 text-zinc-400" />
+              Your Hosted Events
+            </h2>
+            {!hostedEvents || hostedEvents.length === 0 ? (
+              <p className="text-sm text-zinc-500 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 py-6 text-center">
+                You are not hosting any events yet.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {hostedEvents.map((event: any) => (
+                  <div
+                    key={event.id}
+                    className="rounded-xl border border-zinc-200 bg-white p-4 flex items-start justify-between gap-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-zinc-900 truncate">{event.title}</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        {new Date(event.date).toLocaleDateString("en-CH", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        &middot; {event.location}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-400 line-clamp-2">{event.description}</p>
+                    </div>
+                    <button
+                      onClick={() => openEditEvent(event)}
+                      className="shrink-0 flex items-center gap-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Edit
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {isInvestor && followedProjects?.length > 0 && (
             <div>
               <h2 className="mb-3 text-sm font-semibold text-zinc-700">
@@ -293,12 +387,19 @@ export default function DashboardContent({ data }: { data: any }) {
                           {req.user?.name?.charAt(0) || "?"}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-zinc-900 truncate">
-                            {req.user?.name}
-                          </p>
-                          <p className="text-xs text-zinc-500 line-clamp-1">
-                            {req.motivation}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-zinc-900 truncate">
+                              {req.user?.name}
+                            </p>
+                            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                              Pending
+                            </span>
+                          </div>
+                          {req.motivation && (
+                            <p className="mt-0.5 text-xs text-zinc-500 italic line-clamp-2">
+                              &ldquo;{req.motivation}&rdquo;
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex shrink-0 gap-2">
@@ -442,6 +543,120 @@ export default function DashboardContent({ data }: { data: any }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit event modal */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-xl bg-white p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-zinc-900 mb-4">Edit Event</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-zinc-700">Title</label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700">Description</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={3}
+                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700">Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={editForm.date}
+                  onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700">Location</label>
+                <input
+                  type="text"
+                  value={editForm.location}
+                  onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700">Event Type</label>
+                  <select
+                    value={editForm.eventType}
+                    onChange={(e) => setEditForm({ ...editForm, eventType: e.target.value })}
+                    className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  >
+                    <option value="">Select type</option>
+                    <option>Pitch Night</option>
+                    <option>Workshop</option>
+                    <option>Networking</option>
+                    <option>Hackathon</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700">Scope</label>
+                  <select
+                    value={editForm.locationScope}
+                    onChange={(e) => setEditForm({ ...editForm, locationScope: e.target.value })}
+                    className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  >
+                    <option value="">Select scope</option>
+                    <option>Local</option>
+                    <option>National</option>
+                    <option>International</option>
+                    <option>Online</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 items-center">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700">Max Attendees</label>
+                  <input
+                    type="number"
+                    value={editForm.maxAttendees}
+                    onChange={(e) => setEditForm({ ...editForm, maxAttendees: e.target.value })}
+                    placeholder="No limit"
+                    className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-zinc-700 mt-5">
+                  <input
+                    type="checkbox"
+                    checked={editForm.requireApproval}
+                    onChange={(e) => setEditForm({ ...editForm, requireApproval: e.target.checked })}
+                    className="rounded border-zinc-300"
+                  />
+                  Require approval
+                </label>
+              </div>
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setEditingEvent(null)}
+                className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditEvent}
+                disabled={editSaving}
+                className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+              >
+                {editSaving ? "Saving..." : "Save"}
+              </button>
             </div>
           </div>
         </div>

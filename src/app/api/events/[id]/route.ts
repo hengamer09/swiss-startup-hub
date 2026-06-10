@@ -24,6 +24,39 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  try {
+    const event = await prisma.event.findUnique({ where: { id } });
+    if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
+    if (event.organizerId !== session.user.id) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+
+    const body = await request.json();
+    const { title, description, date, location, eventType, maxAttendees, requireApproval, locationScope } = body;
+
+    const updated = await prisma.event.update({
+      where: { id },
+      data: {
+        ...(title && { title }),
+        ...(description && { description }),
+        ...(date && { date: new Date(date) }),
+        ...(location && { location }),
+        ...(eventType && { eventType }),
+        ...(maxAttendees !== undefined && { maxAttendees: maxAttendees ? Number(maxAttendees) : null }),
+        ...(requireApproval !== undefined && { requireApproval }),
+        ...(locationScope !== undefined && { locationScope: locationScope || null }),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("Event update error:", error);
+    return NextResponse.json({ message: "Failed to update event" }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);

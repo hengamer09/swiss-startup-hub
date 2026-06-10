@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       seriousness,
       teamCompensation,
       logo,
+      rolesNeeded,
     } = data;
 
     const project = await prisma.project.create({
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
         seriousness: seriousness || "SIDE_PROJECT",
         teamCompensation: teamCompensation || "UNPAID",
         logo: logo || null,
+        rolesNeeded: rolesNeeded || null,
         ownerId: userId,
         teamSize: 1,
         members: {

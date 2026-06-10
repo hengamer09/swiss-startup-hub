@@ -25,6 +25,8 @@ export default function NewProjectPage() {
   const [seriousness, setSeriousness] = useState("SERIOUS_STARTUP");
   const [teamCompensation, setTeamCompensation] = useState("PAID");
   const [logo, setLogo] = useState("");
+  const [rolesNeeded, setRolesNeeded] = useState("");
+  const [rolesNeededError, setRolesNeededError] = useState("");
 
   async function handleUpload(file: File) {
     if (!file) return;
@@ -46,6 +48,12 @@ export default function NewProjectPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Validate rolesNeeded separately to show inline error
+    if (!rolesNeeded.trim()) {
+      setRolesNeededError("This field is required");
+      return;
+    }
+    setRolesNeededError("");
     if (!name.trim() || !problem.trim() || !solution.trim() || !industry) {
       setError("Please fill in all required fields");
       return;
@@ -73,6 +81,7 @@ export default function NewProjectPage() {
           seriousness,
           teamCompensation,
           logo,
+          rolesNeeded,
         }),
       });
 
@@ -265,6 +274,25 @@ export default function NewProjectPage() {
             placeholder="How does your startup solve this problem?"
           />
           <p className="mt-1 text-xs text-zinc-400">{solution.length}/500</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700">
+            Who We&apos;re Looking For <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            value={rolesNeeded}
+            onChange={(e) => {
+              setRolesNeeded(e.target.value);
+              if (rolesNeededError && e.target.value.trim()) setRolesNeededError("");
+            }}
+            rows={3}
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            placeholder="e.g. Full-Stack Developer with React experience, UX Designer open to equity..."
+          />
+          {rolesNeededError && (
+            <p className="mt-1 text-xs text-red-500">{rolesNeededError}</p>
+          )}
         </div>
 
         <button

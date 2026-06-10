@@ -5,10 +5,13 @@ import { useSession, signOut } from "next-auth/react";
 import { Mountain, Bell, MessageSquare, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import FeedbackModal from "@/components/FeedbackModal";
 
 export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   const { data: session } = useSession();
   const [unread, setUnread] = useState(0);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackPreselect, setFeedbackPreselect] = useState<"review" | undefined>(undefined);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -51,13 +54,26 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors">
                 Dashboard
               </Link>
+              <button
+                onClick={() => {
+                  setFeedbackPreselect("review");
+                  setFeedbackOpen(true);
+                }}
+                className="text-zinc-600 hover:text-zinc-900 transition-colors"
+              >
+                Prototype
+              </button>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-3">
           <button
-            onClick={onFeedback}
+            onClick={() => {
+              setFeedbackPreselect(undefined);
+              setFeedbackOpen(true);
+              if (onFeedback) onFeedback();
+            }}
             className="rounded-full bg-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-fuchsia-600"
           >
             Feedback
@@ -125,6 +141,11 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
           </button>
         </div>
       </div>
+      <FeedbackModal
+        isOpen={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        preselect={feedbackPreselect}
+      />
     </nav>
   );
 }

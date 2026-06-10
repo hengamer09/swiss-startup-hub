@@ -105,6 +105,8 @@ model Project {
   ownerId String
   owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])
 
+  rolesNeeded     String?
+
   investorPitch   String?
   fundingAmount   Int?
   useOfFunds      String?

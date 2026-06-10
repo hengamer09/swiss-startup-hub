@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const userId = session.user.id;
 
-  const [user, followedProjects, myJoinRequests] = await Promise.all([
+  const [user, followedProjects, myJoinRequests, hostedEvents] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -44,9 +44,13 @@ export default async function DashboardPage() {
       },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.event.findMany({
+      where: { organizerId: userId },
+      orderBy: { date: "asc" },
+    }),
   ]);
 
-  const serialized = JSON.parse(JSON.stringify({ user, followedProjects, myJoinRequests }));
+  const serialized = JSON.parse(JSON.stringify({ user, followedProjects, myJoinRequests, hostedEvents }));
 
   return <DashboardContent data={serialized} />;
 }
