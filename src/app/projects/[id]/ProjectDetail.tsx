@@ -3,7 +3,6 @@
 import {
   MapPin,
   Users,
-  UserPlus,
   MessageSquare,
   Star,
   ChevronDown,
@@ -31,7 +30,11 @@ export default function ProjectDetail({
   const [posts, setPosts] = useState<any[]>([]);
   const [postDraft, setPostDraft] = useState("");
   const [posting, setPosting] = useState(false);
-  const [toast, setToast] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+  const [toast, setToast] = useState<{
+    open: boolean;
+    message: string;
+    tone: "success" | "error";
+  }>({ open: false, message: "", tone: "success" });
 
   useEffect(() => {
     if (!toast.open) return;
@@ -378,7 +381,14 @@ export default function ProjectDetail({
       </div>
 
       {toast.open && (
-        <div className="fixed bottom-4 right-4 z-[60] rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-lg">
+        <div
+          className={cn(
+            "fixed bottom-4 right-4 z-[60] rounded-xl border px-4 py-3 text-sm shadow-lg",
+            toast.tone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          )}
+        >
           {toast.message}
         </div>
       )}
@@ -389,7 +399,18 @@ export default function ProjectDetail({
           onClose={() => setShowJoinModal(false)}
           onSuccess={() => {
             setShowJoinModal(false);
-            setToast({ open: true, message: "Request sent successfully" });
+            setToast({
+              open: true,
+              message: "Request sent successfully!",
+              tone: "success",
+            });
+          }}
+          onError={() => {
+            setToast({
+              open: true,
+              message: "Something went wrong. Please try again.",
+              tone: "error",
+            });
           }}
         />
       )}
@@ -420,10 +441,12 @@ function JoinModal({
   projectId,
   onClose,
   onSuccess,
+  onError,
 }: {
   projectId: string;
   onClose: () => void;
   onSuccess: () => void;
+  onError: () => void;
 }) {
   const [motivation, setMotivation] = useState("");
   const [experience, setExperience] = useState("");
@@ -433,18 +456,26 @@ function JoinModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    const res = await fetch("/api/join-requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId, motivation, experience, availability, links }),
-    });
-    if (res.ok) {
-      onSuccess();
-      return;
-    }
+    if (loading) return;
 
-    setLoading(false);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/join-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, motivation, experience, availability, links }),
+      });
+      if (res.ok) {
+        onSuccess();
+        return;
+      }
+
+      onError();
+    } catch {
+      onError();
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -518,7 +549,7 @@ function JoinModal({
               disabled={loading}
               className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
             >
-              {loading ? "Sending..." : "Send Request"}
+              {loading ? "Sending..." : "Send Join Request"}
             </button>
           </div>
         </form>

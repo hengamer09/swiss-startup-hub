@@ -4,6 +4,56 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 
+type Recipient = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatAvailability(value: string) {
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function buildJoinRequestMessage({
+  requesterName,
+  projectName,
+  motivation,
+  experience,
+  availability,
+  links,
+}: {
+  requesterName: string;
+  projectName: string;
+  motivation: string;
+  experience: string;
+  availability: string;
+  links: string | null;
+}) {
+  return [
+    `New join request for ${projectName}`,
+    "",
+    `Name: ${requesterName}`,
+    `Project: ${projectName}`,
+    `Motivation: ${motivation}`,
+    `Experience: ${experience}`,
+    `Availability: ${formatAvailability(availability)}`,
+    links ? `Links: ${links}` : "Links: None provided",
+  ].join("\n");
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
@@ -14,7 +64,12 @@ export async function POST(request: Request) {
     const { projectId, motivation, experience, availability, links } =
       await request.json();
 
-    if (!projectId || !motivation?.trim() || !experience?.trim()) {
+    const trimmedMotivation = motivation?.trim();
+    const trimmedExperience = experience?.trim();
+    const trimmedAvailability = availability?.trim() || "FLEXIBLE";
+    const trimmedLinks = links?.trim() || null;
+
+    if (!projectId || !trimmedMotivation || !trimmedExperience) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
@@ -53,17 +108,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const joinRequest = await prisma.joinRequest.create({
-      data: {
-        userId: session.user.id,
-        projectId,
-        motivation: motivation.trim(),
-        experience: experience.trim(),
-        availability: availability?.trim() || "",
-        links: links?.trim() || null,
-      },
-    });
-
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -72,60 +116,116 @@ export async function POST(request: Request) {
       },
     });
 
-    if (project) {
-      const requesterName = session.user.name || "Someone";
-      const projectLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/projects/${project.id}`;
-      const recipients = [project.owner, ...project.members.map((member) => member.user)]
-        .filter(
-          (user): user is { id: string; name: string; email: string } =>
-            Boolean(user) && user.id !== session.user.id
-        )
-        .filter((user, index, list) => list.findIndex((item) => item.id === user.id) === index);
+    if (!project) {
+      return NextResponse.json(
+        { message: "Project not found" },
+        { status: 404 }
+      );
+    }
+
+    const requesterName = session.user.name || "Someone";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const projectPath = `/projects/${project.id}`;
+    const projectLink = `${appUrl}${projectPath}`;
+    const recipients = [project.owner, ...project.members.map((member) => member.user)]
+      .filter(
+        (user): user is Recipient =>
+          Boolean(user) && user.id !== session.user.id
+      )
+      .filter(
+        (user, index, list) =>
+          list.findIndex((item) => item.id === user.id) === index
+      );
+    const messageContent = buildJoinRequestMessage({
+      requesterName,
+      projectName: project.name,
+      motivation: trimmedMotivation,
+      experience: trimmedExperience,
+      availability: trimmedAvailability,
+      links: trimmedLinks,
+    });
+
+    const joinRequest = await prisma.$transaction(async (tx) => {
+      const created = await tx.joinRequest.create({
+        data: {
+          userId: session.user.id,
+          projectId,
+          motivation: trimmedMotivation,
+          experience: trimmedExperience,
+          availability: trimmedAvailability,
+          links: trimmedLinks,
+        },
+      });
 
       if (recipients.length > 0) {
-        await prisma.notification.createMany({
+        await tx.notification.createMany({
           data: recipients.map((user) => ({
             userId: user.id,
             type: "join_request",
             content: `${requesterName} requested to join ${project.name}.`,
-            link: projectLink,
+            link: projectPath,
           })),
         });
 
         await Promise.all(
           recipients.map(async (user) => {
-            if (!user.email) return;
-
-            await sendEmail({
-              to: user.email,
-              subject: `${requesterName} wants to join ${project.name}`,
-              text: [
-                `Hi ${user.name || "there"},`,
-                `${requesterName} requested to join ${project.name}.`,
-                `Message: ${motivation.trim()}`,
-                `Experience: ${experience.trim()}`,
-                `Availability: ${availability?.trim() || "Flexible"}`,
-                links?.trim() ? `Links: ${links.trim()}` : undefined,
-                `Project link: ${projectLink}`,
-              ]
-                .filter(Boolean)
-                .join("\n\n"),
-              html: `
-                <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #18181b;">
-                  <p>Hi ${user.name || "there"},</p>
-                  <p><strong>${requesterName}</strong> requested to join <strong>${project.name}</strong>.</p>
-                  <p><strong>Motivation:</strong> ${motivation.trim()}</p>
-                  <p><strong>Experience:</strong> ${experience.trim()}</p>
-                  <p><strong>Availability:</strong> ${availability?.trim() || "Flexible"}</p>
-                  ${links?.trim() ? `<p><strong>Links:</strong> ${links.trim()}</p>` : ""}
-                  <p><a href="${projectLink}" style="color:#dc2626;">View the project</a></p>
-                </div>
-              `,
+            await tx.conversation.create({
+              data: {
+                projectId: project.id,
+                participants: {
+                  create: [
+                    { userId: session.user.id },
+                    { userId: user.id },
+                  ],
+                },
+                messages: {
+                  create: {
+                    senderId: session.user.id,
+                    receiverId: user.id,
+                    content: messageContent,
+                  },
+                },
+              },
             });
           })
         );
       }
-    }
+
+      return created;
+    });
+
+    await Promise.allSettled(
+      recipients.map(async (user) => {
+        if (!user.email) return;
+
+        const emailText = [
+          `Hi ${user.name || "there"},`,
+          "",
+          messageContent,
+          "",
+          `Project link: ${projectLink}`,
+        ].join("\n");
+
+        await sendEmail({
+          to: user.email,
+          subject: `New join request for ${project.name}`,
+          text: emailText,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #18181b;">
+              <p>Hi ${escapeHtml(user.name || "there")},</p>
+              <p><strong>New join request for ${escapeHtml(project.name)}</strong></p>
+              <p><strong>Name:</strong> ${escapeHtml(requesterName)}</p>
+              <p><strong>Project:</strong> ${escapeHtml(project.name)}</p>
+              <p><strong>Motivation:</strong> ${escapeHtml(trimmedMotivation)}</p>
+              <p><strong>Experience:</strong> ${escapeHtml(trimmedExperience)}</p>
+              <p><strong>Availability:</strong> ${escapeHtml(formatAvailability(trimmedAvailability))}</p>
+              <p><strong>Links:</strong> ${escapeHtml(trimmedLinks || "None provided")}</p>
+              <p><a href="${escapeHtml(projectLink)}" style="color:#dc2626;">View the project</a></p>
+            </div>
+          `,
+        });
+      })
+    );
 
     return NextResponse.json(joinRequest, { status: 201 });
   } catch (error) {

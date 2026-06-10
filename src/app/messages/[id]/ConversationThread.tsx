@@ -144,7 +144,7 @@ export default function ConversationThread({
                       : "bg-zinc-100 text-zinc-800 rounded-bl-md"
                   )}
                 >
-                  <p>{msg.content}</p>
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
                   <p
                     className={cn(
                       "mt-1 text-right text-xs",
