@@ -165,6 +165,7 @@ model JoinRequest {
   availability String
   links        String?
   status       String   @default("PENDING")
+  founderReply String?
   createdAt    DateTime @default(now())
   reviewedAt   DateTime?
 

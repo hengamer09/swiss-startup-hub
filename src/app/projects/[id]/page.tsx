@@ -9,32 +9,58 @@ export default async function ProjectPage(props: {
 }) {
   const { id } = await props.params;
   const session = await getServerSession(authOptions);
+  const userId = (session?.user as { id: string })?.id || null;
 
-  const project = await prisma.project.findUnique({
-    where: { id },
-    include: {
-      owner: { select: { id: true, name: true, image: true } },
-      members: {
-        include: {
-          user: {
-            select: { id: true, name: true, image: true, identityVerified: true },
+  const [project, myRequest] = await Promise.all([
+    prisma.project.findUnique({
+      where: { id },
+      include: {
+        owner: { select: { id: true, name: true, image: true } },
+        members: {
+          include: {
+            user: {
+              select: { id: true, name: true, image: true, identityVerified: true },
+            },
           },
         },
+        openRoles: true,
+        faqs: { orderBy: { order: "asc" } },
+        _count: { select: { followers: true } },
+        // Fetch pending requests for the founder
+        joinRequests: {
+          where: { status: "PENDING" },
+          include: {
+            user: { select: { id: true, name: true, image: true } },
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
-      openRoles: true,
-      faqs: { orderBy: { order: "asc" } },
-      _count: { select: { followers: true } },
-    },
-  });
+    }),
+    userId
+      ? prisma.joinRequest.findFirst({
+          where: { userId, projectId: id },
+          select: { id: true, status: true },
+        })
+      : Promise.resolve(null),
+  ]);
 
   if (!project) notFound();
 
-  const serialized = JSON.parse(JSON.stringify(project));
+  // Only expose pending requests to the project owner
+  const isOwner = userId === project.ownerId;
+  const { joinRequests, ...projectWithoutRequests } = project;
+  const pendingRequests = isOwner ? joinRequests : [];
+
+  const serialized = JSON.parse(
+    JSON.stringify({ project: projectWithoutRequests, pendingRequests, myRequest })
+  );
 
   return (
     <ProjectDetail
-      project={serialized}
-      userId={(session?.user as { id: string })?.id || null}
+      project={serialized.project}
+      pendingRequests={serialized.pendingRequests}
+      myRequest={serialized.myRequest}
+      userId={userId}
     />
   );
 }

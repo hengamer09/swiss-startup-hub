@@ -8,6 +8,9 @@ import {
   ChevronDown,
   ChevronRight,
   Settings,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -16,11 +19,18 @@ import RateUserModal from "@/components/projects/RateUserModal";
 
 export default function ProjectDetail({
   project,
+  pendingRequests: initialPendingRequests,
+  myRequest,
   userId,
 }: {
   project: any;
+  pendingRequests: any[];
+  myRequest: { id: string; status: string } | null;
   userId: string | null;
 }) {
+  const isOwner = userId === project.owner?.id;
+  const isMember = project.members?.some((m: any) => m.user.id === userId);
+
   const [followed, setFollowed] = useState(false);
   const [followerCount, setFollowerCount] = useState(project._count?.followers || 0);
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -36,13 +46,18 @@ export default function ProjectDetail({
     tone: "success" | "error";
   }>({ open: false, message: "", tone: "success" });
 
+  // Join request state
+  const [hasApplied, setHasApplied] = useState(!!myRequest);
+  const [pendingRequests, setPendingRequests] = useState<any[]>(initialPendingRequests || []);
+  // Reply text per request id
+  const [replies, setReplies] = useState<Record<string, string>>({});
+  const [processingId, setProcessingId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!toast.open) return;
-
     const timer = window.setTimeout(() => {
       setToast((current) => ({ ...current, open: false }));
-    }, 3000);
-
+    }, 4000);
     return () => window.clearTimeout(timer);
   }, [toast.open]);
 
@@ -54,7 +69,6 @@ export default function ProjectDetail({
         setPosts(data);
       }
     }
-
     loadPosts();
   }, [project.id]);
 
@@ -74,7 +88,6 @@ export default function ProjectDetail({
       setPosts((prev) => [post, ...prev]);
       setPostDraft("");
     }
-
     setPosting(false);
   }
 
@@ -89,10 +102,54 @@ export default function ProjectDetail({
     }
   }
 
+  async function handleDecision(requestId: string, status: "APPROVED" | "REJECTED") {
+    const reply = replies[requestId]?.trim();
+    if (!reply) {
+      setToast({
+        open: true,
+        message: status === "APPROVED"
+          ? "Please write a role/message before accepting."
+          : "Please write a reason before declining.",
+        tone: "error",
+      });
+      return;
+    }
+
+    setProcessingId(requestId);
+    try {
+      const res = await fetch(`/api/join-requests/${requestId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, reply }),
+      });
+
+      if (res.ok) {
+        setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+        setToast({
+          open: true,
+          message: status === "APPROVED"
+            ? "Applicant accepted and added to the team!"
+            : "Request declined.",
+          tone: "success",
+        });
+      } else {
+        const data = await res.json();
+        setToast({
+          open: true,
+          message: data.message || "Something went wrong. Please try again.",
+          tone: "error",
+        });
+      }
+    } finally {
+      setProcessingId(null);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-xl border border-zinc-200 bg-white">
         <div className="p-6 sm:p-8">
+          {/* Header */}
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-zinc-100 text-xl font-bold text-zinc-600 shrink-0">
@@ -131,7 +188,8 @@ export default function ProjectDetail({
               >
                 {followed ? "Following" : "Follow"}
               </button>
-              {userId && project.owner.id === userId && (
+
+              {isOwner && (
                 <Link
                   href={`/projects/${project.id}/edit`}
                   className="inline-flex items-center justify-center gap-1 rounded-full border border-zinc-300 px-4 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
@@ -139,22 +197,36 @@ export default function ProjectDetail({
                   <Settings className="h-3 w-3" /> Edit
                 </Link>
               )}
-              {userId && (
-                <>
+
+              {/* Join button — hidden for owner and existing members */}
+              {userId && !isOwner && !isMember && (
+                hasApplied ? (
+                  <button
+                    disabled
+                    className="flex items-center gap-1.5 rounded-full border border-zinc-300 bg-zinc-50 px-4 py-1.5 text-xs font-medium text-zinc-400 cursor-not-allowed"
+                  >
+                    <Clock className="h-3 w-3" />
+                    Request pending
+                  </button>
+                ) : (
                   <button
                     onClick={() => setShowJoinModal(true)}
                     className="rounded-full bg-red-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-600 transition-colors"
                   >
                     Request to Join
                   </button>
-                  <button
-                    onClick={() => setShowAskModal(true)}
-                    className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
-                  >
-                    Message Founder
-                  </button>
-                </>
+                )
               )}
+
+              {userId && (
+                <button
+                  onClick={() => setShowAskModal(true)}
+                  className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
+                >
+                  Message Founder
+                </button>
+              )}
+
               {!userId && (
                 <Link
                   href="/auth/signin"
@@ -177,17 +249,14 @@ export default function ProjectDetail({
             </span>
           </div>
 
+          {/* Problem / Solution / Roles */}
           <div className="mt-6 border-t border-zinc-100 pt-6 space-y-6">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-900 mb-1">
-                The Problem
-              </h2>
+              <h2 className="text-sm font-semibold text-zinc-900 mb-1">The Problem</h2>
               <p className="text-sm text-zinc-600">{project.problem}</p>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-zinc-900 mb-1">
-                The Solution
-              </h2>
+              <h2 className="text-sm font-semibold text-zinc-900 mb-1">The Solution</h2>
               <p className="text-sm text-zinc-600">{project.solution}</p>
             </div>
             {project.rolesNeeded && (
@@ -202,6 +271,75 @@ export default function ProjectDetail({
             )}
           </div>
 
+          {/* Pending Requests — founder only */}
+          {isOwner && pendingRequests.length > 0 && (
+            <div className="mt-6 border-t border-zinc-100 pt-6">
+              <h2 className="mb-3 text-sm font-semibold text-zinc-900 flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
+                  {pendingRequests.length}
+                </span>
+                Pending Join Requests
+              </h2>
+              <div className="space-y-4">
+                {pendingRequests.map((req: any) => (
+                  <div
+                    key={req.id}
+                    className="rounded-xl border border-amber-200 bg-amber-50 p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold text-zinc-600">
+                        {req.user?.name?.charAt(0) || "?"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/profile/${req.user?.id}`}
+                          className="font-medium text-zinc-900 hover:text-red-500 transition-colors"
+                        >
+                          {req.user?.name}
+                        </Link>
+                        <p className="mt-1 text-sm text-zinc-600 whitespace-pre-wrap">
+                          {req.motivation}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        value={replies[req.id] || ""}
+                        onChange={(e) =>
+                          setReplies((prev) => ({ ...prev, [req.id]: e.target.value }))
+                        }
+                        placeholder="Role for acceptance / reason for declining (required)"
+                        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                      />
+                    </div>
+
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => handleDecision(req.id, "APPROVED")}
+                        disabled={processingId === req.id}
+                        className="flex items-center gap-1.5 rounded-full bg-green-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50 transition-colors"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleDecision(req.id, "REJECTED")}
+                        disabled={processingId === req.id}
+                        className="flex items-center gap-1.5 rounded-full border border-zinc-300 px-4 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 transition-colors"
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Discussion Board */}
           <div className="mt-6 border-t border-zinc-100 pt-6 space-y-6">
             <section className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
@@ -209,7 +347,9 @@ export default function ProjectDetail({
                   <h2 className="text-sm font-semibold text-zinc-900">Public Chat / Discussion Board</h2>
                   <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
                 </div>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">Live discussion</span>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+                  Live discussion
+                </span>
               </div>
 
               {userId ? (
@@ -241,7 +381,9 @@ export default function ProjectDetail({
 
               <div className="space-y-3">
                 {posts.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500">No discussion posts yet. Be the first to start the conversation.</div>
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500">
+                    No discussion posts yet. Be the first to start the conversation.
+                  </div>
                 ) : (
                   posts.map((post: any) => (
                     <article key={post.id} className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -255,8 +397,12 @@ export default function ProjectDetail({
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-semibold text-zinc-900">{post.author?.name || "Anonymous"}</span>
-                            <span className="text-xs text-zinc-400">{new Date(post.createdAt).toLocaleString()}</span>
+                            <span className="text-sm font-semibold text-zinc-900">
+                              {post.author?.name || "Anonymous"}
+                            </span>
+                            <span className="text-xs text-zinc-400">
+                              {new Date(post.createdAt).toLocaleString()}
+                            </span>
                           </div>
                           <p className="mt-1 text-sm text-zinc-600 whitespace-pre-wrap">{post.content}</p>
                         </div>
@@ -270,7 +416,9 @@ export default function ProjectDetail({
             <section className="rounded-xl border border-zinc-200 bg-white p-4">
               <div className="mb-2">
                 <h2 className="text-sm font-semibold text-zinc-900">Private Chat</h2>
-                <p className="text-xs text-zinc-500">Use the founder message option to open a private conversation in your inbox.</p>
+                <p className="text-xs text-zinc-500">
+                  Use the founder message option to open a private conversation in your inbox.
+                </p>
               </div>
               <button
                 onClick={() => setShowAskModal(true)}
@@ -281,6 +429,7 @@ export default function ProjectDetail({
             </section>
           </div>
 
+          {/* Team */}
           {project.members?.length > 0 && (
             <div className="mt-6 border-t border-zinc-100 pt-6">
               <h2 className="text-sm font-semibold text-zinc-900 mb-3">Team</h2>
@@ -301,9 +450,7 @@ export default function ProjectDetail({
                         {m.user.name}
                       </Link>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-zinc-400">
-                          {m.roleTitle}
-                        </span>
+                        <span className="text-xs text-zinc-400">{m.roleTitle}</span>
                         {m.isFounder && (
                           <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
                             Founder
@@ -332,11 +479,10 @@ export default function ProjectDetail({
             </div>
           )}
 
+          {/* Open Roles */}
           {project.openRoles?.length > 0 && (
             <div className="mt-6 border-t border-zinc-100 pt-6">
-              <h2 className="text-sm font-semibold text-zinc-900 mb-3">
-                Open Roles
-              </h2>
+              <h2 className="text-sm font-semibold text-zinc-900 mb-3">Open Roles</h2>
               <div className="space-y-2">
                 {project.openRoles.map((role: any) => (
                   <div
@@ -344,22 +490,19 @@ export default function ProjectDetail({
                     className="rounded-lg border border-zinc-200 p-3 text-sm"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-zinc-900">
-                        {role.title}
-                      </span>
+                      <span className="font-medium text-zinc-900">{role.title}</span>
                       <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-600">
                         {role.commitment}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {role.description}
-                    </p>
+                    <p className="mt-1 text-xs text-zinc-500">{role.description}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
+          {/* FAQ */}
           {project.faqs?.length > 0 && (
             <div className="mt-6 border-t border-zinc-100 pt-6">
               <h2 className="text-sm font-semibold text-zinc-900 mb-3">FAQ</h2>
@@ -390,6 +533,7 @@ export default function ProjectDetail({
         </div>
       </div>
 
+      {/* Toast */}
       {toast.open && (
         <div
           className={cn(
@@ -403,6 +547,7 @@ export default function ProjectDetail({
         </div>
       )}
 
+      {/* Modals */}
       {showJoinModal && (
         <JoinModal
           projectId={project.id}
@@ -410,16 +555,18 @@ export default function ProjectDetail({
           onClose={() => setShowJoinModal(false)}
           onSuccess={() => {
             setShowJoinModal(false);
+            setHasApplied(true);
             setToast({
               open: true,
               message: "Your request has been sent!",
               tone: "success",
             });
           }}
-          onError={() => {
+          onError={(msg) => {
+            setShowJoinModal(false);
             setToast({
               open: true,
-              message: "Something went wrong. Please try again.",
+              message: msg || "Something went wrong. Please try again.",
               tone: "error",
             });
           }}
@@ -459,7 +606,7 @@ function JoinModal({
   projectName: string;
   onClose: () => void;
   onSuccess: () => void;
-  onError: () => void;
+  onError: (msg?: string) => void;
 }) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -473,7 +620,6 @@ function JoinModal({
       const res = await fetch("/api/join-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Map single textarea to motivation; use defaults for experience/availability
         body: JSON.stringify({
           projectId,
           motivation: message.trim(),
@@ -485,7 +631,8 @@ function JoinModal({
         onSuccess();
         return;
       }
-      onError();
+      const data = await res.json().catch(() => ({}));
+      onError(data.message);
     } catch {
       onError();
     } finally {
@@ -513,6 +660,7 @@ function JoinModal({
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
               placeholder="Tell the founder who you are, what you can do, and why you want to join this project..."
             />
+            <p className="mt-1 text-xs text-zinc-400">{message.length}/1000</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -571,12 +719,8 @@ function AskModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <div className="w-full max-w-md rounded-xl bg-white p-6 text-center">
           <MessageSquare className="mx-auto h-10 w-10 text-green-500" />
-          <h3 className="mt-3 text-lg font-semibold text-zinc-900">
-            Message sent!
-          </h3>
-          <p className="mt-1 text-sm text-zinc-500">
-            The founder will get back to you.
-          </p>
+          <h3 className="mt-3 text-lg font-semibold text-zinc-900">Message sent!</h3>
+          <p className="mt-1 text-sm text-zinc-500">The founder will get back to you.</p>
           <button
             onClick={onClose}
             className="mt-4 rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
@@ -591,14 +735,10 @@ function AskModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl bg-white p-6">
-        <h3 className="text-lg font-semibold text-zinc-900">
-          Ask the Founder
-        </h3>
+        <h3 className="text-lg font-semibold text-zinc-900">Ask the Founder</h3>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-700">
-              Your question
-            </label>
+            <label className="block text-sm font-medium text-zinc-700">Your question</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}

@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     const trimmedAvailability = availability?.trim() || "FLEXIBLE";
     const trimmedLinks = links?.trim() || null;
 
-    if (!projectId || !trimmedMotivation || !trimmedExperience) {
+    if (!projectId || !trimmedMotivation) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
