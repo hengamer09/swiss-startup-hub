@@ -50,6 +50,7 @@ model User {
   sentMessages       Message[]      @relation("SentMessages")
   receivedMessages   Message[]      @relation("ReceivedMessages")
   projectPosts       ProjectPost[]
+  eventPosts         EventPost[]
   conversations      ConversationParticipant[]
   ratingsGiven       Rating[]       @relation("RatingsGiven")
   ratingsReceived    Rating[]       @relation("RatingsReceived")
@@ -309,9 +310,22 @@ model Event {
   image       String?
 
   attendees EventAttendee[]
+  posts     EventPost[]
   maxAttendees Int?
   requireApproval Boolean @default(false)
   locationScope String? // Local / National / International / Online
+}
+
+model EventPost {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([eventId, createdAt])
 }
 
 model EventAttendee {
@@ -321,6 +335,7 @@ model EventAttendee {
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   intention String
+  createdAt DateTime @default(now())
 
   @@unique([eventId, userId])
 }

@@ -1,192 +1,481 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { MessageSquare, Send, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function EventDetail({ event, userId }: { event: any; userId: string | null }) {
-  const [statusMap, setStatusMap] = useState<Record<string,string>>({});
+type Toast = {
+  open: boolean;
+  message: string;
+  tone: "success" | "error";
+};
 
-  const registered = event.attendees?.find((a: any) => a.userId === userId);
-  const spotsRemaining = event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees?.length || 0)) : null;
+function parseIntention(intention: string) {
+  try {
+    return JSON.parse(intention || "{}") as { message?: string };
+  } catch {
+    return {};
+  }
+}
 
-  const submitRegistration = async (regType: string, data: any) => {
-    const res = await fetch(`/api/events/${event.id}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regType, data }) });
-    if (res.ok) {
-      const d = await res.json();
-      alert("Registration submitted: " + d.status);
-      setStatusMap((s) => ({ ...s, [regType]: d.status }));
-      location.reload();
-    } else {
-      const err = await res.json();
-      alert(err.message || "Failed to register");
+function getPrimaryRole(roles: string) {
+  try {
+    const parsed = JSON.parse(roles || "[]") as string[];
+    const role = parsed.find((item) =>
+      ["INVESTOR", "FOUNDER", "PROFESSIONAL"].includes(item)
+    );
+    if (!role) return "Professional";
+    return role.charAt(0) + role.slice(1).toLowerCase();
+  } catch {
+    return "Professional";
+  }
+}
+
+function formatTime(date: string) {
+  return new Date(date).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export default function EventDetail({
+  event,
+  userId,
+}: {
+  event: any;
+  userId: string | null;
+}) {
+  const registered = event.attendees?.find((attendee: any) => attendee.userId === userId);
+  const spotsRemaining = event.maxAttendees
+    ? Math.max(0, event.maxAttendees - (event.attendees?.length || 0))
+    : null;
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [registerMessage, setRegisterMessage] = useState("");
+  const [registering, setRegistering] = useState(false);
+  const [attendees, setAttendees] = useState<any[]>(event.attendees || []);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postDraft, setPostDraft] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [showHostMessage, setShowHostMessage] = useState(false);
+  const [toast, setToast] = useState<Toast>({
+    open: false,
+    message: "",
+    tone: "success",
+  });
+
+  useEffect(() => {
+    if (!toast.open) return;
+
+    const timer = window.setTimeout(() => {
+      setToast((current) => ({ ...current, open: false }));
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [toast.open]);
+
+  useEffect(() => {
+    async function loadPosts() {
+      const res = await fetch(`/api/events/${event.id}/posts`);
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data);
+      }
     }
-  };
+
+    loadPosts();
+  }, [event.id]);
+
+  async function submitRegistration(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userId || registering) return;
+
+    setRegistering(true);
+    try {
+      const res = await fetch(`/api/events/${event.id}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: registerMessage }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAttendees((current) => [data.attendee, ...current]);
+        setShowRegisterForm(false);
+        setRegisterMessage("");
+        setToast({
+          open: true,
+          message: "You have been added to the attendee list!",
+          tone: "success",
+        });
+        return;
+      }
+
+      setToast({
+        open: true,
+        message: "Something went wrong. Please try again.",
+        tone: "error",
+      });
+    } catch {
+      setToast({
+        open: true,
+        message: "Something went wrong. Please try again.",
+        tone: "error",
+      });
+    } finally {
+      setRegistering(false);
+    }
+  }
+
+  async function submitPost(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userId || posting || !postDraft.trim()) return;
+
+    setPosting(true);
+    const res = await fetch(`/api/events/${event.id}/posts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: postDraft.trim() }),
+    });
+
+    if (res.ok) {
+      const post = await res.json();
+      setPosts((current) => [post, ...current]);
+      setPostDraft("");
+    }
+
+    setPosting(false);
+  }
+
+  const isFull = spotsRemaining === 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8">
       <div className="mb-4">
         <h1 className="text-2xl font-semibold text-zinc-900">{event.title}</h1>
-        <p className="text-sm text-zinc-500">Hosted by <Link href="/profile">{event.organizer?.name}</Link></p>
+        <p className="text-sm text-zinc-500">
+          Hosted by{" "}
+          <Link href={`/profile/${event.organizer?.id}`} className="font-medium text-red-500 hover:underline">
+            {event.organizer?.name}
+          </Link>
+        </p>
       </div>
 
       <div className="rounded-xl border border-zinc-200 bg-white p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium">{event.eventType}</span>
-              <span className="text-sm text-zinc-600">{new Date(event.date).toLocaleString()}</span>
-              <span className="ml-2 text-sm text-zinc-600">{event.location}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium">
+                {event.eventType}
+              </span>
+              <span className="text-sm text-zinc-600">
+                {new Date(event.date).toLocaleString()}
+              </span>
+              <span className="text-sm text-zinc-600">{event.location}</span>
             </div>
             <p className="mt-4 text-sm text-zinc-700">{event.description}</p>
           </div>
-          <div className="shrink-0 w-48">
-            <div className="text-sm text-zinc-500">Spots</div>
-            <div className="mt-1 text-lg font-medium text-zinc-900">{event.maxAttendees ?? "—"}</div>
-            {spotsRemaining !== null && <div className="text-xs text-zinc-500">{spotsRemaining} remaining</div>}
+          <div className="shrink-0 rounded-lg border border-zinc-200 px-4 py-3 text-sm">
+            <div className="text-zinc-500">Spots</div>
+            <div className="mt-1 text-lg font-semibold text-zinc-900">
+              {event.maxAttendees ?? "Open"}
+            </div>
+            {spotsRemaining !== null && (
+              <div className="text-xs text-zinc-500">{spotsRemaining} remaining</div>
+            )}
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-3">
-          {!registered && spotsRemaining === 0 ? (
-            <div className="rounded-full bg-zinc-100 px-4 py-2 text-center text-sm text-zinc-500">Event Full</div>
-          ) : registered ? (
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">{JSON.parse(registered.intention || "{}").status || "Registered"}</div>
-              <button className="text-sm text-zinc-500">Cancel registration</button>
+        <div className="mt-6 flex flex-wrap gap-3 border-t border-zinc-100 pt-5">
+          {!userId ? (
+            <Link
+              href="/auth/signin"
+              className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600"
+            >
+              Sign in to attend
+            </Link>
+          ) : registered || attendees.some((attendee) => attendee.userId === userId) ? (
+            <div className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
+              You are on the attendee list
+            </div>
+          ) : isFull ? (
+            <div className="rounded-full bg-zinc-100 px-4 py-2 text-sm text-zinc-500">
+              Event Full
             </div>
           ) : (
-            <div className="space-y-2">
-              <RegisterWithIdea onSubmit={(data:any)=>submitRegistration('idea', data)} />
-              <RegisterToAttend onSubmit={(data:any)=>submitRegistration('attendee', data)} />
-              <RegisterAsInvestor onSubmit={(data:any)=>submitRegistration('investor', data)} />
-            </div>
+            <button
+              onClick={() => setShowRegisterForm((current) => !current)}
+              className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600"
+            >
+              Request to Attend
+            </button>
+          )}
+
+          {userId && event.organizerId !== userId && (
+            <button
+              onClick={() => setShowHostMessage(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Message Host
+            </button>
           )}
         </div>
 
-        {/* Host manage panel */}
+        {showRegisterForm && (
+          <form onSubmit={submitRegistration} className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <label className="block text-sm font-medium text-zinc-700">
+              Anything you want the host to know?
+            </label>
+            <textarea
+              value={registerMessage}
+              onChange={(e) => setRegisterMessage(e.target.value)}
+              maxLength={500}
+              rows={3}
+              className="mt-2 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              placeholder="Optional"
+            />
+            <div className="mt-3 flex justify-end">
+              <button
+                type="submit"
+                disabled={registering}
+                className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+              >
+                {registering ? "Sending..." : "Send Request"}
+              </button>
+            </div>
+          </form>
+        )}
+
         {userId && event.organizerId === userId && (
-          <div className="mt-8">
-            <h3 className="text-sm font-semibold text-zinc-900">Manage Registrations</h3>
-            <ManageRegistrations eventId={event.id} attendees={event.attendees} />
-          </div>
+          <section className="mt-8 border-t border-zinc-100 pt-6">
+            <div className="mb-3 flex items-center gap-2">
+              <Users className="h-4 w-4 text-zinc-500" />
+              <h2 className="text-sm font-semibold text-zinc-900">Attendee List</h2>
+            </div>
+            {attendees.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-5 text-sm text-zinc-500">
+                No attendees yet.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {attendees.map((attendee) => {
+                  const details = parseIntention(attendee.intention);
+                  return (
+                    <div key={attendee.id} className="rounded-lg border border-zinc-200 p-3">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700">
+                          {attendee.user?.image ? (
+                            <img src={attendee.user.image} alt={attendee.user.name || "Attendee"} className="h-full w-full object-cover" />
+                          ) : (
+                            (attendee.user?.name || "A").charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-semibold text-zinc-900">
+                              {attendee.user?.name}
+                            </span>
+                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                              {getPrimaryRole(attendee.user?.roles || "[]")}
+                            </span>
+                            <span className="text-xs text-zinc-400">
+                              {formatTime(attendee.createdAt)}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm text-zinc-600">
+                            {details.message || "No message provided."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         )}
       </div>
-    </div>
-  );
-}
 
-function RegisterWithIdea({ onSubmit }: { onSubmit: (d:any)=>void }) {
-  const [projectName, setProjectName] = useState("");
-  const [projectDesc, setProjectDesc] = useState("");
-  const [stage, setStage] = useState("Idea");
-  const [support, setSupport] = useState<string[]>([]);
-  const [link, setLink] = useState("");
-
-  const toggleSupport = (s:string) => setSupport(prev => prev.includes(s) ? prev.filter(x=>x!==s) : [...prev,s]);
-
-  return (
-    <div className="rounded-xl border border-zinc-200 p-3">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">Register with Idea</div>
-        <button onClick={()=>onSubmit({ projectName, projectDesc, stage, support, link })} className="rounded-full bg-red-500 px-3 py-1 text-white text-sm">Submit</button>
-      </div>
-      <div className="mt-2 text-xs text-zinc-500">Provide brief details about your project to apply to pitch.</div>
-    </div>
-  );
-}
-
-function RegisterToAttend({ onSubmit }: { onSubmit: (d:any)=>void }) {
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("Professional");
-  const [reason, setReason] = useState("");
-  return (
-    <div className="rounded-xl border border-zinc-200 p-3">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">Register to Attend</div>
-        <button onClick={()=>onSubmit({ name, role, reason })} className="rounded-full bg-red-500 px-3 py-1 text-white text-sm">Register</button>
-      </div>
-      <div className="mt-2 text-xs text-zinc-500">Quick RSVP to attend.</div>
-    </div>
-  );
-}
-
-function RegisterAsInvestor({ onSubmit }: { onSubmit: (d:any)=>void }) {
-  const [name, setName] = useState("");
-  const [focus, setFocus] = useState("");
-  const [stages, setStages] = useState<string[]>([]);
-  const [reason, setReason] = useState("");
-  const [link, setLink] = useState("");
-  return (
-    <div className="rounded-xl border border-zinc-200 p-3">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">Register as Investor</div>
-        <button onClick={()=>onSubmit({ name, focus, stages, reason, link })} className="rounded-full bg-red-500 px-3 py-1 text-white text-sm">Apply</button>
-      </div>
-      <div className="mt-2 text-xs text-zinc-500">Investor registrations require host approval.</div>
-    </div>
-  );
-}
-
-function ManageRegistrations({ eventId, attendees }: { eventId: string; attendees: any[] }) {
-  const approve = async (id:string) => {
-    await fetch(`/api/events/${eventId}/registrations`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attendeeId: id, action: 'approve' }) });
-    location.reload();
-  };
-  const reject = async (id:string) => {
-    await fetch(`/api/events/${eventId}/registrations`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attendeeId: id, action: 'reject' }) });
-    location.reload();
-  };
-
-  const idea = attendees.filter(a=>JSON.parse(a.intention||"{}").regType==='idea');
-  const attend = attendees.filter(a=>JSON.parse(a.intention||"{}").regType==='attendee');
-  const inv = attendees.filter(a=>JSON.parse(a.intention||"{}").regType==='investor');
-
-  return (
-    <div className="mt-3 space-y-3">
-      <div>
-        <h4 className="text-sm font-medium">Idea Pitchers</h4>
-        {idea.map(a=> (
-          <div key={a.id} className="mt-2 flex items-center justify-between rounded-md border px-3 py-2">
-            <div>
-              <div className="font-medium">{a.user?.name}</div>
-              <div className="text-xs text-zinc-500">{JSON.parse(a.intention||"{}").data?.projectName}</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={()=>approve(a.id)} className="text-emerald-600 text-sm">Approve</button>
-              <button onClick={()=>reject(a.id)} className="text-red-600 text-sm">Reject</button>
-            </div>
+      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-900">Public Chat</h2>
+            <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
           </div>
-        ))}
-      </div>
-      <div>
-        <h4 className="text-sm font-medium">Attendees</h4>
-        {attend.map(a=> (
-          <div key={a.id} className="mt-2 flex items-center justify-between rounded-md border px-3 py-2">
-            <div>
-              <div className="font-medium">{a.user?.name}</div>
-              <div className="text-xs text-zinc-500">{JSON.parse(a.intention||"{}").data?.reason}</div>
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+            Event discussion
+          </span>
+        </div>
+
+        {userId ? (
+          <form onSubmit={submitPost} className="mb-4 space-y-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+            <textarea
+              value={postDraft}
+              onChange={(e) => setPostDraft(e.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="Share a question, prep note, or event thought..."
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            />
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-zinc-400">{postDraft.length}/500</p>
+              <button
+                type="submit"
+                disabled={posting || !postDraft.trim()}
+                className="rounded-full bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+              >
+                {posting ? "Posting..." : "Post"}
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={()=>approve(a.id)} className="text-emerald-600 text-sm">Approve</button>
-              <button onClick={()=>reject(a.id)} className="text-red-600 text-sm">Reject</button>
-            </div>
+          </form>
+        ) : (
+          <div className="mb-4 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm text-zinc-500">
+            Sign in to post in the event chat.
           </div>
-        ))}
-      </div>
-      <div>
-        <h4 className="text-sm font-medium">Investors</h4>
-        {inv.map(a=> (
-          <div key={a.id} className="mt-2 flex items-center justify-between rounded-md border px-3 py-2">
-            <div>
-              <div className="font-medium">{a.user?.name}</div>
-              <div className="text-xs text-zinc-500">{JSON.parse(a.intention||"{}").data?.focus}</div>
+        )}
+
+        <div className="space-y-3">
+          {posts.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-500">
+              No event chat messages yet.
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={()=>approve(a.id)} className="text-emerald-600 text-sm">Approve</button>
-              <button onClick={()=>reject(a.id)} className="text-red-600 text-sm">Reject</button>
-            </div>
+          ) : (
+            posts.map((post) => (
+              <article key={post.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700">
+                    {post.author?.image ? (
+                      <img src={post.author.image} alt={post.author.name || "User"} className="h-full w-full object-cover" />
+                    ) : (
+                      (post.author?.name || "U").charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-zinc-900">
+                        {post.author?.name || "Anonymous"}
+                      </span>
+                      <span className="text-xs text-zinc-400">
+                        {formatTime(post.createdAt)}
+                      </span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-600">{post.content}</p>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+
+      {showHostMessage && (
+        <MessageHostModal
+          eventId={event.id}
+          eventTitle={event.title}
+          hostId={event.organizerId}
+          onClose={() => setShowHostMessage(false)}
+        />
+      )}
+
+      {toast.open && (
+        <div
+          className={cn(
+            "fixed bottom-4 right-4 z-[60] rounded-xl border px-4 py-3 text-sm shadow-lg",
+            toast.tone === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          )}
+        >
+          {toast.message}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MessageHostModal({
+  eventId,
+  eventTitle,
+  hostId,
+  onClose,
+}: {
+  eventId: string;
+  eventTitle: string;
+  hostId: string;
+  onClose: () => void;
+}) {
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!content.trim() || loading) return;
+
+    setLoading(true);
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        receiverId: hostId,
+        content: `Message about ${eventTitle}:\n\n${content.trim()}\n\nEvent: ${process.env.NEXT_PUBLIC_APP_URL || ""}/events/${eventId}`,
+      }),
+    });
+
+    if (res.ok) setSent(true);
+    setLoading(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-xl bg-white p-6">
+        {sent ? (
+          <div className="text-center">
+            <MessageSquare className="mx-auto h-10 w-10 text-green-500" />
+            <h3 className="mt-3 text-lg font-semibold text-zinc-900">Message sent!</h3>
+            <p className="mt-1 text-sm text-zinc-500">The host will get it in their inbox.</p>
+            <button
+              onClick={onClose}
+              className="mt-4 rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+            >
+              Done
+            </button>
           </div>
-        ))}
+        ) : (
+          <>
+            <h3 className="text-lg font-semibold text-zinc-900">Message Host</h3>
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                maxLength={500}
+                rows={4}
+                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                placeholder="Ask the host a private question..."
+              />
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || !content.trim()}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                >
+                  <Send className="h-4 w-4" />
+                  {loading ? "Sending..." : "Send"}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );

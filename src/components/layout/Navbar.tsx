@@ -6,7 +6,7 @@ import { Mountain, Bell, MessageSquare, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
-export default function Navbar() {
+export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   const { data: session } = useSession();
   const [unread, setUnread] = useState(0);
 
@@ -56,6 +56,12 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={onFeedback}
+            className="rounded-full bg-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-fuchsia-600"
+          >
+            Feedback
+          </button>
           {session ? (
             <>
               <Link

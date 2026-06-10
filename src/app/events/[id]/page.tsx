@@ -12,7 +12,14 @@ export default async function EventPage(props: { params: Promise<{ id: string }>
     where: { id },
     include: {
       organizer: { select: { id: true, name: true } },
-      attendees: { include: { user: { select: { id: true, name: true } } } },
+      attendees: {
+        include: {
+          user: {
+            select: { id: true, name: true, image: true, roles: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
