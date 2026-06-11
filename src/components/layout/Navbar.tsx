@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Mountain, MessageSquare, Menu } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FeedbackModal from "@/components/FeedbackModal";
 
 export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   const { data: session } = useSession();
   const [unread, setUnread] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -30,23 +31,23 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   }, [session]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
+    <nav aria-label="Main navigation" className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         {/* Left: logo + nav links */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900">
-            <Mountain className="h-5 w-5 text-red-600" />
+          <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900 focus:outline-2 focus:outline-red-600 focus:rounded-sm">
+            <Mountain className="h-5 w-5 text-red-600" aria-hidden="true" />
             <span className="hidden sm:inline">Swiss Startup Hub</span>
           </Link>
           {session && (
             <div className="hidden items-center gap-4 text-sm md:flex">
-              <Link href="/feed" className="text-zinc-600 hover:text-zinc-900 transition-colors">
+              <Link href="/feed" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm">
                 Feed
               </Link>
-              <Link href="/events" className="text-zinc-600 hover:text-zinc-900 transition-colors">
+              <Link href="/events" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm">
                 Events
               </Link>
-              <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors">
+              <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm">
                 Dashboard
               </Link>
             </div>
@@ -58,37 +59,42 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
           {session ? (
             <>
               <button
+                ref={feedbackTriggerRef}
                 onClick={() => {
                   setFeedbackOpen(true);
                   if (onFeedback) onFeedback();
                 }}
-                className="hidden sm:inline-flex rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                aria-label="Open feedback form"
+                className="hidden sm:inline-flex rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 focus:outline-2 focus:outline-red-800"
               >
                 Feedback
               </button>
               <Link
                 href="/messages"
-                className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors"
+                aria-label={unread > 0 ? `Messages — ${unread} unread` : "Messages"}
+                className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors focus:outline-2 focus:outline-red-600"
               >
-                <MessageSquare className="h-5 w-5" />
+                <MessageSquare className="h-5 w-5" aria-hidden="true" />
                 {unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white" aria-hidden="true">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
               </Link>
               <Link
                 href="/profile"
-                className="flex items-center gap-2 rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                aria-label={`Go to profile for ${session.user?.name || "your account"}`}
+                className="flex items-center gap-2 rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors focus:outline-2 focus:outline-red-600"
               >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs text-white">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs text-white" aria-hidden="true">
                   {session.user?.name?.charAt(0) || "U"}
                 </div>
                 <span className="hidden sm:inline">{session.user?.name}</span>
               </Link>
               <button
                 onClick={() => signOut()}
-                className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
+                aria-label="Sign out of your account"
+                className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm"
               >
                 Sign out
               </button>
@@ -97,26 +103,32 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
             <>
               <Link
                 href="/auth/signin"
-                className="text-sm font-medium text-zinc-700 hover:text-zinc-900 transition-colors"
+                className="text-sm font-medium text-zinc-700 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm"
               >
                 Login
               </Link>
               <Link
                 href="/auth/signup"
-                className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors focus:outline-2 focus:outline-red-800"
               >
                 Join for Free
               </Link>
             </>
           )}
-          <button className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden">
-            <Menu className="h-5 w-5" />
+          <button
+            aria-label="Open navigation menu"
+            className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden focus:outline-2 focus:outline-red-600"
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
       </div>
       <FeedbackModal
         isOpen={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
+        onClose={() => {
+          setFeedbackOpen(false);
+          feedbackTriggerRef.current?.focus();
+        }}
       />
     </nav>
   );

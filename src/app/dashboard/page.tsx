@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardContent from "./DashboardContent";
 
+export const metadata = { title: "Dashboard — Swiss Startup Hub" };
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/auth/signin");

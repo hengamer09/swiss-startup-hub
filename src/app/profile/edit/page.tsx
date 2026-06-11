@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { ArrowLeft, User, Save, Plus, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { parseRoles } from "@/lib/utils";
@@ -31,6 +31,11 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const deleteTriggerRef = useRef<HTMLButtonElement>(null);
+  const deleteConfirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -67,6 +72,25 @@ export default function EditProfilePage() {
       alert(err.message || "Image upload failed");
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch("/api/users/me", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        setDeleteError(data.error || "Failed to delete account. Please try again.");
+        setDeleting(false);
+        return;
+      }
+      await signOut({ redirect: false });
+      router.push("/");
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+      setDeleting(false);
     }
   }
 
@@ -382,6 +406,69 @@ export default function EditProfilePage() {
           {loading ? "Saving..." : "Save Profile"}
         </button>
       </form>
+
+      {/* Account deletion */}
+      <div className="mt-12 rounded-xl border border-red-200 bg-white p-6">
+        <h2 className="text-sm font-semibold text-zinc-900">Danger Zone</h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          Permanently delete your account and all associated data. This cannot be undone.
+        </p>
+        <button
+          ref={deleteTriggerRef}
+          type="button"
+          onClick={() => setDeleteModalOpen(true)}
+          className="mt-4 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors focus:outline-2 focus:outline-red-600"
+        >
+          Delete my account
+        </button>
+      </div>
+
+      {/* Delete confirmation modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+          >
+            <h2 id="delete-modal-title" className="text-lg font-semibold text-zinc-900">
+              Delete your account?
+            </h2>
+            <p className="mt-3 text-sm text-zinc-600 leading-relaxed">
+              This will permanently delete all your data including your profile, projects, messages,
+              and join requests. <strong>This cannot be undone.</strong>
+            </p>
+            {deleteError && (
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
+                {deleteError}
+              </p>
+            )}
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setDeleteError("");
+                  deleteTriggerRef.current?.focus();
+                }}
+                className="flex-1 rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors focus:outline-2 focus:outline-red-600"
+              >
+                Cancel
+              </button>
+              <button
+                ref={deleteConfirmRef}
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors focus:outline-2 focus:outline-red-800"
+              >
+                {deleting ? "Deleting..." : "Yes, delete my account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

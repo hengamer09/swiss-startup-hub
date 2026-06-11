@@ -5,6 +5,54 @@ import { prisma } from "@/lib/prisma";
 import { stripTags } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
+export async function DELETE() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Ratings have no cascade — delete before projects/user
+      await tx.rating.deleteMany({
+        where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
+      });
+      // Also ratings on projects owned by this user (from other users)
+      await tx.rating.deleteMany({ where: { project: { ownerId: userId } } });
+
+      // 2. BlockedUser has no cascade
+      await tx.blockedUser.deleteMany({
+        where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+      });
+
+      // 3. Reports by this user have no cascade
+      await tx.report.deleteMany({ where: { reporterId: userId } });
+
+      // 4. Messages — sender has no cascade; receiver is nullable but also no cascade
+      await tx.message.deleteMany({
+        where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+      });
+
+      // 5. Delete projects (cascades: members, followers, joinRequests, posts, faqs, openRoles)
+      await tx.project.deleteMany({ where: { ownerId: userId } });
+
+      // 6. Delete events (cascades: attendees, posts)
+      await tx.event.deleteMany({ where: { organizerId: userId } });
+
+      // 7. Delete user (cascades: skills, memberships, followers, joinRequests,
+      //    conversationParticipants, notifications, reviews given/received, eventAttendance)
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    logger.error("Account deletion error", { userId, error: String(error) });
+    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+  }
+}
+
 export async function PUT(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
