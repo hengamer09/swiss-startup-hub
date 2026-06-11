@@ -31,6 +31,16 @@ export default async function HomePage() {
               Connect with founders, skilled professionals, and active investors —
               all in one place.
             </p>
+            {session && (
+              <div className="mt-8 flex justify-center">
+                <Link
+                  href="/feed"
+                  className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                >
+                  Look at Projects
+                </Link>
+              </div>
+            )}
             {!session && (
               <div className="mt-8 flex items-center justify-center gap-3">
                 <Link

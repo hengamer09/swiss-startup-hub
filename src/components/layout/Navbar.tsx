@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Mountain, MessageSquare, Search, Menu } from "lucide-react";
+import { Mountain, MessageSquare, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import FeedbackModal from "@/components/FeedbackModal";
 
@@ -42,10 +42,6 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
             <div className="hidden items-center gap-4 text-sm md:flex">
               <Link href="/feed" className="text-zinc-600 hover:text-zinc-900 transition-colors">
                 Feed
-              </Link>
-              <Link href="/search" className="text-zinc-600 hover:text-zinc-900 transition-colors">
-                <Search className="h-4 w-4 inline mr-1" />
-                Discover
               </Link>
               <Link href="/events" className="text-zinc-600 hover:text-zinc-900 transition-colors">
                 Events

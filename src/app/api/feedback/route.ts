@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     } else if (type === "bug") {
       await sendEmail({
         to: "henri@staehli.biz",
-        subject: "Bug Report",
+        subject: "Bug Report — Swiss Startup Hub",
         text: cleanIssueText || "(no description provided)",
         html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18181b">
           <h2 style="margin-bottom:8px">Bug Report</h2>

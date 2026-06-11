@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Compass, MapPin, Users, Star, RefreshCw } from "lucide-react";
+import { Compass, MapPin, Users, Star, RefreshCw, Search } from "lucide-react";
 import ProfileCompletionNudge from "@/components/layout/ProfileCompletionNudge";
 import { formatStage, parseRolesNeeded } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ export default function FeedContent({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const fetchProjects = useCallback(async (pageNum: number, append: boolean) => {
@@ -62,6 +63,17 @@ export default function FeedContent({ userId }: { userId: string }) {
         </p>
       </div>
 
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search projects..."
+          className="w-full rounded-lg border border-zinc-200 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+        />
+      </div>
+
       <div className="mb-6">
         <ProfileCompletionNudge />
       </div>
@@ -101,7 +113,14 @@ export default function FeedContent({ userId }: { userId: string }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {projects.map((project: any) => (
+          {projects.filter((p: any) => {
+            if (!searchQuery.trim()) return true;
+            const q = searchQuery.toLowerCase();
+            return (
+              p.name?.toLowerCase().includes(q) ||
+              p.problem?.toLowerCase().includes(q)
+            );
+          }).map((project: any) => (
             <Link
               key={project.id}
               href={`/projects/${project.id}`}

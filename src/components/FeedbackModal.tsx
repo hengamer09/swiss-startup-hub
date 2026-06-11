@@ -82,8 +82,8 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
             {step === "done" && "Thank You!"}
           </h2>
           <button
-            onClick={onClose}
-            aria-label="Close"
+            onClick={() => (step === "review" || step === "bug") ? setStep("select") : onClose()}
+            aria-label={step === "review" || step === "bug" ? "Back to menu" : "Close"}
             className="rounded-full p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors"
           >
             <X className="h-5 w-5" />
