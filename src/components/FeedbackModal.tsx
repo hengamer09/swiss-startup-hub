@@ -19,6 +19,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
   const [reviewText, setReviewText] = useState("");
   const [issueText, setIssueText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submittedType, setSubmittedType] = useState<"review" | "bug" | null>(null);
 
   // Reset state every time the modal opens
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
       setHoverRating(0);
       setReviewText("");
       setIssueText("");
+      setSubmittedType(null);
     }
   }, [isOpen, preselect]);
 
@@ -49,6 +51,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "review", rating, reviewText }),
       });
+      setSubmittedType("review");
       setStep("done");
     } finally {
       setSubmitting(false);
@@ -64,6 +67,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "bug", issueText }),
       });
+      setSubmittedType("bug");
       setStep("done");
     } finally {
       setSubmitting(false);
@@ -82,9 +86,10 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors"
+            aria-label="Close"
+            className="rounded-full p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -199,7 +204,9 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
         {step === "done" && (
           <div className="py-6 text-center">
             <p className="text-4xl mb-3">🙏</p>
-            <p className="text-zinc-700 font-medium">Thank you! Your feedback has been sent.</p>
+            <p className="text-zinc-700 font-medium">
+              {submittedType === "review" ? "Thank you for your review!" : "Thank you for your report!"}
+            </p>
             <p className="text-sm text-zinc-400 mt-1">This window will close automatically.</p>
             <button
               onClick={onClose}

@@ -23,6 +23,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<string>("PROFESSIONAL");
   const [skills, setSkills] = useState<string[]>([]);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -47,11 +48,17 @@ export default function SignUpPage() {
       return;
     }
 
+    if (!acceptedTerms) {
+      setError("Please accept the Terms of Service and Privacy Policy to continue");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role, skills }),
+        body: JSON.stringify({ name, email, password, role, skills, acceptedTerms }),
       });
 
       const data = await res.json();
@@ -201,6 +208,35 @@ export default function SignUpPage() {
               {skills.length}/3 selected
             </p>
           </div>
+
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-red-500 focus:ring-red-500"
+            />
+            <span className="text-sm text-zinc-600">
+              I agree to the{" "}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-red-500 hover:underline"
+              >
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-red-500 hover:underline"
+              >
+                Privacy Policy
+              </a>
+            </span>
+          </label>
 
           <button
             type="submit"

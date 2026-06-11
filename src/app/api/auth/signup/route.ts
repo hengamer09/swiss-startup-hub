@@ -14,11 +14,18 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, email, password, role, skills } = await request.json();
+    const { name, email, password, role, skills, acceptedTerms } = await request.json();
 
     if (!name || !email || !password || !role) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    if (acceptedTerms !== true) {
+      return NextResponse.json(
+        { error: "You must accept the Terms of Service" },
         { status: 400 }
       );
     }
@@ -59,6 +66,8 @@ export async function POST(request: Request) {
         passwordHash,
         roles: JSON.stringify([role]),
         isEarlyMember: true,
+        acceptedTerms: true,
+        acceptedTermsAt: new Date(),
       },
       select: { id: true },
     });

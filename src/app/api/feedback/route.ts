@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       const stars = "★".repeat(Number(rating) || 0) + "☆".repeat(5 - (Number(rating) || 0));
       await sendEmail({
         to: "henri@staehli.biz",
-        subject: "Platform Review",
+        subject: "New Review — Swiss Startup Hub",
         text: `Rating: ${rating}/5 ${stars}\n\n${cleanReviewText || "(no additional comment)"}`,
         html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18181b">
           <h2 style="margin-bottom:8px">Platform Review</h2>

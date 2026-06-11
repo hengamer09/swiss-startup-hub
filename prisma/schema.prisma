@@ -36,8 +36,10 @@ model User {
   linkedinUrl     String?
   openToMessages  Boolean  @default(true)
 
-  identityVerified Boolean @default(false)
-  isEarlyMember    Boolean @default(false)
+  identityVerified Boolean  @default(false)
+  isEarlyMember    Boolean  @default(false)
+  acceptedTerms    Boolean  @default(false)
+  acceptedTermsAt  DateTime?
 
   averageRating   Float    @default(0)
   ratingCount     Int      @default(0)
