@@ -103,13 +103,13 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
                 href="/auth/signin"
                 className="text-sm font-medium text-zinc-700 hover:text-zinc-900 transition-colors"
               >
-                Sign in
+                Login
               </Link>
               <Link
                 href="/auth/signup"
                 className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
               >
-                Join Free
+                Join for Free
               </Link>
             </>
           )}
