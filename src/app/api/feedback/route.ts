@@ -17,27 +17,42 @@ export async function POST(request: Request) {
     const cleanIssueText = issueText ? stripTags(String(issueText).trim()).slice(0, 5000) : "";
 
     if (type === "review") {
-      const stars = "★".repeat(Number(rating) || 0) + "☆".repeat(5 - (Number(rating) || 0));
-      await sendEmail({
+      const n = Math.min(Math.max(Number(rating) || 0, 0), 5);
+      const stars = "★".repeat(n) + "☆".repeat(5 - n);
+      const commentText = cleanReviewText || "No comment provided";
+      const sent = await sendEmail({
         to: "henri@staehli.biz",
         subject: "New Review — Swiss Startup Hub",
-        text: `Rating: ${rating}/5 ${stars}\n\n${cleanReviewText || "(no additional comment)"}`,
+        text: `Rating: ${n}/5 ${stars}\n\n${commentText}`,
         html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18181b">
           <h2 style="margin-bottom:8px">Platform Review</h2>
-          <p><strong>Rating:</strong> ${rating}/5 — ${stars}</p>
-          ${cleanReviewText ? `<p><strong>Comment:</strong><br>${cleanReviewText.replace(/\n/g, "<br>")}</p>` : ""}
+          <p><strong>Rating:</strong> ${stars} (${n}/5)</p>
+          <p><strong>Comment:</strong><br>${
+            cleanReviewText
+              ? cleanReviewText.replace(/\n/g, "<br>")
+              : "<em>No comment provided</em>"
+          }</p>
         </div>`,
       });
+      if (!sent) {
+        logger.error("Feedback review email not sent — SMTP not configured");
+        return NextResponse.json({ error: "Email service unavailable" }, { status: 503 });
+      }
     } else if (type === "bug") {
-      await sendEmail({
+      const bodyText = cleanIssueText || "(no description provided)";
+      const sent = await sendEmail({
         to: "henri@staehli.biz",
         subject: "Bug Report — Swiss Startup Hub",
-        text: cleanIssueText || "(no description provided)",
+        text: bodyText,
         html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18181b">
           <h2 style="margin-bottom:8px">Bug Report</h2>
-          <p>${(cleanIssueText || "(no description provided)").replace(/\n/g, "<br>")}</p>
+          <p>${bodyText.replace(/\n/g, "<br>")}</p>
         </div>`,
       });
+      if (!sent) {
+        logger.error("Feedback bug report email not sent — SMTP not configured");
+        return NextResponse.json({ error: "Email service unavailable" }, { status: 503 });
+      }
     } else {
       return NextResponse.json({ error: "Invalid type" }, { status: 400 });
     }
