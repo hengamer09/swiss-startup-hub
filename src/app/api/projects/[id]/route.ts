@@ -72,6 +72,18 @@ export async function PUT(
     if (data.logo !== undefined) updateData.logo = data.logo;
     if (data.seriousness !== undefined) updateData.seriousness = data.seriousness;
     if (data.teamCompensation !== undefined) updateData.teamCompensation = data.teamCompensation;
+    if (data.rolesNeeded !== undefined) {
+      try {
+        const parsed = JSON.parse(String(data.rolesNeeded));
+        if (Array.isArray(parsed)) {
+          const sanitized = parsed.slice(0, 20).map((r: any) => ({
+            title: stripTags(String(r.title || "").trim()).slice(0, 100),
+            description: stripTags(String(r.description || "").trim()).slice(0, 300),
+          })).filter((r) => r.title);
+          updateData.rolesNeeded = sanitized.length > 0 ? JSON.stringify(sanitized) : null;
+        }
+      } catch { updateData.rolesNeeded = null; }
+    }
 
     const updated = await prisma.project.update({
       where: { id },

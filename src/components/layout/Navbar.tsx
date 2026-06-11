@@ -11,7 +11,6 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   const { data: session } = useSession();
   const [unread, setUnread] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackPreselect, setFeedbackPreselect] = useState<"review" | undefined>(undefined);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -54,15 +53,6 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors">
                 Dashboard
               </Link>
-              <button
-                onClick={() => {
-                  setFeedbackPreselect("review");
-                  setFeedbackOpen(true);
-                }}
-                className="text-zinc-600 hover:text-zinc-900 transition-colors"
-              >
-                Prototype
-              </button>
             </div>
           )}
         </div>
@@ -70,7 +60,6 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
-              setFeedbackPreselect(undefined);
               setFeedbackOpen(true);
               if (onFeedback) onFeedback();
             }}
@@ -131,7 +120,6 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
       <FeedbackModal
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
-        preselect={feedbackPreselect}
       />
     </nav>
   );

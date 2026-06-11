@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, X } from "lucide-react";
 import Link from "next/link";
-import { industries } from "@/lib/utils";
+import { industries, parseRolesNeeded } from "@/lib/utils";
+
+interface RoleEntry { title: string; description: string; }
 
 export default function EditProjectPage() {
   const router = useRouter();
@@ -28,6 +30,7 @@ export default function EditProjectPage() {
   const [seriousness, setSeriousness] = useState("SERIOUS_STARTUP");
   const [teamCompensation, setTeamCompensation] = useState("PAID");
   const [logo, setLogo] = useState("");
+  const [rolesNeeded, setRolesNeeded] = useState<RoleEntry[]>([{ title: "", description: "" }]);
   const [useOfFunds, setUseOfFunds] = useState("");
   const [tractionMetrics, setTractionMetrics] = useState("");
   const [investorVisible, setInvestorVisible] = useState(false);
@@ -73,6 +76,8 @@ export default function EditProjectPage() {
         setSeriousness(p.seriousness || "SERIOUS_STARTUP");
         setTeamCompensation(p.teamCompensation || "PAID");
         setLogo(p.logo || "");
+        const parsed = parseRolesNeeded(p.rolesNeeded);
+        setRolesNeeded(parsed.length > 0 ? parsed : [{ title: "", description: "" }]);
       }
       setFetching(false);
     }
@@ -92,6 +97,7 @@ export default function EditProjectPage() {
         targetCustomer, scope, competitiveLandscape,
         investorPitch, fundingAmount: fundingAmount ? parseInt(fundingAmount) : null,
         useOfFunds, tractionMetrics, investorVisible, seriousness, teamCompensation, logo,
+        rolesNeeded: JSON.stringify(rolesNeeded.filter((r) => r.title.trim())),
       }),
     });
 
@@ -210,6 +216,56 @@ export default function EditProjectPage() {
             <label className="block text-sm font-medium text-zinc-700">Solution</label>
             <textarea value={solution} onChange={(e) => setSolution(e.target.value)} maxLength={500} rows={3}
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+          </div>
+
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-zinc-900">Who We&apos;re Looking For</label>
+              <button
+                type="button"
+                onClick={() => setRolesNeeded((prev) => [...prev, { title: "", description: "" }])}
+                className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add role
+              </button>
+            </div>
+            <div className="space-y-3">
+              {rolesNeeded.map((role, idx) => (
+                <div key={idx} className="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={role.title}
+                      onChange={(e) => {
+                        const v = e.target.value.slice(0, 100);
+                        setRolesNeeded((prev) => prev.map((r, i) => i === idx ? { ...r, title: v } : r));
+                      }}
+                      placeholder="Role title (e.g. Frontend Developer)"
+                      className="flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    />
+                    {rolesNeeded.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setRolesNeeded((prev) => prev.filter((_, i) => i !== idx))}
+                        className="rounded-full p-1 text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    value={role.description}
+                    onChange={(e) => {
+                      const v = e.target.value.slice(0, 300);
+                      setRolesNeeded((prev) => prev.map((r, i) => i === idx ? { ...r, description: v } : r));
+                    }}
+                    rows={2}
+                    placeholder="What do you need from this person? (optional)"
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -44,6 +44,20 @@ export async function PUT(request: Request) {
       omit: { passwordHash: true },
     });
 
+    if (data.skills !== undefined && Array.isArray(data.skills)) {
+      await prisma.userSkill.deleteMany({ where: { userId } });
+      for (const raw of (data.skills as unknown[]).slice(0, 20)) {
+        const name = stripTags(String(raw).trim()).slice(0, 100);
+        if (!name) continue;
+        const skill = await prisma.skill.upsert({
+          where: { name },
+          update: {},
+          create: { name },
+        });
+        await prisma.userSkill.create({ data: { userId, skillId: skill.id } });
+      }
+    }
+
     return NextResponse.json(user);
   } catch (error) {
     logger.error("Update user error", { userId, error: String(error) });

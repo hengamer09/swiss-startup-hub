@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, User, Save, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, User, Save, Plus, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { parseRoles } from "@/lib/utils";
 
@@ -21,6 +21,8 @@ export default function EditProfilePage() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [roles, setRoles] = useState<string[]>([]);
   const [customRole, setCustomRole] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState("");
   const [portfolioProjects, setPortfolioProjects] = useState<any[]>([]);
   const [openToMessages, setOpenToMessages] = useState(true);
   const [preferredStage, setPreferredStage] = useState("");
@@ -45,6 +47,7 @@ export default function EditProfilePage() {
       setGithubUrl(user.githubUrl || "");
       setLinkedinUrl(user.linkedinUrl || "");
       setRoles(parseRoles(user.roles || "[]"));
+      setSkills(Array.isArray(user.skills) ? user.skills.map((s: any) => s.skill?.name || s.name || s).filter(Boolean) : []);
       setPortfolioProjects(Array.isArray(user.portfolioProjects) ? user.portfolioProjects : []);
     }
     loadProfile();
@@ -90,6 +93,7 @@ export default function EditProfilePage() {
         preferredStage,
         ticketSizeMin: ticketSizeMin ? parseInt(ticketSizeMin) : null,
         ticketSizeMax: ticketSizeMax ? parseInt(ticketSizeMax) : null,
+        skills,
       }),
     });
 
@@ -186,6 +190,59 @@ export default function EditProfilePage() {
             <div className="mt-3 flex gap-2">
               <input value={customRole} onChange={(e) => setCustomRole(e.target.value)} placeholder="Add a custom role" className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
               <button type="button" onClick={() => { const trimmed = customRole.trim(); if (!trimmed || roles.includes(trimmed.toUpperCase())) return; setRoles((prev) => [...prev, trimmed.toUpperCase()]); setCustomRole(''); }} className="rounded-full border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">Add</button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Skills</label>
+            <p className="mt-1 text-xs text-zinc-500">Add or remove skills visible on your public profile.</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {skills.map((skill) => (
+                <span
+                  key={skill}
+                  className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-700"
+                >
+                  {skill}
+                  <button
+                    type="button"
+                    onClick={() => setSkills((prev) => prev.filter((s) => s !== skill))}
+                    className="text-red-400 hover:text-red-600 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="mt-2 flex gap-2">
+              <input
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const trimmed = skillInput.trim().slice(0, 100);
+                    if (trimmed && !skills.includes(trimmed) && skills.length < 20) {
+                      setSkills((prev) => [...prev, trimmed]);
+                      setSkillInput("");
+                    }
+                  }
+                }}
+                placeholder="Type a skill and press Enter"
+                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const trimmed = skillInput.trim().slice(0, 100);
+                  if (trimmed && !skills.includes(trimmed) && skills.length < 20) {
+                    setSkills((prev) => [...prev, trimmed]);
+                    setSkillInput("");
+                  }
+                }}
+                className="rounded-full border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+              >
+                Add
+              </button>
             </div>
           </div>
 

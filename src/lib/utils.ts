@@ -106,3 +106,12 @@ export function limitStr(value: unknown, max: number): string {
   const s = typeof value === "string" ? value : "";
   return s.slice(0, max);
 }
+
+export function parseRolesNeeded(value: string | null | undefined): { title: string; description: string }[] {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed.filter((r: unknown) => r && typeof (r as any).title === "string");
+  } catch {}
+  return [];
+}

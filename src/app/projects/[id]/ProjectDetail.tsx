@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { cn, formatStage } from "@/lib/utils";
+import { cn, formatStage, parseRolesNeeded } from "@/lib/utils";
 import RateUserModal from "@/components/projects/RateUserModal";
 
 export default function ProjectDetail({
@@ -260,16 +260,27 @@ export default function ProjectDetail({
               <h2 className="text-sm font-semibold text-zinc-900 mb-1">The Solution</h2>
               <p className="text-sm text-zinc-600">{project.solution}</p>
             </div>
-            {project.rolesNeeded && (
-              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                <h2 className="text-sm font-semibold text-zinc-900 mb-2">
-                  Who We&apos;re Looking For
-                </h2>
-                <p className="text-sm text-zinc-700 whitespace-pre-wrap">
-                  {project.rolesNeeded}
-                </p>
-              </div>
-            )}
+            {(() => {
+              const roles = parseRolesNeeded(project.rolesNeeded);
+              if (roles.length === 0) return null;
+              return (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <h2 className="text-sm font-semibold text-zinc-900 mb-3">
+                    Who We&apos;re Looking For
+                  </h2>
+                  <div className="space-y-3">
+                    {roles.map((r, i) => (
+                      <div key={i} className="rounded-lg border border-blue-200 bg-white p-3">
+                        <p className="text-sm font-semibold text-zinc-900">{r.title}</p>
+                        {r.description && (
+                          <p className="mt-1 text-sm text-zinc-600">{r.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Pending Requests — founder only */}

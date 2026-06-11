@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Compass, MapPin, Users, Star, RefreshCw, Sparkles } from "lucide-react";
 import ProfileCompletionNudge from "@/components/layout/ProfileCompletionNudge";
-import { formatStage } from "@/lib/utils";
+import { formatStage, parseRolesNeeded } from "@/lib/utils";
 
 export default function FeedContent({ userId }: { userId: string }) {
   const router = useRouter();
@@ -135,14 +135,19 @@ export default function FeedContent({ userId }: { userId: string }) {
                   <p className="mt-2 text-sm text-zinc-600 line-clamp-1">
                     {project.problem}
                   </p>
-                  {project.rolesNeeded && (
-                    <p className="mt-1 text-xs text-zinc-500">
-                      🔍 Looking for:{" "}
-                      {project.rolesNeeded.length > 60
-                        ? project.rolesNeeded.slice(0, 60) + "..."
-                        : project.rolesNeeded}
-                    </p>
-                  )}
+                  {(() => {
+                    const roles = parseRolesNeeded(project.rolesNeeded);
+                    if (roles.length === 0) return null;
+                    return (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {roles.slice(0, 4).map((r, i) => (
+                          <span key={i} className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                            {r.title}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   <div className="mt-2 flex items-center gap-4 text-xs text-zinc-400">
                     <span className="flex items-center gap-1">
                       <Users className="h-3 w-3" />

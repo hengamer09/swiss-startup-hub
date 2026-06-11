@@ -44,7 +44,18 @@ export async function POST(request: Request) {
     const investorPitch = data.investorPitch ? stripTags(String(data.investorPitch).trim()).slice(0, 2000) : null;
     const useOfFunds = data.useOfFunds ? stripTags(String(data.useOfFunds).trim()).slice(0, 2000) : null;
     const tractionMetrics = data.tractionMetrics ? stripTags(String(data.tractionMetrics).trim()).slice(0, 2000) : null;
-    const rolesNeeded = data.rolesNeeded ? stripTags(String(data.rolesNeeded).trim()).slice(0, 2000) : null;
+    const rolesNeeded = (() => {
+      if (!data.rolesNeeded) return null;
+      try {
+        const parsed = JSON.parse(String(data.rolesNeeded));
+        if (!Array.isArray(parsed) || parsed.length === 0) return null;
+        const sanitized = parsed.slice(0, 20).map((r: any) => ({
+          title: stripTags(String(r.title || "").trim()).slice(0, 100),
+          description: stripTags(String(r.description || "").trim()).slice(0, 300),
+        })).filter((r) => r.title);
+        return sanitized.length > 0 ? JSON.stringify(sanitized) : null;
+      } catch { return null; }
+    })();
 
     const project = await prisma.project.create({
       data: {
