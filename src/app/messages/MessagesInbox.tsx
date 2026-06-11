@@ -8,15 +8,30 @@ import { cn } from "@/lib/utils";
 export default function MessagesInbox({ userId }: { userId: string }) {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const fetchConversations = useCallback(async () => {
     const res = await fetch("/api/messages");
     if (res.ok) {
       const data = await res.json();
-      setConversations(data);
+      setConversations(data.conversations || []);
+      setNextCursor(data.nextCursor ?? null);
     }
     setLoading(false);
   }, []);
+
+  const loadMore = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    const res = await fetch(`/api/messages?cursor=${nextCursor}`);
+    if (res.ok) {
+      const data = await res.json();
+      setConversations(prev => [...prev, ...(data.conversations || [])]);
+      setNextCursor(data.nextCursor ?? null);
+    }
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
     fetchConversations();
@@ -137,6 +152,17 @@ export default function MessagesInbox({ userId }: { userId: string }) {
               </Link>
             );
           })}
+          {nextCursor && (
+            <div className="mt-4 flex justify-center pb-4">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-full border border-zinc-300 px-6 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+              >
+                {loadingMore ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

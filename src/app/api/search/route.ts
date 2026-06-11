@@ -1,7 +1,14 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`search:${ip}`, 60, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "projects";
   const query = searchParams.get("q") || "";
@@ -40,6 +47,7 @@ export async function GET(request: Request) {
         orderBy: orderBy as any,
         skip,
         take: limit,
+        omit: { passwordHash: true, email: true },
         include: {
           skills: { include: { skill: true }, take: 3 },
           _count: { select: { ratingsReceived: true } },
@@ -143,7 +151,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ results: projects, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
-    console.error("Search error:", error);
+    logger.error("Search error", { error: String(error) });
     return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function PUT(
   _request: Request,
@@ -9,7 +10,7 @@ export async function PUT(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
@@ -27,9 +28,9 @@ export async function PUT(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Mark read error:", error);
+    logger.error("Mark read error", { id, error: String(error) });
     return NextResponse.json(
-      { message: "Failed to mark messages as read" },
+      { error: "Failed to mark messages as read" },
       { status: 500 }
     );
   }

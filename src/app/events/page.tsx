@@ -9,30 +9,43 @@ type EventItem = any;
 export default function EventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
   const [scope, setScope] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const fetchEvents = async () => {
-    setLoading(true);
+  const fetchEvents = async (append = false) => {
+    if (!append) setLoading(true);
+    else setLoadingMore(true);
+
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (type) params.set("type", type);
     if (scope) params.set("scope", scope);
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
+    if (append && nextCursor) params.set("cursor", nextCursor);
+
     const res = await fetch(`/api/events?${params.toString()}`);
     if (res.ok) {
       const data = await res.json();
-      setEvents(data || []);
+      if (append) {
+        setEvents(prev => [...prev, ...(data.events || [])]);
+      } else {
+        setEvents(data.events || []);
+      }
+      setNextCursor(data.nextCursor ?? null);
     }
-    setLoading(false);
+    if (!append) setLoading(false);
+    else setLoadingMore(false);
   };
 
   useEffect(() => {
-    fetchEvents();
+    setNextCursor(null);
+    fetchEvents(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, type, scope, startDate, endDate]);
 
@@ -77,26 +90,39 @@ export default function EventsPage() {
           <p className="mt-1 max-w-sm text-sm text-zinc-500">Try adjusting filters or create a new event.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((ev: any) => (
-            <Link key={ev.id} href={`/events/${ev.id}`} className="block rounded-xl border border-zinc-200 bg-white p-4 hover:shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-zinc-900 truncate">{ev.title}</h3>
-                  <p className="mt-1 text-sm text-zinc-500 line-clamp-2">{ev.description}</p>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5">{ev.eventType}</span>
-                    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{ev.location}</span>
+        <>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {events.map((ev: any) => (
+              <Link key={ev.id} href={`/events/${ev.id}`} className="block rounded-xl border border-zinc-200 bg-white p-4 hover:shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-zinc-900 truncate">{ev.title}</h3>
+                    <p className="mt-1 text-sm text-zinc-500 line-clamp-2">{ev.description}</p>
+                    <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5">{ev.eventType}</span>
+                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{ev.location}</span>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-sm font-medium text-zinc-900">{new Date(ev.date).toLocaleString()}</div>
+                    <div className="mt-2 text-xs text-zinc-500">{ev._count?.attendees || 0} attending</div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right">
-                  <div className="text-sm font-medium text-zinc-900">{new Date(ev.date).toLocaleString()}</div>
-                  <div className="mt-2 text-xs text-zinc-500">{ev._count?.attendees || 0} attending</div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+          {nextCursor && !loading && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => fetchEvents(true)}
+                disabled={loadingMore}
+                className="rounded-full border border-zinc-300 px-6 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+              >
+                {loadingMore ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,9 +1,11 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
-import { escapeHtml, APP_URL } from "@/lib/utils";
+import { escapeHtml, APP_URL, stripTags } from "@/lib/utils";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 type Recipient = {
   id: string;
@@ -41,13 +43,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`join-request:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const { projectId, motivation, applicantRole, links } =
       await request.json();
 
-    const trimmedMotivation = motivation?.trim();
-    const trimmedApplicantRole = applicantRole?.trim() || null;
-    const trimmedLinks = links?.trim() || null;
+    const trimmedMotivation = stripTags(motivation?.trim() || "").slice(0, 2000);
+    const trimmedApplicantRole = stripTags(applicantRole?.trim() || "").slice(0, 200) || null;
+    const trimmedLinks = links?.trim().slice(0, 500) || null;
 
     if (!projectId || !trimmedMotivation || !trimmedApplicantRole) {
       return NextResponse.json(
@@ -234,7 +241,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(joinRequest, { status: 201 });
   } catch (error) {
-    console.error("Create join request error:", error);
+    logger.error("Create join request error", { error: String(error) });
     return NextResponse.json(
       { error: "Failed to submit application" },
       { status: 500 }

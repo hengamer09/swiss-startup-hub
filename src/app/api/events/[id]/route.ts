@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,7 +21,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     return NextResponse.json(event);
   } catch (error) {
-    console.error("Get event error:", error);
+    logger.error("Get event error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to load event" }, { status: 500 });
   }
 }
@@ -34,7 +36,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (event.organizerId !== session.user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await request.json();
-    const { title, description, date, location, eventType, maxAttendees, requireApproval, locationScope } = body;
+    const { date, eventType, maxAttendees, requireApproval, locationScope } = body;
+
+    const title = body.title ? stripTags(String(body.title).trim()).slice(0, 200) : undefined;
+    const description = body.description ? stripTags(String(body.description).trim()).slice(0, 2000) : undefined;
+    const location = body.location ? stripTags(String(body.location).trim()).slice(0, 200) : undefined;
 
     const updated = await prisma.event.update({
       where: { id },
@@ -52,7 +58,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("Event update error:", error);
+    logger.error("Event update error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to update event" }, { status: 500 });
   }
 }
@@ -69,7 +75,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     await prisma.event.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Delete event error:", error);
+    logger.error("Delete event error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to delete event" }, { status: 500 });
   }
 }

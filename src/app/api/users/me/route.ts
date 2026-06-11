@@ -1,7 +1,9 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export async function PUT(request: Request) {
   const session = await getServerSession(authOptions);
@@ -15,16 +17,16 @@ export async function PUT(request: Request) {
     const data = await request.json();
 
     const updateData: Record<string, unknown> = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.name !== undefined) updateData.name = stripTags(String(data.name).trim()).slice(0, 100);
+    if (data.bio !== undefined) updateData.bio = stripTags(String(data.bio).trim()).slice(0, 1000);
     if (data.image !== undefined) updateData.image = data.image;
-    if (data.location !== undefined) updateData.location = data.location;
+    if (data.location !== undefined) updateData.location = stripTags(String(data.location).trim()).slice(0, 200);
     if (data.country !== undefined) updateData.country = data.country;
     if (data.canton !== undefined) updateData.canton = data.canton;
-    if (data.portfolioUrl !== undefined) updateData.portfolioUrl = data.portfolioUrl;
-    if (data.websiteUrl !== undefined) updateData.websiteUrl = data.websiteUrl;
-    if (data.githubUrl !== undefined) updateData.githubUrl = data.githubUrl;
-    if (data.linkedinUrl !== undefined) updateData.linkedinUrl = data.linkedinUrl;
+    if (data.portfolioUrl !== undefined) updateData.portfolioUrl = String(data.portfolioUrl).slice(0, 500);
+    if (data.websiteUrl !== undefined) updateData.websiteUrl = String(data.websiteUrl).slice(0, 500);
+    if (data.githubUrl !== undefined) updateData.githubUrl = String(data.githubUrl).slice(0, 500);
+    if (data.linkedinUrl !== undefined) updateData.linkedinUrl = String(data.linkedinUrl).slice(0, 500);
     if (data.portfolioProjects !== undefined) updateData.portfolioProjects = data.portfolioProjects;
     if (data.roles !== undefined) updateData.roles = JSON.stringify(data.roles);
     if (data.openToMessages !== undefined)
@@ -39,11 +41,12 @@ export async function PUT(request: Request) {
     const user = await prisma.user.update({
       where: { id: userId },
       data: updateData,
+      omit: { passwordHash: true },
     });
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Update user error:", error);
+    logger.error("Update user error", { userId, error: String(error) });
     return NextResponse.json(
       { error: "Failed to update profile" },
       { status: 500 }
@@ -60,6 +63,7 @@ export async function GET() {
   try {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
+      omit: { passwordHash: true },
       include: {
         skills: { include: { skill: true } },
         memberships: {
@@ -70,7 +74,7 @@ export async function GET() {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Get user error:", error);
+    logger.error("Get user error", { error: String(error) });
     return NextResponse.json(
       { error: "Failed to load profile" },
       { status: 500 }

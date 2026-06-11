@@ -97,3 +97,12 @@ export function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+export function stripTags(value: string): string {
+  return value.replace(/<[^>]*>/g, "");
+}
+
+export function limitStr(value: unknown, max: number): string {
+  const s = typeof value === "string" ? value : "";
+  return s.slice(0, max);
+}

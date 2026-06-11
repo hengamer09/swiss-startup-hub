@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
-import { APP_URL } from "@/lib/utils";
+import { APP_URL, stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export async function PUT(
   request: Request,
@@ -23,7 +24,7 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    const trimmedReply = reply?.trim();
+    const trimmedReply = stripTags(reply?.trim() || "").slice(0, 1000);
     if (!trimmedReply) {
       return NextResponse.json(
         { error: "A reply is required before accepting or declining." },
@@ -141,20 +142,20 @@ export async function PUT(
           subject: `You've been accepted to ${projectName}!`,
           text: `Hi ${applicantName},\n\n${founderName} has accepted your request to join ${projectName}.\n\nYour role: ${trimmedReply}\n\nVisit the project: ${projectUrl}`,
           html: `<div style="font-family:Arial,sans-serif;line-height:1.5;color:#18181b"><p>Hi ${applicantName},</p><p><strong>${founderName}</strong> has accepted your request to join <strong>${projectName}</strong>!</p><p><strong>Your role:</strong> ${trimmedReply}</p><p><a href="${projectUrl}" style="color:#dc2626;">View the project</a></p></div>`,
-        }).catch((err) => console.error("Failed to send approval email:", err));
+        }).catch((err) => logger.error("Failed to send approval email", { id, error: String(err) }));
       } else {
         sendEmail({
           to: joinRequest.user.email,
           subject: `Update on your join request for ${projectName}`,
           text: `Hi ${applicantName},\n\n${founderName} has reviewed your request to join ${projectName}.\n\nMessage from founder: ${trimmedReply}\n\nVisit the project: ${projectUrl}`,
           html: `<div style="font-family:Arial,sans-serif;line-height:1.5;color:#18181b"><p>Hi ${applicantName},</p><p><strong>${founderName}</strong> has reviewed your request to join <strong>${projectName}</strong>.</p><p><strong>Message from founder:</strong> ${trimmedReply}</p><p><a href="${projectUrl}" style="color:#dc2626;">View the project</a></p></div>`,
-        }).catch((err) => console.error("Failed to send rejection email:", err));
+        }).catch((err) => logger.error("Failed to send rejection email", { id, error: String(err) }));
       }
     }
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("Update join request error:", error);
+    logger.error("Update join request error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to update request" }, { status: 500 });
   }
 }

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   _request: Request,
@@ -21,7 +23,7 @@ export async function GET(
 
     return NextResponse.json(posts);
   } catch (error) {
-    console.error("Get event posts error:", error);
+    logger.error("Get event posts error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to load posts" }, { status: 500 });
   }
 }
@@ -38,9 +40,10 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const { content } = await request.json();
+    const body = await request.json();
+    const content = stripTags(String(body.content || "").trim()).slice(0, 5000);
 
-    if (!content?.trim()) {
+    if (!content) {
       return NextResponse.json({ error: "Missing content" }, { status: 400 });
     }
 
@@ -59,7 +62,7 @@ export async function POST(
       data: {
         eventId: id,
         authorId: session.user.id,
-        content: content.trim(),
+        content,
       },
       include: {
         author: { select: { id: true, name: true, image: true } },
@@ -83,7 +86,7 @@ export async function POST(
 
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
-    console.error("Create event post error:", error);
+    logger.error("Create event post error", { id, error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

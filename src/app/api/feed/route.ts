@@ -1,12 +1,19 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`feed:${ip}`, 60, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -40,7 +47,7 @@ export async function GET(request: Request) {
       hasMore: page * pageSize < total,
     });
   } catch (error) {
-    console.error("Feed error:", error);
+    logger.error("Feed error", { error: String(error) });
     return NextResponse.json({ error: "Failed to load feed" }, { status: 500 });
   }
 }

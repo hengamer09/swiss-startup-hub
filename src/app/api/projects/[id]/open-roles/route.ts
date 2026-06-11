@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export async function POST(
   request: Request,
@@ -21,9 +23,13 @@ export async function POST(
   }
 
   try {
-    const { title, skills, commitment, description } = await request.json();
+    const body = await request.json();
+    const { skills, commitment } = body;
 
-    if (!title?.trim()) {
+    const title = stripTags(String(body.title || "").trim()).slice(0, 200);
+    const description = body.description ? stripTags(String(body.description).trim()).slice(0, 2000) : "";
+
+    if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
@@ -39,7 +45,7 @@ export async function POST(
 
     return NextResponse.json(role, { status: 201 });
   } catch (error) {
-    console.error("Create open role error:", error);
+    logger.error("Create open role error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to create role" }, { status: 500 });
   }
 }
@@ -67,7 +73,7 @@ export async function DELETE(
     await prisma.openRole.delete({ where: { id: roleId } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Delete open role error:", error);
+    logger.error("Delete open role error", { id: projectId, error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

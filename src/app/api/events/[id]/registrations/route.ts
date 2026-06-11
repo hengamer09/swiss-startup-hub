@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function DELETE(
   request: Request,
@@ -33,7 +34,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Remove registration error:", error);
+    logger.error("Remove registration error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to remove attendee" }, { status: 500 });
   }
 }

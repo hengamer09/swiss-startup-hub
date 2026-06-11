@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
-import { APP_URL } from "@/lib/utils";
+import { APP_URL, stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,7 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
     return NextResponse.json(posts);
   } catch (error) {
-    console.error("Get project posts error:", error);
+    logger.error("Get project posts error", { id, error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -35,9 +36,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
 
   try {
-    const { content } = await request.json();
+    const body = await request.json();
+    const content = stripTags(String(body.content || "").trim()).slice(0, 5000);
 
-    if (!content?.trim()) {
+    if (!content) {
       return NextResponse.json({ error: "Missing content" }, { status: 400 });
     }
 
@@ -45,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       data: {
         projectId: id,
         authorId: session.user.id,
-        content: content.trim(),
+        content,
         isAnnouncement: false,
       },
       include: {
@@ -82,8 +84,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           await sendEmail({
             to: user.email,
             subject: `New discussion post on ${project.name}`,
-            text: `${session.user.name || "Someone"} posted a new message in ${project.name}:\n\n${content.trim()}\n\nView the project: ${APP_URL}/projects/${project.id}`,
-            html: `<div style="font-family: Arial, sans-serif; color: #18181b; line-height: 1.5;"><p>Hi ${user.name || "there"},</p><p><strong>${session.user.name || "Someone"}</strong> posted a new message in <strong>${project.name}</strong>.</p><p>${content.trim()}</p><p><a href="${APP_URL}/projects/${project.id}" style="color:#dc2626;">Open the project</a></p></div>`,
+            text: `${session.user.name || "Someone"} posted a new message in ${project.name}:\n\n${content}\n\nView the project: ${APP_URL}/projects/${project.id}`,
+            html: `<div style="font-family: Arial, sans-serif; color: #18181b; line-height: 1.5;"><p>Hi ${user.name || "there"},</p><p><strong>${session.user.name || "Someone"}</strong> posted a new message in <strong>${project.name}</strong>.</p><p>${content}</p><p><a href="${APP_URL}/projects/${project.id}" style="color:#dc2626;">Open the project</a></p></div>`,
           });
         })
       );
@@ -91,7 +93,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
-    console.error("Create project post error:", error);
+    logger.error("Create project post error", { id, error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

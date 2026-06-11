@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   _request: Request,
@@ -9,7 +10,7 @@ export async function GET(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
@@ -43,7 +44,7 @@ export async function GET(
 
     if (!conversation) {
       return NextResponse.json(
-        { message: "Conversation not found" },
+        { error: "Conversation not found" },
         { status: 404 }
       );
     }
@@ -78,9 +79,9 @@ export async function GET(
 
     return NextResponse.json({ ...conversation, joinRequest });
   } catch (error) {
-    console.error("Get conversation error:", error);
+    logger.error("Get conversation error", { id, error: String(error) });
     return NextResponse.json(
-      { message: "Failed to load conversation" },
+      { error: "Failed to load conversation" },
       { status: 500 }
     );
   }

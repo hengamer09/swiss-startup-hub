@@ -1,12 +1,19 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`rating:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const fromUserId = session.user.id;
@@ -53,7 +60,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Rating error:", error);
+    logger.error("Rating error", { error: String(error) });
     return NextResponse.json({ error: "Failed to submit rating" }, { status: 500 });
   }
 }

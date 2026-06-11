@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function DELETE(
   _request: Request,
@@ -39,7 +40,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Remove follower error:", error);
+    logger.error("Remove follower error", { id: projectId, error: String(error) });
     return NextResponse.json({ error: "Failed to remove follower" }, { status: 500 });
   }
 }

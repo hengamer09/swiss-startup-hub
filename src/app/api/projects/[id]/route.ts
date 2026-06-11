@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   _request: Request,
@@ -26,7 +28,7 @@ export async function GET(
 
     return NextResponse.json(project);
   } catch (error) {
-    console.error("Get project error:", error);
+    logger.error("Get project error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to load project" }, { status: 500 });
   }
 }
@@ -52,20 +54,20 @@ export async function PUT(
     const data = await request.json();
     const updateData: Record<string, unknown> = {};
 
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.problem !== undefined) updateData.problem = data.problem;
-    if (data.solution !== undefined) updateData.solution = data.solution;
+    if (data.name !== undefined) updateData.name = stripTags(String(data.name).trim()).slice(0, 100);
+    if (data.problem !== undefined) updateData.problem = stripTags(String(data.problem).trim()).slice(0, 2000);
+    if (data.solution !== undefined) updateData.solution = stripTags(String(data.solution).trim()).slice(0, 2000);
     if (data.industry !== undefined) updateData.industry = data.industry;
     if (data.stage !== undefined) updateData.stage = data.stage;
     if (data.location !== undefined) updateData.location = data.location;
     if (data.isRemote !== undefined) updateData.isRemote = data.isRemote;
-    if (data.targetCustomer !== undefined) updateData.targetCustomer = data.targetCustomer;
+    if (data.targetCustomer !== undefined) updateData.targetCustomer = stripTags(String(data.targetCustomer).trim()).slice(0, 200);
     if (data.scope !== undefined) updateData.scope = data.scope;
-    if (data.competitiveLandscape !== undefined) updateData.competitiveLandscape = data.competitiveLandscape;
-    if (data.investorPitch !== undefined) updateData.investorPitch = data.investorPitch;
+    if (data.competitiveLandscape !== undefined) updateData.competitiveLandscape = stripTags(String(data.competitiveLandscape).trim()).slice(0, 2000);
+    if (data.investorPitch !== undefined) updateData.investorPitch = stripTags(String(data.investorPitch).trim()).slice(0, 2000);
     if (data.fundingAmount !== undefined) updateData.fundingAmount = data.fundingAmount;
-    if (data.useOfFunds !== undefined) updateData.useOfFunds = data.useOfFunds;
-    if (data.tractionMetrics !== undefined) updateData.tractionMetrics = data.tractionMetrics;
+    if (data.useOfFunds !== undefined) updateData.useOfFunds = stripTags(String(data.useOfFunds).trim()).slice(0, 2000);
+    if (data.tractionMetrics !== undefined) updateData.tractionMetrics = stripTags(String(data.tractionMetrics).trim()).slice(0, 2000);
     if (data.investorVisible !== undefined) updateData.investorVisible = data.investorVisible;
     if (data.logo !== undefined) updateData.logo = data.logo;
     if (data.seriousness !== undefined) updateData.seriousness = data.seriousness;
@@ -78,7 +80,7 @@ export async function PUT(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("Update project error:", error);
+    logger.error("Update project error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
   }
 }

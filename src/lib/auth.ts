@@ -2,6 +2,9 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { env } from "@/lib/env";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,9 +14,14 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           return null;
+        }
+
+        const ip = (req?.headers?.["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim() || "unknown";
+        if (!checkRateLimit(`signin:${ip}`, 10, 60_000)) {
+          throw new Error("Too many login attempts. Please try again later.");
         }
 
         const user = await prisma.user.findUnique({
@@ -21,6 +29,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.passwordHash) {
+          logger.warn("Failed login: user not found", { ip });
           return null;
         }
 
@@ -30,6 +39,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isValid) {
+          logger.warn("Failed login: wrong password", { ip });
           return null;
         }
 
@@ -70,5 +80,6 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/auth/signin",
   },
-  secret: process.env.AUTH_SECRET,
+  secret: env.AUTH_SECRET,
+  useSecureCookies: process.env.NODE_ENV === "production",
 };

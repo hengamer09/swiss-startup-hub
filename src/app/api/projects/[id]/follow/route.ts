@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function POST(
   request: Request,
@@ -41,7 +42,7 @@ export async function POST(
 
     return NextResponse.json({ followed: true });
   } catch (error) {
-    console.error("Follow project error:", error);
+    logger.error("Follow project error", { id, error: String(error) });
     return NextResponse.json({ error: "Failed to update follow status" }, { status: 500 });
   }
 }

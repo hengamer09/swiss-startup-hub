@@ -1,8 +1,12 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { stripTags } from "@/lib/utils";
+import { env } from "@/lib/env";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -10,11 +14,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`review:${ip}`, 5, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const body = await request.json();
-    const { targetId, targetType, rating, feedback } = body;
+    const { targetId, targetType, rating } = body;
 
-    if (!targetId || !targetType || !rating || !feedback?.trim()) {
+    const feedback = stripTags(String(body.feedback || "").trim()).slice(0, 2000);
+
+    if (!targetId || !targetType || !rating || !feedback) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -24,19 +35,19 @@ export async function POST(request: Request) {
         targetId,
         targetType,
         rating: Number(rating),
-        feedback: feedback.trim(),
+        feedback,
       },
     });
 
     await sendEmail({
-      to: process.env.CONTACT_EMAIL || "hello@swissstartuphub.ch",
+      to: env.CONTACT_EMAIL,
       subject: "New review received",
       text: `A new review was left on Swiss Startup Hub for ${targetType} ${targetId}.\n\nRating: ${rating}\nFeedback: ${feedback}`,
-    }).catch((error) => console.error("Failed to send review email", error));
+    }).catch((error) => logger.error("Failed to send review email", { error: String(error) }));
 
     return NextResponse.json(review, { status: 201 });
   } catch (error) {
-    console.error("Create review error:", error);
+    logger.error("Create review error", { error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

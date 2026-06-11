@@ -1,7 +1,21 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`upload:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file");
@@ -16,7 +30,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: blob.url }, { status: 201 });
   } catch (error) {
-    console.error("Upload error:", error);
+    logger.error("Upload error", { error: String(error) });
     return NextResponse.json({ error: "Failed to upload image" }, { status: 500 });
   }
 }

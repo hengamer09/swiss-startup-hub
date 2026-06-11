@@ -1,7 +1,12 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripTags } from "@/lib/utils";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
+
+const PAGE_SIZE = 20;
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -9,31 +14,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`projects-post:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const userId = session.user.id;
 
   try {
     const data = await request.json();
     const {
-      name,
-      problem,
-      solution,
       industry,
       stage,
       location,
       isRemote,
-      targetCustomer,
       scope,
-      competitiveLandscape,
-      investorPitch,
       fundingAmount,
-      useOfFunds,
-      tractionMetrics,
       investorVisible,
       seriousness,
       teamCompensation,
       logo,
-      rolesNeeded,
     } = data;
+
+    const name = stripTags(String(data.name || "").trim()).slice(0, 100);
+    const problem = stripTags(String(data.problem || "").trim()).slice(0, 2000);
+    const solution = stripTags(String(data.solution || "").trim()).slice(0, 2000);
+    const targetCustomer = data.targetCustomer ? stripTags(String(data.targetCustomer).trim()).slice(0, 200) : null;
+    const competitiveLandscape = data.competitiveLandscape ? stripTags(String(data.competitiveLandscape).trim()).slice(0, 2000) : null;
+    const investorPitch = data.investorPitch ? stripTags(String(data.investorPitch).trim()).slice(0, 2000) : null;
+    const useOfFunds = data.useOfFunds ? stripTags(String(data.useOfFunds).trim()).slice(0, 2000) : null;
+    const tractionMetrics = data.tractionMetrics ? stripTags(String(data.tractionMetrics).trim()).slice(0, 2000) : null;
+    const rolesNeeded = data.rolesNeeded ? stripTags(String(data.rolesNeeded).trim()).slice(0, 2000) : null;
 
     const project = await prisma.project.create({
       data: {
@@ -79,7 +90,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
-    console.error("Create project error:", error);
+    logger.error("Create project error", { error: String(error) });
     return NextResponse.json(
       { error: "Failed to create project" },
       { status: 500 }
@@ -87,10 +98,19 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`projects-list:${ip}`, 60, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const cursor = searchParams.get("cursor") || undefined;
+
   try {
     const projects = await prisma.project.findMany({
-      take: 20,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take: PAGE_SIZE,
       orderBy: { createdAt: "desc" },
       include: {
         owner: { select: { id: true, name: true, image: true } },
@@ -105,9 +125,10 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(projects);
+    const nextCursor = projects.length === PAGE_SIZE ? projects[projects.length - 1].id : null;
+    return NextResponse.json({ projects, nextCursor });
   } catch (error) {
-    console.error("List projects error:", error);
+    logger.error("List projects error", { error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

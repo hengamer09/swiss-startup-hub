@@ -1,8 +1,18 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { stripTags } from "@/lib/utils";
+import { logger } from "@/lib/logger";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`signup:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const { name, email, password, role, skills } = await request.json();
 
@@ -13,6 +23,15 @@ export async function POST(request: Request) {
       );
     }
 
+    const cleanName = stripTags(String(name).trim());
+    const cleanEmail = stripTags(String(email).trim());
+
+    if (cleanName.length > 100) return NextResponse.json({ error: "Name too long" }, { status: 400 });
+    if (cleanEmail.length > 255) return NextResponse.json({ error: "Email too long" }, { status: 400 });
+    if (!EMAIL_RE.test(cleanEmail)) return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+    if (String(password).length < 8) return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    if (String(password).length > 128) return NextResponse.json({ error: "Password too long" }, { status: 400 });
+
     if (!["FOUNDER", "PROFESSIONAL", "INVESTOR"].includes(role)) {
       return NextResponse.json(
         { error: "Invalid role" },
@@ -21,7 +40,7 @@ export async function POST(request: Request) {
     }
 
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
 
     if (existingUser) {
@@ -35,12 +54,13 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: cleanName,
+        email: cleanEmail,
         passwordHash,
         roles: JSON.stringify([role]),
         isEarlyMember: true,
       },
+      select: { id: true },
     });
 
     if (skills && Array.isArray(skills) && skills.length > 0) {
@@ -65,7 +85,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Signup error:", error);
+    logger.error("Signup error", { error: String(error) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

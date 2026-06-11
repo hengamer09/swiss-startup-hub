@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { env } from "@/lib/env";
 
 export async function sendEmail({
   to,
@@ -11,9 +12,9 @@ export async function sendEmail({
   text: string;
   html?: string;
 }) {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const host = env.SMTP_HOST;
+  const user = env.SMTP_USER;
+  const pass = env.SMTP_PASS;
 
   if (!host || !user || !pass) {
     return false;
@@ -21,13 +22,13 @@ export async function sendEmail({
 
   const transporter = nodemailer.createTransport({
     host,
-    port: Number(process.env.SMTP_PORT || 587),
+    port: Number(env.SMTP_PORT),
     secure: false,
     auth: { user, pass },
   });
 
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || user,
+    from: env.SMTP_FROM || user,
     to,
     subject,
     text,
