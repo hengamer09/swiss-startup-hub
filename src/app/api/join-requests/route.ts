@@ -19,39 +19,28 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-function formatAvailability(value: string) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 function buildJoinRequestMessage({
   requesterName,
   projectName,
+  applicantRole,
   motivation,
-  experience,
-  availability,
   links,
 }: {
   requesterName: string;
   projectName: string;
+  applicantRole: string | null;
   motivation: string;
-  experience: string;
-  availability: string;
   links: string | null;
 }) {
-  return [
+  const lines = [
     `New join request for ${projectName}`,
     "",
     `Name: ${requesterName}`,
-    `Project: ${projectName}`,
-    `Motivation: ${motivation}`,
-    `Experience: ${experience}`,
-    `Availability: ${formatAvailability(availability)}`,
-    links ? `Links: ${links}` : "Links: None provided",
-  ].join("\n");
+  ];
+  if (applicantRole) lines.push(`Role: ${applicantRole}`);
+  lines.push(`Message: ${motivation}`);
+  if (links) lines.push(`Portfolio / Links: ${links}`);
+  return lines.join("\n");
 }
 
 export async function POST(request: Request) {
@@ -61,15 +50,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { projectId, motivation, experience, availability, links } =
+    const { projectId, motivation, applicantRole, links } =
       await request.json();
 
     const trimmedMotivation = motivation?.trim();
-    const trimmedExperience = experience?.trim();
-    const trimmedAvailability = availability?.trim() || "FLEXIBLE";
+    const trimmedApplicantRole = applicantRole?.trim() || null;
     const trimmedLinks = links?.trim() || null;
 
-    if (!projectId || !trimmedMotivation) {
+    if (!projectId || !trimmedMotivation || !trimmedApplicantRole) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
@@ -127,7 +115,7 @@ export async function POST(request: Request) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const projectPath = `/projects/${project.id}`;
     const projectLink = `${appUrl}${projectPath}`;
-    const recipients = [project.owner, ...project.members.map((member) => member.user)]
+    const recipients = [project.owner, ...project.members.map((m) => m.user)]
       .filter(
         (user): user is Recipient =>
           Boolean(user) && user.id !== session.user.id
@@ -139,9 +127,8 @@ export async function POST(request: Request) {
     const messageContent = buildJoinRequestMessage({
       requesterName,
       projectName: project.name,
+      applicantRole: trimmedApplicantRole,
       motivation: trimmedMotivation,
-      experience: trimmedExperience,
-      availability: trimmedAvailability,
       links: trimmedLinks,
     });
 
@@ -151,8 +138,9 @@ export async function POST(request: Request) {
           userId: session.user.id,
           projectId,
           motivation: trimmedMotivation,
-          experience: trimmedExperience,
-          availability: trimmedAvailability,
+          experience: "",
+          availability: "FLEXIBLE",
+          applicantRole: trimmedApplicantRole,
           links: trimmedLinks,
         },
       });
@@ -169,24 +157,51 @@ export async function POST(request: Request) {
 
         await Promise.all(
           recipients.map(async (user) => {
-            await tx.conversation.create({
-              data: {
+            // Check if a conversation already exists between them for this project
+            const existing = await tx.conversation.findFirst({
+              where: {
                 projectId: project.id,
-                participants: {
-                  create: [
-                    { userId: session.user.id },
-                    { userId: user.id },
-                  ],
-                },
-                messages: {
-                  create: {
-                    senderId: session.user.id,
-                    receiverId: user.id,
-                    content: messageContent,
-                  },
-                },
+                AND: [
+                  { participants: { some: { userId: session.user.id } } },
+                  { participants: { some: { userId: user.id } } },
+                ],
               },
             });
+
+            if (existing) {
+              // Add message to existing conversation
+              await tx.message.create({
+                data: {
+                  conversationId: existing.id,
+                  senderId: session.user.id,
+                  receiverId: user.id,
+                  content: messageContent,
+                },
+              });
+              await tx.conversation.update({
+                where: { id: existing.id },
+                data: { updatedAt: new Date() },
+              });
+            } else {
+              await tx.conversation.create({
+                data: {
+                  projectId: project.id,
+                  participants: {
+                    create: [
+                      { userId: session.user.id },
+                      { userId: user.id },
+                    ],
+                  },
+                  messages: {
+                    create: {
+                      senderId: session.user.id,
+                      receiverId: user.id,
+                      content: messageContent,
+                    },
+                  },
+                },
+              });
+            }
           })
         );
       }
@@ -215,11 +230,9 @@ export async function POST(request: Request) {
               <p>Hi ${escapeHtml(user.name || "there")},</p>
               <p><strong>New join request for ${escapeHtml(project.name)}</strong></p>
               <p><strong>Name:</strong> ${escapeHtml(requesterName)}</p>
-              <p><strong>Project:</strong> ${escapeHtml(project.name)}</p>
-              <p><strong>Motivation:</strong> ${escapeHtml(trimmedMotivation)}</p>
-              <p><strong>Experience:</strong> ${escapeHtml(trimmedExperience)}</p>
-              <p><strong>Availability:</strong> ${escapeHtml(formatAvailability(trimmedAvailability))}</p>
-              <p><strong>Links:</strong> ${escapeHtml(trimmedLinks || "None provided")}</p>
+              ${trimmedApplicantRole ? `<p><strong>Role:</strong> ${escapeHtml(trimmedApplicantRole)}</p>` : ""}
+              <p><strong>Message:</strong> ${escapeHtml(trimmedMotivation)}</p>
+              ${trimmedLinks ? `<p><strong>Portfolio / Links:</strong> ${escapeHtml(trimmedLinks)}</p>` : ""}
               <p><a href="${escapeHtml(projectLink)}" style="color:#dc2626;">View the project</a></p>
             </div>
           `,

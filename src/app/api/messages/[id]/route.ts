@@ -30,7 +30,7 @@ export async function GET(
           },
         },
         project: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, ownerId: true },
         },
         messages: {
           orderBy: { createdAt: "asc" },
@@ -48,7 +48,35 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(conversation);
+    // If this conversation is linked to a project, check for a pending join request
+    // between the current user and the other participant
+    let joinRequest = null;
+    if (conversation.projectId) {
+      const other = conversation.participants.find((p) => p.userId !== userId);
+      if (other) {
+        joinRequest = await prisma.joinRequest.findUnique({
+          where: {
+            userId_projectId: {
+              userId: other.userId,
+              projectId: conversation.projectId,
+            },
+          },
+          select: {
+            id: true,
+            status: true,
+            motivation: true,
+            applicantRole: true,
+            links: true,
+            userId: true,
+            project: {
+              select: { id: true, name: true, ownerId: true },
+            },
+          },
+        });
+      }
+    }
+
+    return NextResponse.json({ ...conversation, joinRequest });
   } catch (error) {
     console.error("Get conversation error:", error);
     return NextResponse.json(

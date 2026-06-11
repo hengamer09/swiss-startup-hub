@@ -160,12 +160,13 @@ model JoinRequest {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectId    String
   project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  motivation   String
-  experience   String
-  availability String
-  links        String?
-  status       String   @default("PENDING")
-  founderReply String?
+  motivation    String
+  experience    String
+  availability  String
+  applicantRole String?
+  links         String?
+  status        String   @default("PENDING")
+  founderReply  String?
   createdAt    DateTime @default(now())
   reviewedAt   DateTime?
 

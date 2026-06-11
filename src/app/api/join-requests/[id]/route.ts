@@ -24,7 +24,10 @@ export async function PUT(
 
     const trimmedReply = reply?.trim();
     if (!trimmedReply) {
-      return NextResponse.json({ message: "A reply is required before accepting or declining." }, { status: 400 });
+      return NextResponse.json(
+        { message: "A reply is required before accepting or declining." },
+        { status: 400 }
+      );
     }
 
     const joinRequest = await prisma.joinRequest.findUnique({
@@ -47,6 +50,18 @@ export async function PUT(
       return NextResponse.json({ message: "Already reviewed" }, { status: 400 });
     }
 
+    // Find existing conversation between founder and applicant for this project
+    const existingConv = await prisma.conversation.findFirst({
+      where: {
+        projectId: joinRequest.projectId,
+        AND: [
+          { participants: { some: { userId: joinRequest.userId } } },
+          { participants: { some: { userId: session.user.id } } },
+        ],
+      },
+      select: { id: true },
+    });
+
     const updated = await prisma.$transaction(async (tx) => {
       const result = await tx.joinRequest.update({
         where: { id },
@@ -58,7 +73,6 @@ export async function PUT(
       });
 
       if (status === "APPROVED") {
-        // Add to team with the reply as role title
         await tx.projectMember.upsert({
           where: {
             userId_projectId: {
@@ -93,10 +107,31 @@ export async function PUT(
         },
       });
 
+      // Send a real message in the conversation thread
+      const msgContent =
+        status === "APPROVED"
+          ? `Your request to join ${joinRequest.project.name} has been accepted! You've been added to the team as ${trimmedReply}.`
+          : `Your request to join ${joinRequest.project.name} was declined. Message from founder: ${trimmedReply}`;
+
+      if (existingConv) {
+        await tx.message.create({
+          data: {
+            conversationId: existingConv.id,
+            senderId: session.user.id,
+            receiverId: joinRequest.userId,
+            content: msgContent,
+          },
+        });
+        await tx.conversation.update({
+          where: { id: existingConv.id },
+          data: { updatedAt: new Date() },
+        });
+      }
+
       return result;
     });
 
-    // Send email to applicant — non-critical, failures are swallowed
+    // Send email to applicant — non-critical
     if (joinRequest.user.email) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const projectUrl = `${appUrl}/projects/${joinRequest.projectId}`;

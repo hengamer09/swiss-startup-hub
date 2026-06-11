@@ -44,6 +44,8 @@ export default function DashboardContent({ data }: { data: any }) {
   const isInvestor = roles.includes("INVESTOR");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [applicationReplies, setApplicationReplies] = useState<Record<string, string>>({});
+  const [applicationErrors, setApplicationErrors] = useState<Record<string, string>>({});
 
   // State for the hosted-event edit modal
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
@@ -88,12 +90,24 @@ export default function DashboardContent({ data }: { data: any }) {
 
   const handleJoinRequest = useCallback(
     async (requestId: string, status: "APPROVED" | "REJECTED") => {
+      const reply = applicationReplies[requestId]?.trim();
+      if (!reply) {
+        setApplicationErrors((prev) => ({
+          ...prev,
+          [requestId]:
+            status === "APPROVED"
+              ? "Enter the role title before accepting."
+              : "Enter a reason before declining.",
+        }));
+        return;
+      }
+      setApplicationErrors((prev) => ({ ...prev, [requestId]: "" }));
       setUpdatingId(requestId);
       try {
         const res = await fetch(`/api/join-requests/${requestId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }),
+          body: JSON.stringify({ status, reply }),
         });
         if (res.ok) {
           window.location.reload();
@@ -102,7 +116,7 @@ export default function DashboardContent({ data }: { data: any }) {
         setUpdatingId(null);
       }
     },
-    []
+    [applicationReplies]
   );
 
   const handleRemoveFollower = useCallback(
@@ -380,13 +394,13 @@ export default function DashboardContent({ data }: { data: any }) {
                   {pending.map((req: any) => (
                     <div
                       key={req.id}
-                      className="flex items-center justify-between gap-4 rounded-lg bg-zinc-50 p-3"
+                      className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-start gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold text-zinc-600">
                           {req.user?.name?.charAt(0) || "?"}
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1 space-y-1">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium text-zinc-900 truncate">
                               {req.user?.name}
@@ -395,29 +409,71 @@ export default function DashboardContent({ data }: { data: any }) {
                               Pending
                             </span>
                           </div>
+                          {req.applicantRole && (
+                            <p className="text-xs font-medium text-zinc-500">
+                              {req.applicantRole}
+                            </p>
+                          )}
                           {req.motivation && (
-                            <p className="mt-0.5 text-xs text-zinc-500 italic line-clamp-2">
+                            <p className="text-xs text-zinc-600 italic line-clamp-3">
                               &ldquo;{req.motivation}&rdquo;
                             </p>
                           )}
+                          {req.links && (
+                            <a
+                              href={req.links}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-red-500 underline"
+                            >
+                              {req.links}
+                            </a>
+                          )}
                         </div>
                       </div>
-                      <div className="flex shrink-0 gap-2">
+
+                      <div>
+                        <input
+                          type="text"
+                          value={applicationReplies[req.id] || ""}
+                          onChange={(e) => {
+                            setApplicationReplies((prev) => ({
+                              ...prev,
+                              [req.id]: e.target.value,
+                            }));
+                            if (applicationErrors[req.id]) {
+                              setApplicationErrors((prev) => ({
+                                ...prev,
+                                [req.id]: "",
+                              }));
+                            }
+                          }}
+                          placeholder="Role title (to accept) or reason for declining — required"
+                          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                        />
+                        {applicationErrors[req.id] && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {applicationErrors[req.id]}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2">
                         <button
                           onClick={() => handleJoinRequest(req.id, "APPROVED")}
                           disabled={updatingId === req.id}
-                          className="flex items-center gap-1 rounded-lg bg-green-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-600 transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1 rounded-full bg-green-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-green-600 transition-colors disabled:opacity-50"
                         >
                           <CheckCircle className="h-3.5 w-3.5" />
-                          Approve
+                          Accept
                         </button>
                         <button
                           onClick={() => handleJoinRequest(req.id, "REJECTED")}
                           disabled={updatingId === req.id}
-                          className="flex items-center gap-1 rounded-lg bg-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-400 transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-colors disabled:opacity-50"
                         >
                           <XCircle className="h-3.5 w-3.5" />
-                          Reject
+                          Decline
                         </button>
                       </div>
                     </div>

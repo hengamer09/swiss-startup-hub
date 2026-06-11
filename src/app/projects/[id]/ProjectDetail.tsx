@@ -22,11 +22,13 @@ export default function ProjectDetail({
   pendingRequests: initialPendingRequests,
   myRequest,
   userId,
+  userName,
 }: {
   project: any;
   pendingRequests: any[];
   myRequest: { id: string; status: string } | null;
   userId: string | null;
+  userName?: string | null;
 }) {
   const isOwner = userId === project.owner?.id;
   const isMember = project.members?.some((m: any) => m.user.id === userId);
@@ -49,7 +51,6 @@ export default function ProjectDetail({
   // Join request state
   const [hasApplied, setHasApplied] = useState(!!myRequest);
   const [pendingRequests, setPendingRequests] = useState<any[]>(initialPendingRequests || []);
-  // Reply text per request id
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -108,8 +109,8 @@ export default function ProjectDetail({
       setToast({
         open: true,
         message: status === "APPROVED"
-          ? "Please write a role/message before accepting."
-          : "Please write a reason before declining.",
+          ? "Please enter the role title before accepting."
+          : "Please enter a reason before declining.",
         tone: "error",
       });
       return;
@@ -290,16 +291,31 @@ export default function ProjectDetail({
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold text-zinc-600">
                         {req.user?.name?.charAt(0) || "?"}
                       </div>
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 space-y-1">
                         <Link
                           href={`/profile/${req.user?.id}`}
                           className="font-medium text-zinc-900 hover:text-red-500 transition-colors"
                         >
                           {req.user?.name}
                         </Link>
-                        <p className="mt-1 text-sm text-zinc-600 whitespace-pre-wrap">
+                        {req.applicantRole && (
+                          <p className="text-xs font-medium text-zinc-500">
+                            {req.applicantRole}
+                          </p>
+                        )}
+                        <p className="text-sm text-zinc-600 whitespace-pre-wrap">
                           {req.motivation}
                         </p>
+                        {req.links && (
+                          <a
+                            href={req.links}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-red-500 underline"
+                          >
+                            {req.links}
+                          </a>
+                        )}
                       </div>
                     </div>
 
@@ -310,7 +326,7 @@ export default function ProjectDetail({
                         onChange={(e) =>
                           setReplies((prev) => ({ ...prev, [req.id]: e.target.value }))
                         }
-                        placeholder="Role for acceptance / reason for declining (required)"
+                        placeholder="Role title (to accept) or reason for declining — required"
                         className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                       />
                     </div>
@@ -429,7 +445,7 @@ export default function ProjectDetail({
             </section>
           </div>
 
-          {/* Team */}
+          {/* Team — only accepted members (ProjectMember records) */}
           {project.members?.length > 0 && (
             <div className="mt-6 border-t border-zinc-100 pt-6">
               <h2 className="text-sm font-semibold text-zinc-900 mb-3">Team</h2>
@@ -449,13 +465,8 @@ export default function ProjectDetail({
                       >
                         {m.user.name}
                       </Link>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-zinc-400">{m.roleTitle}</span>
-                        {m.isFounder && (
-                          <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
-                            Founder
-                          </span>
-                        )}
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-zinc-500">{m.roleTitle}</span>
                         {m.user.identityVerified && (
                           <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-600">
                             Verified
@@ -552,6 +563,7 @@ export default function ProjectDetail({
         <JoinModal
           projectId={project.id}
           projectName={project.name}
+          userName={userName}
           onClose={() => setShowJoinModal(false)}
           onSuccess={() => {
             setShowJoinModal(false);
@@ -598,22 +610,34 @@ export default function ProjectDetail({
 function JoinModal({
   projectId,
   projectName,
+  userName,
   onClose,
   onSuccess,
   onError,
 }: {
   projectId: string;
   projectName: string;
+  userName?: string | null;
   onClose: () => void;
   onSuccess: () => void;
   onError: (msg?: string) => void;
 }) {
+  const [applicantRole, setApplicantRole] = useState("");
   const [message, setMessage] = useState("");
+  const [links, setLinks] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (loading || !message.trim()) return;
+
+    const newErrors: Record<string, string> = {};
+    if (!applicantRole.trim()) newErrors.applicantRole = "Your role is required";
+    if (!message.trim()) newErrors.message = "A message is required";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -623,6 +647,8 @@ function JoinModal({
         body: JSON.stringify({
           projectId,
           motivation: message.trim(),
+          applicantRole: applicantRole.trim(),
+          links: links.trim() || null,
           experience: "",
           availability: "FLEXIBLE",
         }),
@@ -642,27 +668,91 @@ function JoinModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-6">
+      <div className="w-full max-w-md rounded-xl bg-white p-6 max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold text-zinc-900">
           Request to Join {projectName}
         </h3>
+
+        {userName && (
+          <p className="mt-1 text-sm text-zinc-500">
+            Applying as <span className="font-medium text-zinc-700">{userName}</span>
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700">
-              Introduce yourself <span className="text-red-500">*</span>
+              Your role / what you do <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              maxLength={100}
+              value={applicantRole}
+              onChange={(e) => {
+                setApplicantRole(e.target.value);
+                if (errors.applicantRole) setErrors((prev) => ({ ...prev, applicantRole: "" }));
+              }}
+              className={cn(
+                "mt-1 block w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1",
+                errors.applicantRole
+                  ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                  : "border-zinc-300 focus:border-red-500 focus:ring-red-500"
+              )}
+              placeholder="e.g. Frontend Developer, Marketing, Investor…"
+            />
+            {errors.applicantRole && (
+              <p className="mt-1 text-xs text-red-600">{errors.applicantRole}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">
+              Why you want to join & what you bring <span className="text-red-500">*</span>
             </label>
             <textarea
               required
               maxLength={1000}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                if (errors.message) setErrors((prev) => ({ ...prev, message: "" }));
+              }}
               rows={5}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-              placeholder="Tell the founder who you are, what you can do, and why you want to join this project..."
+              className={cn(
+                "mt-1 block w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1",
+                errors.message
+                  ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                  : "border-zinc-300 focus:border-red-500 focus:ring-red-500"
+              )}
+              placeholder="Tell the founder about yourself, your experience, and why you want to join this project…"
             />
-            <p className="mt-1 text-xs text-zinc-400">{message.length}/1000</p>
+            <div className="mt-1 flex items-center justify-between">
+              {errors.message ? (
+                <p className="text-xs text-red-600">{errors.message}</p>
+              ) : (
+                <span />
+              )}
+              <p className="text-xs text-zinc-400">{message.length}/1000</p>
+            </div>
           </div>
-          <div className="flex gap-3">
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">
+              Portfolio or LinkedIn URL{" "}
+              <span className="text-zinc-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="url"
+              maxLength={300}
+              value={links}
+              onChange={(e) => setLinks(e.target.value)}
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              placeholder="https://linkedin.com/in/yourname"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
@@ -672,10 +762,10 @@ function JoinModal({
             </button>
             <button
               type="submit"
-              disabled={loading || !message.trim()}
+              disabled={loading}
               className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
             >
-              {loading ? "Sending..." : "Send Request"}
+              {loading ? "Sending…" : "Send Request"}
             </button>
           </div>
         </form>

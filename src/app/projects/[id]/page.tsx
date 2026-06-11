@@ -10,6 +10,7 @@ export default async function ProjectPage(props: {
   const { id } = await props.params;
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id: string })?.id || null;
+  const userName = session?.user?.name || null;
 
   const [project, myRequest] = await Promise.all([
     prisma.project.findUnique({
@@ -61,6 +62,7 @@ export default async function ProjectPage(props: {
       pendingRequests={serialized.pendingRequests}
       myRequest={serialized.myRequest}
       userId={userId}
+      userName={userName}
     />
   );
 }

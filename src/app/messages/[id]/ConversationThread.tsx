@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ConversationThread({
@@ -16,11 +15,17 @@ export default function ConversationThread({
   const [messages, setMessages] = useState<any[]>([]);
   const [participants, setParticipants] = useState<any[]>([]);
   const [project, setProject] = useState<any>(null);
+  const [joinRequest, setJoinRequest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Accept / decline state
+  const [joinReply, setJoinReply] = useState("");
+  const [joinProcessing, setJoinProcessing] = useState(false);
+  const [joinError, setJoinError] = useState("");
+
   const bottomRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   const fetchMessages = useCallback(async () => {
     const res = await fetch(`/api/messages/${conversationId}`);
@@ -29,8 +34,16 @@ export default function ConversationThread({
       setMessages(data.messages || []);
       setParticipants(data.participants || []);
       setProject(data.project || null);
+      // Only update joinRequest if it is still pending (don't re-show after actioning)
+      if (data.joinRequest?.status === "PENDING") {
+        setJoinRequest(data.joinRequest);
+      } else if (!joinRequest || joinRequest.status === "PENDING") {
+        // Clear if it's been resolved
+        setJoinRequest(data.joinRequest ?? null);
+      }
     }
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   useEffect(() => {
@@ -49,6 +62,41 @@ export default function ConversationThread({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const isFounderOfProject =
+    joinRequest?.status === "PENDING" &&
+    joinRequest?.project?.ownerId === userId;
+
+  async function handleJoinDecision(status: "APPROVED" | "REJECTED") {
+    const reply = joinReply.trim();
+    if (!reply) {
+      setJoinError(
+        status === "APPROVED"
+          ? "Please enter a role title before accepting."
+          : "Please enter a reason before declining."
+      );
+      return;
+    }
+    setJoinError("");
+    setJoinProcessing(true);
+    try {
+      const res = await fetch(`/api/join-requests/${joinRequest.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, reply }),
+      });
+      if (res.ok) {
+        setJoinRequest(null);
+        setJoinReply("");
+        await fetchMessages();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setJoinError(data.message || "Something went wrong. Please try again.");
+      }
+    } finally {
+      setJoinProcessing(false);
+    }
+  }
 
   const sendMessage = async () => {
     if (!input.trim() || sending) return;
@@ -117,6 +165,77 @@ export default function ConversationThread({
           )}
         </div>
       </div>
+
+      {/* Join request banner — only visible to the project founder */}
+      {isFounderOfProject && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-amber-900">
+              Join Request from {other?.name}
+            </p>
+            {joinRequest.applicantRole && (
+              <p className="mt-1 text-xs text-amber-800">
+                <span className="font-medium">Role:</span>{" "}
+                {joinRequest.applicantRole}
+              </p>
+            )}
+            {joinRequest.motivation && (
+              <p className="mt-1 text-xs text-amber-800">
+                <span className="font-medium">Message:</span>{" "}
+                {joinRequest.motivation}
+              </p>
+            )}
+            {joinRequest.links && (
+              <p className="mt-1 text-xs text-amber-800">
+                <span className="font-medium">Portfolio / Links:</span>{" "}
+                <a
+                  href={joinRequest.links}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  {joinRequest.links}
+                </a>
+              </p>
+            )}
+          </div>
+
+          <div>
+            <input
+              type="text"
+              value={joinReply}
+              onChange={(e) => {
+                setJoinReply(e.target.value);
+                if (joinError) setJoinError("");
+              }}
+              placeholder="Role title (to accept) or reason for declining — required"
+              className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            />
+            {joinError && (
+              <p className="mt-1 text-xs text-red-600">{joinError}</p>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleJoinDecision("APPROVED")}
+              disabled={joinProcessing}
+              className="flex items-center gap-1.5 rounded-full bg-green-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50 transition-colors"
+            >
+              <CheckCircle className="h-3.5 w-3.5" />
+              Accept
+            </button>
+            <button
+              onClick={() => handleJoinDecision("REJECTED")}
+              disabled={joinProcessing}
+              className="flex items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 transition-colors"
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              Decline
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 space-y-3 overflow-y-auto pb-4">
         {messages.length === 0 ? (
