@@ -11,7 +11,7 @@ export default function FloatingFeedbackButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 rounded-full bg-fuchsia-500 px-4 py-3 text-sm font-bold text-white shadow-lg hover:bg-fuchsia-600 transition-colors"
+        className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 rounded-full bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-lg hover:bg-red-700 transition-colors"
         aria-label="Open feedback"
       >
         <MessageSquare className="h-4 w-4" />

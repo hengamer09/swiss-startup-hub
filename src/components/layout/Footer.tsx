@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Mountain } from "lucide-react";
 
 export default function Footer() {
@@ -10,9 +11,9 @@ export default function Footer() {
         </div>
         <p>Connecting the Swiss startup ecosystem</p>
         <div className="flex gap-4">
-          <a href="#" className="hover:text-zinc-700 transition-colors">Privacy</a>
-          <a href="#" className="hover:text-zinc-700 transition-colors">Terms</a>
-          <a href="#" className="hover:text-zinc-700 transition-colors">Contact</a>
+          <Link href="/privacy" className="hover:text-zinc-700 transition-colors">Privacy</Link>
+          <Link href="/terms" className="hover:text-zinc-700 transition-colors">Terms</Link>
+          <Link href="/contact" className="hover:text-zinc-700 transition-colors">Contact</Link>
         </div>
       </div>
     </footer>

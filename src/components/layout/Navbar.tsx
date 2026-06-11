@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Mountain, Bell, MessageSquare, Search, Menu } from "lucide-react";
+import { Mountain, MessageSquare, Search, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import FeedbackModal from "@/components/FeedbackModal";
@@ -74,7 +74,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               setFeedbackOpen(true);
               if (onFeedback) onFeedback();
             }}
-            className="rounded-full bg-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-fuchsia-600"
+            className="rounded-full bg-red-600 px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700"
           >
             Feedback
           </button>
@@ -90,13 +90,6 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
-              </Link>
-              <Link
-                href="/dashboard"
-                className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors"
-                aria-label="Open dashboard"
-              >
-                <Bell className="h-5 w-5" />
               </Link>
               <Link
                 href="/profile"
