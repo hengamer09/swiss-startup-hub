@@ -85,3 +85,15 @@ export const industries = [
   "Real Estate",
   "Other",
 ] as const;
+
+export const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}

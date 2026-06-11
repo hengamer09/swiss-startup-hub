@@ -57,7 +57,7 @@ export default function SignUpPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Something went wrong");
+        setError(data.error || "Something went wrong");
         setLoading(false);
         return;
       }
@@ -153,18 +153,20 @@ export default function SignUpPage() {
               I am a...
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: "FOUNDER", label: "Founder", icon: Rocket, color: "red" },
-                { value: "PROFESSIONAL", label: "Professional", icon: Briefcase, color: "blue" },
-                { value: "INVESTOR", label: "Investor", icon: Banknote, color: "amber" },
-              ].map(({ value, label, icon: Icon, color }) => (
+              {(
+                [
+                  { value: "FOUNDER", label: "Founder", icon: Rocket, activeClass: "border-red-500 bg-red-50 text-red-700" },
+                  { value: "PROFESSIONAL", label: "Professional", icon: Briefcase, activeClass: "border-blue-500 bg-blue-50 text-blue-700" },
+                  { value: "INVESTOR", label: "Investor", icon: Banknote, activeClass: "border-amber-500 bg-amber-50 text-amber-700" },
+                ] as const
+              ).map(({ value, label, icon: Icon, activeClass }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setRole(value)}
                   className={`flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-sm transition-all ${
                     role === value
-                      ? `border-${color}-500 bg-${color}-50 text-${color}-700`
+                      ? activeClass
                       : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
                   }`}
                 >

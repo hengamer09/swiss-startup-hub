@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -28,7 +28,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -36,14 +36,14 @@ export async function POST(request: Request) {
 
     if (!blockedId || !["block", "unblock"].includes(action)) {
       return NextResponse.json(
-        { message: "Invalid parameters" },
+        { error: "Invalid parameters" },
         { status: 400 }
       );
     }
 
     if (blockedId === session.user.id) {
       return NextResponse.json(
-        { message: "Cannot block yourself" },
+        { error: "Cannot block yourself" },
         { status: 400 }
       );
     }
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Block user error:", error);
     return NextResponse.json(
-      { message: "Failed to update block status" },
+      { error: "Failed to update block status" },
       { status: 500 }
     );
   }

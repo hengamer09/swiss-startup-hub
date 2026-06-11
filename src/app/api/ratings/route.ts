@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const fromUserId = session.user.id;
@@ -15,11 +15,11 @@ export async function POST(request: Request) {
     const { toUserId, projectId, stars, comment } = await request.json();
 
     if (!toUserId || !projectId || !stars || stars < 1 || stars > 5) {
-      return NextResponse.json({ message: "Invalid rating data" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid rating data" }, { status: 400 });
     }
 
     if (toUserId === fromUserId) {
-      return NextResponse.json({ message: "Cannot rate yourself" }, { status: 400 });
+      return NextResponse.json({ error: "Cannot rate yourself" }, { status: 400 });
     }
 
     const existing = await prisma.rating.findUnique({
@@ -54,6 +54,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Rating error:", error);
-    return NextResponse.json({ message: "Failed to submit rating" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to submit rating" }, { status: 500 });
   }
 }

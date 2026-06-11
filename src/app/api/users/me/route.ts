@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function PUT(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
@@ -45,7 +45,7 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error("Update user error:", error);
     return NextResponse.json(
-      { message: "Failed to update profile" },
+      { error: "Failed to update profile" },
       { status: 500 }
     );
   }
@@ -54,18 +54,26 @@ export async function PUT(request: Request) {
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      skills: { include: { skill: true } },
-      memberships: {
-        include: { project: { select: { id: true, name: true } } },
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        skills: { include: { skill: true } },
+        memberships: {
+          include: { project: { select: { id: true, name: true } } },
+        },
       },
-    },
-  });
+    });
 
-  return NextResponse.json(user);
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("Get user error:", error);
+    return NextResponse.json(
+      { error: "Failed to load profile" },
+      { status: 500 }
+    );
+  }
 }

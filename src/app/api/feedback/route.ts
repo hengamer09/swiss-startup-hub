@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
@@ -28,12 +28,12 @@ export async function POST(request: Request) {
         </div>`,
       });
     } else {
-      return NextResponse.json({ message: "Invalid type" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid type" }, { status: 400 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Feedback email error:", error);
-    return NextResponse.json({ message: "Failed to send feedback" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to send feedback" }, { status: 500 });
   }
 }

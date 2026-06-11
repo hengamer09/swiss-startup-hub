@@ -15,23 +15,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       },
     });
 
-    if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
+    if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     return NextResponse.json(event);
   } catch (error) {
     console.error("Get event error:", error);
-    return NextResponse.json({ message: "Failed to load event" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load event" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
-    if (event.organizerId !== session.user.id) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (event.organizerId !== session.user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await request.json();
     const { title, description, date, location, eventType, maxAttendees, requireApproval, locationScope } = body;
@@ -53,23 +53,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Event update error:", error);
-    return NextResponse.json({ message: "Failed to update event" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update event" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
-    if (event.organizerId !== session.user.id) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (event.organizerId !== session.user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     await prisma.event.delete({ where: { id } });
-    return NextResponse.json({ message: "Deleted" }, { status: 200 });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete event error:", error);
-    return NextResponse.json({ message: "Failed to delete event" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete event" }, { status: 500 });
   }
 }

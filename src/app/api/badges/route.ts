@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -24,7 +24,7 @@ export async function POST() {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const badges: string[] = [];
@@ -46,7 +46,7 @@ export async function POST() {
   } catch (error) {
     console.error("Badge check error:", error);
     return NextResponse.json(
-      { message: "Failed to check badges" },
+      { error: "Failed to check badges" },
       { status: 500 }
     );
   }

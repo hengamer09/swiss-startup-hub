@@ -9,21 +9,26 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const project = await prisma.project.findUnique({
-    where: { id },
-    include: {
-      owner: { select: { id: true, name: true, image: true } },
-      members: { include: { user: { select: { id: true, name: true, image: true } } } },
-      openRoles: true,
-      faqs: true,
-    },
-  });
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        owner: { select: { id: true, name: true, image: true } },
+        members: { include: { user: { select: { id: true, name: true, image: true } } } },
+        openRoles: true,
+        faqs: true,
+      },
+    });
 
-  if (!project) {
-    return NextResponse.json({ message: "Not found" }, { status: 404 });
+    if (!project) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(project);
+  } catch (error) {
+    console.error("Get project error:", error);
+    return NextResponse.json({ error: "Failed to load project" }, { status: 500 });
   }
-
-  return NextResponse.json(project);
 }
 
 export async function PUT(
@@ -32,18 +37,18 @@ export async function PUT(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
   const userId = session.user.id;
 
-  const project = await prisma.project.findUnique({ where: { id } });
-  if (!project || project.ownerId !== userId) {
-    return NextResponse.json({ message: "Not authorized" }, { status: 403 });
-  }
-
   try {
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project || project.ownerId !== userId) {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    }
+
     const data = await request.json();
     const updateData: Record<string, unknown> = {};
 
@@ -74,9 +79,6 @@ export async function PUT(
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Update project error:", error);
-    return NextResponse.json(
-      { message: "Failed to update project" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
   }
 }

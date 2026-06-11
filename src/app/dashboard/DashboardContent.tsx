@@ -2,12 +2,11 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, parseRoles } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
   Mail,
-  Star,
   Clock,
   CheckCircle,
   XCircle,
@@ -29,18 +28,10 @@ function toDatetimeLocal(isoString: string): string {
 
 type Tab = "overview" | "applications" | "followers" | "analytics" | "watchlist";
 
-function getRoles(rolesStr: string): string[] {
-  try {
-    return JSON.parse(rolesStr);
-  } catch {
-    return [];
-  }
-}
-
 export default function DashboardContent({ data }: { data: any }) {
   const { user, followedProjects, myJoinRequests, hostedEvents } = data;
   const projects = user?.ownedProjects || [];
-  const roles = getRoles(user?.roles || "[]");
+  const roles = parseRoles(user?.roles || "[]");
   const isInvestor = roles.includes("INVESTOR");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [updatingId, setUpdatingId] = useState<string | null>(null);

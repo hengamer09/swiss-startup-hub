@@ -9,15 +9,21 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const posts = await prisma.eventPost.findMany({
-    where: { eventId: id },
-    include: {
-      author: { select: { id: true, name: true, image: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const posts = await prisma.eventPost.findMany({
+      where: { eventId: id },
+      include: {
+        author: { select: { id: true, name: true, image: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
 
-  return NextResponse.json(posts);
+    return NextResponse.json(posts);
+  } catch (error) {
+    console.error("Get event posts error:", error);
+    return NextResponse.json({ error: "Failed to load posts" }, { status: 500 });
+  }
 }
 
 export async function POST(
@@ -26,52 +32,58 @@ export async function POST(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const { content } = await request.json();
 
-  if (!content?.trim()) {
-    return NextResponse.json({ message: "Missing content" }, { status: 400 });
-  }
+  try {
+    const { content } = await request.json();
 
-  const event = await prisma.event.findUnique({
-    where: { id },
-    include: {
-      attendees: { select: { userId: true } },
-    },
-  });
+    if (!content?.trim()) {
+      return NextResponse.json({ error: "Missing content" }, { status: 400 });
+    }
 
-  if (!event) {
-    return NextResponse.json({ message: "Not found" }, { status: 404 });
-  }
-
-  const post = await prisma.eventPost.create({
-    data: {
-      eventId: id,
-      authorId: session.user.id,
-      content: content.trim(),
-    },
-    include: {
-      author: { select: { id: true, name: true, image: true } },
-    },
-  });
-
-  const attendeeIds = event.attendees
-    .map((attendee) => attendee.userId)
-    .filter((userId, index, list) => userId !== session.user.id && list.indexOf(userId) === index);
-
-  if (attendeeIds.length > 0) {
-    await prisma.notification.createMany({
-      data: attendeeIds.map((userId) => ({
-        userId,
-        type: "event_post",
-        content: `${session.user.name || "Someone"} posted in ${event.title}.`,
-        link: `/events/${id}`,
-      })),
+    const event = await prisma.event.findUnique({
+      where: { id },
+      include: {
+        attendees: { select: { userId: true } },
+      },
     });
-  }
 
-  return NextResponse.json(post, { status: 201 });
+    if (!event) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const post = await prisma.eventPost.create({
+      data: {
+        eventId: id,
+        authorId: session.user.id,
+        content: content.trim(),
+      },
+      include: {
+        author: { select: { id: true, name: true, image: true } },
+      },
+    });
+
+    const attendeeIds = event.attendees
+      .map((attendee) => attendee.userId)
+      .filter((userId, index, list) => userId !== session.user.id && list.indexOf(userId) === index);
+
+    if (attendeeIds.length > 0) {
+      await prisma.notification.createMany({
+        data: attendeeIds.map((userId) => ({
+          userId,
+          type: "event_post",
+          content: `${session.user.name || "Someone"} posted in ${event.title}.`,
+          link: `/events/${id}`,
+        })),
+      });
+    }
+
+    return NextResponse.json(post, { status: 201 });
+  } catch (error) {
+    console.error("Create event post error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

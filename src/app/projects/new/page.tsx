@@ -37,7 +37,7 @@ export default function NewProjectPage() {
       formData.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Image upload failed");
+      if (!res.ok) throw new Error(data.error || "Image upload failed");
       setLogo(data.url);
     } catch (err: any) {
       setError(err.message || "Image upload failed");
@@ -87,7 +87,7 @@ export default function NewProjectPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || "Failed to create project");
+        setError(data.error || "Failed to create project");
         setLoading(false);
         return;
       }

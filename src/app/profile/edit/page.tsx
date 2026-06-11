@@ -58,7 +58,7 @@ export default function EditProfilePage() {
       formData.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Image upload failed");
+      if (!res.ok) throw new Error(data.error || "Image upload failed");
       setImage(data.url);
     } catch (err: any) {
       alert(err.message || "Image upload failed");

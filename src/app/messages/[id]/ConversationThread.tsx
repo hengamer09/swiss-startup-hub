@@ -91,7 +91,7 @@ export default function ConversationThread({
         await fetchMessages();
       } else {
         const data = await res.json().catch(() => ({}));
-        setJoinError(data.message || "Something went wrong. Please try again.");
+        setJoinError(data.error || "Something went wrong. Please try again.");
       }
     } finally {
       setJoinProcessing(false);

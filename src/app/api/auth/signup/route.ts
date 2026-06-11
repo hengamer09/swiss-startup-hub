@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
@@ -8,14 +8,14 @@ export async function POST(request: Request) {
 
     if (!name || !email || !password || !role) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
     if (!["FOUNDER", "PROFESSIONAL", "INVESTOR"].includes(role)) {
       return NextResponse.json(
-        { message: "Invalid role" },
+        { error: "Invalid role" },
         { status: 400 }
       );
     }
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "An account with this email already exists" },
+        { error: "An account with this email already exists" },
         { status: 409 }
       );
     }
@@ -61,13 +61,13 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { message: "Account created", userId: user.id },
+      { userId: user.id },
       { status: 201 }
     );
   } catch (error) {
     console.error("Signup error:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

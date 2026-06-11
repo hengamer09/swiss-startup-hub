@@ -9,7 +9,7 @@ export async function DELETE(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id: projectId, followerId } = await params;
@@ -21,11 +21,11 @@ export async function DELETE(
     });
 
     if (!project) {
-      return NextResponse.json({ message: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     if (project.ownerId !== session.user.id) {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await prisma.projectFollower.deleteMany({
@@ -40,9 +40,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Remove follower error:", error);
-    return NextResponse.json(
-      { message: "Failed to remove follower" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to remove follower" }, { status: 500 });
   }
 }

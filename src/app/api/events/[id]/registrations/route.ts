@@ -10,36 +10,30 @@ export async function DELETE(
   const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { attendeeId } = await request.json();
     if (!attendeeId) {
-      return NextResponse.json(
-        { message: "Missing attendee" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing attendee" }, { status: 400 });
     }
 
     const event = await prisma.event.findUnique({ where: { id } });
     if (!event) {
-      return NextResponse.json({ message: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     if (event.organizerId !== session.user.id) {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await prisma.eventAttendee.delete({
       where: { id: attendeeId },
     });
 
-    return NextResponse.json({ message: "Removed" });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Remove registration error:", error);
-    return NextResponse.json(
-      { message: "Failed to remove attendee" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to remove attendee" }, { status: 500 });
   }
 }

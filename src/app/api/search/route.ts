@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const limit = 12;
   const skip = (page - 1) * limit;
 
+  try {
   if (type === "people") {
     const where: Record<string, unknown> = {};
 
@@ -141,4 +142,8 @@ export async function GET(request: Request) {
   ]);
 
   return NextResponse.json({ results: projects, total, page, totalPages: Math.ceil(total / limit) });
+  } catch (error) {
+    console.error("Search error:", error);
+    return NextResponse.json({ error: "Search failed" }, { status: 500 });
+  }
 }

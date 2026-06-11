@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "../../../generated/prisma/client";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
   const locationScope = url.searchParams.get("scope") || undefined;
 
   try {
-    const where: any = {};
+    const where: Prisma.EventWhereInput = {};
     if (q) {
       where.OR = [
         { title: { contains: q, mode: "insensitive" } },
@@ -41,19 +42,20 @@ export async function GET(request: Request) {
         _count: { select: { attendees: true } },
       },
       orderBy: { date: "asc" },
+      take: 100,
     });
 
     return NextResponse.json(events);
   } catch (error) {
     console.error("List events error:", error);
-    return NextResponse.json({ message: "Failed to load events" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load events" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -62,12 +64,12 @@ export async function POST(request: Request) {
       = body;
 
     if (!title || !description || !date || !eventType || !location) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const eventDate = new Date(date);
     if (isNaN(eventDate.getTime()) || eventDate <= new Date()) {
-      return NextResponse.json({ message: "Date must be in the future" }, { status: 400 });
+      return NextResponse.json({ error: "Date must be in the future" }, { status: 400 });
     }
 
     const event = await prisma.event.create({
@@ -85,11 +87,9 @@ export async function POST(request: Request) {
       },
     });
 
-    // Optionally store settings in a lightweight JSON Notification or EventSettings table.
-
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error("Create event error:", error);
-    return NextResponse.json({ message: "Failed to create event" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
   }
 }

@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { APP_URL } from "@/lib/utils";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
@@ -47,13 +48,14 @@ export async function GET() {
         },
       },
       orderBy: { updatedAt: "desc" },
+      take: 50,
     });
 
     return NextResponse.json(conversations);
   } catch (error) {
     console.error("List conversations error:", error);
     return NextResponse.json(
-      { message: "Failed to load conversations" },
+      { error: "Failed to load conversations" },
       { status: 500 }
     );
   }
@@ -62,7 +64,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const senderId = session.user.id;
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
 
     if (!receiverId || !content?.trim()) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -130,12 +132,12 @@ export async function POST(request: Request) {
       });
 
       if (recipient.email) {
-        await sendEmail({
+        sendEmail({
           to: recipient.email,
           subject: "New message on Swiss Startup Hub",
-          text: `${session.user.name || "Someone"} sent you a private message:\n\n${content.trim()}\n\nOpen your inbox: ${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/messages`,
-          html: `<div style="font-family: Arial, sans-serif; line-height: 1.5; color: #18181b;"><p>Hi ${recipient.name || "there"},</p><p><strong>${session.user.name || "Someone"}</strong> sent you a private message.</p><p>${content.trim()}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/messages" style="color:#dc2626;">Open your inbox</a></p></div>`,
-        });
+          text: `${session.user.name || "Someone"} sent you a private message:\n\n${content.trim()}\n\nOpen your inbox: ${APP_URL}/messages`,
+          html: `<div style="font-family: Arial, sans-serif; line-height: 1.5; color: #18181b;"><p>Hi ${recipient.name || "there"},</p><p><strong>${session.user.name || "Someone"}</strong> sent you a private message.</p><p>${content.trim()}</p><p><a href="${APP_URL}/messages" style="color:#dc2626;">Open your inbox</a></p></div>`,
+        }).catch((err) => console.error("Failed to send message email:", err));
       }
     }
 
@@ -143,7 +145,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Send message error:", error);
     return NextResponse.json(
-      { message: "Failed to send message" },
+      { error: "Failed to send message" },
       { status: 500 }
     );
   }

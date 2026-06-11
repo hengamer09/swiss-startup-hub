@@ -137,7 +137,7 @@ export default function ProjectDetail({
         const data = await res.json();
         setToast({
           open: true,
-          message: data.message || "Something went wrong. Please try again.",
+          message: data.error || "Something went wrong. Please try again.",
           tone: "error",
         });
       }
@@ -658,7 +658,7 @@ function JoinModal({
         return;
       }
       const data = await res.json().catch(() => ({}));
-      onError(data.message);
+      onError(data.error);
     } catch {
       onError();
     } finally {

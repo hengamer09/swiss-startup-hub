@@ -1,23 +1,15 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { escapeHtml, APP_URL } from "@/lib/utils";
 
 type Recipient = {
   id: string;
   name: string;
   email: string;
 };
-
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 function buildJoinRequestMessage({
   requesterName,
@@ -46,7 +38,7 @@ function buildJoinRequestMessage({
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -59,7 +51,7 @@ export async function POST(request: Request) {
 
     if (!projectId || !trimmedMotivation || !trimmedApplicantRole) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -75,7 +67,7 @@ export async function POST(request: Request) {
 
     if (existing) {
       return NextResponse.json(
-        { message: "Already applied to this project" },
+        { error: "Already applied to this project" },
         { status: 409 }
       );
     }
@@ -91,7 +83,7 @@ export async function POST(request: Request) {
 
     if (member) {
       return NextResponse.json(
-        { message: "You are already a member" },
+        { error: "You are already a member" },
         { status: 409 }
       );
     }
@@ -106,13 +98,13 @@ export async function POST(request: Request) {
 
     if (!project) {
       return NextResponse.json(
-        { message: "Project not found" },
+        { error: "Project not found" },
         { status: 404 }
       );
     }
 
     const requesterName = session.user.name || "Someone";
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = APP_URL;
     const projectPath = `/projects/${project.id}`;
     const projectLink = `${appUrl}${projectPath}`;
     const recipients = [project.owner, ...project.members.map((m) => m.user)]
@@ -244,7 +236,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Create join request error:", error);
     return NextResponse.json(
-      { message: "Failed to submit application" },
+      { error: "Failed to submit application" },
       { status: 500 }
     );
   }
