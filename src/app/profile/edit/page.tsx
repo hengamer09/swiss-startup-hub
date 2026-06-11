@@ -136,7 +136,7 @@ export default function EditProfilePage() {
             <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-xl font-bold text-zinc-500">
               {image ? <img src={image} alt="Profile" className="h-full w-full object-cover" /> : <User className="h-6 w-6" />}
             </div>
-            <label className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer">
+            <label className="rounded-md border border-zinc-300 px-4 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer">
               {uploading ? "Uploading..." : "Change Photo"}
               <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
             </label>
@@ -189,7 +189,7 @@ export default function EditProfilePage() {
             </div>
             <div className="mt-3 flex gap-2">
               <input value={customRole} onChange={(e) => setCustomRole(e.target.value)} placeholder="Add a custom role" className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
-              <button type="button" onClick={() => { const trimmed = customRole.trim(); if (!trimmed || roles.includes(trimmed.toUpperCase())) return; setRoles((prev) => [...prev, trimmed.toUpperCase()]); setCustomRole(''); }} className="rounded-full border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">Add</button>
+              <button type="button" onClick={() => { const trimmed = customRole.trim(); if (!trimmed || roles.includes(trimmed.toUpperCase())) return; setRoles((prev) => [...prev, trimmed.toUpperCase()]); setCustomRole(''); }} className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50">Add</button>
             </div>
           </div>
 
@@ -239,7 +239,7 @@ export default function EditProfilePage() {
                     setSkillInput("");
                   }
                 }}
-                className="rounded-full border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
                 Add
               </button>
@@ -297,7 +297,7 @@ export default function EditProfilePage() {
           <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-zinc-900">Portfolio projects</h3>
-              <button type="button" onClick={() => setPortfolioProjects((prev) => [...prev, { title: '', description: '', link: '' }])} className="inline-flex items-center gap-1 rounded-full border border-zinc-300 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-100"><Plus className="h-3.5 w-3.5" />Add entry</button>
+              <button type="button" onClick={() => setPortfolioProjects((prev) => [...prev, { title: '', description: '', link: '' }])} className="inline-flex items-center gap-1 rounded-md border border-zinc-300 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-100"><Plus className="h-3.5 w-3.5" />Add entry</button>
             </div>
             {portfolioProjects.map((entry, idx) => (
               <div key={idx} className="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
@@ -377,7 +377,7 @@ export default function EditProfilePage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-red-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
         >
           {loading ? "Saving..." : "Save Profile"}
         </button>

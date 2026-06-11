@@ -57,7 +57,7 @@ export default function EventsPage() {
           <p className="text-sm text-zinc-500">Discover upcoming community events</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/events/new" className="rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors">
+          <Link href="/events/new" className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">
             Create Event
           </Link>
         </div>
@@ -116,7 +116,7 @@ export default function EventsPage() {
               <button
                 onClick={() => fetchEvents(true)}
                 disabled={loadingMore}
-                className="rounded-full border border-zinc-300 px-6 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                className="rounded-md border border-zinc-300 px-6 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
               >
                 {loadingMore ? "Loading..." : "Load more"}
               </button>

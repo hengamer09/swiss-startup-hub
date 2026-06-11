@@ -163,8 +163,8 @@ export default function DashboardContent({ data }: { data: any }) {
       </div>
 
       {myPendingRequests.length > 0 && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
-          <p className="text-xs text-amber-700 flex items-center gap-1.5">
+        <div className="mb-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <p className="text-xs text-zinc-600 flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             You have <strong>{myPendingRequests.length}</strong> pending application
             {myPendingRequests.length > 1 ? "s" : ""} &mdash;
@@ -242,7 +242,7 @@ export default function DashboardContent({ data }: { data: any }) {
               </p>
               <Link
                 href="/projects/new"
-                className="mt-4 rounded-full bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+                className="mt-4 rounded-md bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
               >
                 Create Project
               </Link>
@@ -385,7 +385,7 @@ export default function DashboardContent({ data }: { data: any }) {
                   {pending.map((req: any) => (
                     <div
                       key={req.id}
-                      className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3"
+                      className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 space-y-3"
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold text-zinc-600">
@@ -396,7 +396,7 @@ export default function DashboardContent({ data }: { data: any }) {
                             <p className="text-sm font-medium text-zinc-900 truncate">
                               {req.user?.name}
                             </p>
-                            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                            <span className="shrink-0 rounded bg-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-600">
                               Pending
                             </span>
                           </div>
@@ -453,7 +453,7 @@ export default function DashboardContent({ data }: { data: any }) {
                         <button
                           onClick={() => handleJoinRequest(req.id, "APPROVED")}
                           disabled={updatingId === req.id}
-                          className="flex items-center gap-1 rounded-full bg-green-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-green-600 transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1 rounded-md bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50"
                         >
                           <CheckCircle className="h-3.5 w-3.5" />
                           Accept
@@ -461,7 +461,7 @@ export default function DashboardContent({ data }: { data: any }) {
                         <button
                           onClick={() => handleJoinRequest(req.id, "REJECTED")}
                           disabled={updatingId === req.id}
-                          className="flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-4 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-50"
                         >
                           <XCircle className="h-3.5 w-3.5" />
                           Decline
@@ -693,14 +693,14 @@ export default function DashboardContent({ data }: { data: any }) {
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => setEditingEvent(null)}
-                className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                className="flex-1 rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEditEvent}
                 disabled={editSaving}
-                className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
                 {editSaving ? "Saving..." : "Save"}
               </button>
@@ -737,7 +737,7 @@ export default function DashboardContent({ data }: { data: any }) {
               <p className="text-sm text-zinc-500">No projects in your watchlist yet</p>
               <Link
                 href="/search"
-                className="mt-3 rounded-full bg-red-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-600 transition-colors"
+                className="mt-3 rounded-md bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
               >
                 Discover Projects
               </Link>

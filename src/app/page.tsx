@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Users, Briefcase, Banknote, Sparkles } from "lucide-react";
+import { ArrowRight, Users, Briefcase, Banknote } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -18,33 +18,30 @@ export default async function HomePage() {
   });
   return (
     <div className="flex flex-col">
-      <section className="relative overflow-hidden border-b border-zinc-100">
+      {/* Hero */}
+      <section className="border-b border-zinc-100">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-1.5 text-sm text-zinc-600">
-              <Sparkles className="h-3.5 w-3.5 text-red-500" />
-              Swiss startup ecosystem, connected.
-            </div>
             <h1 className="text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
               Find your co-founder, team, or investor in{" "}
-              <span className="text-red-500">Switzerland</span>
+              <span className="text-red-600">Switzerland</span>
             </h1>
-            <p className="mt-6 text-lg leading-8 text-zinc-600">
+            <p className="mt-6 text-lg leading-8 text-zinc-500">
               The networking hub built exclusively for the Swiss startup ecosystem.
               Connect with founders, skilled professionals, and active investors —
               all in one place.
             </p>
-            <div className="mt-8 flex items-center justify-center gap-4">
+            <div className="mt-8 flex items-center justify-center gap-3">
               <Link
                 href="/auth/signup"
-                className="inline-flex items-center gap-2 rounded-full bg-red-500 px-6 py-3 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+                className="inline-flex items-center gap-2 rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
               >
                 Join Free
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/search"
-                className="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-6 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
                 Explore Projects
               </Link>
@@ -52,32 +49,33 @@ export default async function HomePage() {
           </div>
         </div>
 
+        {/* Role cards */}
         <div className="mx-auto max-w-7xl px-4 pb-16">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
-                <Rocket className="h-5 w-5 text-red-500" />
+            <div className="rounded-lg border border-zinc-200 bg-white p-6">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100">
+                <Rocket className="h-5 w-5 text-zinc-600" />
               </div>
               <h3 className="font-semibold text-zinc-900">Founders</h3>
-              <p className="mt-1 text-sm text-zinc-600">
+              <p className="mt-1 text-sm text-zinc-500">
                 Find co-founders, team members, and funding
               </p>
             </div>
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
-                <Briefcase className="h-5 w-5 text-blue-500" />
+            <div className="rounded-lg border border-zinc-200 bg-white p-6">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100">
+                <Briefcase className="h-5 w-5 text-zinc-600" />
               </div>
               <h3 className="font-semibold text-zinc-900">Professionals</h3>
-              <p className="mt-1 text-sm text-zinc-600">
+              <p className="mt-1 text-sm text-zinc-500">
                 Join exciting Swiss startups part-time or full-time
               </p>
             </div>
-            <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-50">
-                <Banknote className="h-5 w-5 text-amber-600" />
+            <div className="rounded-lg border border-zinc-200 bg-white p-6">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100">
+                <Banknote className="h-5 w-5 text-zinc-600" />
               </div>
               <h3 className="font-semibold text-zinc-900">Investors</h3>
-              <p className="mt-1 text-sm text-zinc-600">
+              <p className="mt-1 text-sm text-zinc-500">
                 Discover and back the next Swiss unicorn
               </p>
             </div>
@@ -85,6 +83,7 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Active Projects */}
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-8 flex items-center justify-between">
@@ -93,20 +92,20 @@ export default async function HomePage() {
                 Active Projects
               </h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Discover whats happening in the Swiss startup scene
+                Discover what&apos;s happening in the Swiss startup scene
               </p>
             </div>
             <Link
               href="/search"
-              className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+              className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
             >
               View all &rarr;
             </Link>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {projects.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
+              <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
                 No projects are live yet. Be the first to publish one.
               </div>
             ) : (
@@ -116,18 +115,19 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* CTA — logged-out only */}
       {!session && (
-        <section className="border-t border-zinc-100 bg-zinc-50 py-16">
+        <section className="border-t border-zinc-100 py-16">
           <div className="mx-auto max-w-7xl px-4 text-center">
             <h2 className="text-2xl font-semibold text-zinc-900">
               Ready to join the ecosystem?
             </h2>
-            <p className="mt-3 text-zinc-600">
+            <p className="mt-3 text-zinc-500">
               Sign up in under a minute and start connecting.
             </p>
             <Link
               href="/auth/signup"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-red-500 px-6 py-3 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+              className="mt-6 inline-flex items-center gap-2 rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
             >
               Create your profile
               <ArrowRight className="h-4 w-4" />
@@ -143,7 +143,7 @@ function ProjectCard({ project }: { project: any }) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="block rounded-xl border border-zinc-200 bg-white p-5 transition-all hover:shadow-md hover:border-zinc-300"
+      className="block rounded-lg border border-zinc-200 bg-white p-5 transition-shadow hover:shadow-sm"
     >
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-zinc-100 text-lg font-bold text-zinc-600 shrink-0">
@@ -157,11 +157,11 @@ function ProjectCard({ project }: { project: any }) {
           <h3 className="font-semibold text-zinc-900 truncate">
             {project.name}
           </h3>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className="inline-flex items-center rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
               {project.industry || "Startup"}
             </span>
-            <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+            <span className="inline-flex items-center rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
               {project.stage}
             </span>
             <span className="text-xs text-zinc-400">{project.location}</span>

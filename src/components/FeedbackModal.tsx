@@ -8,7 +8,6 @@ type Step = "select" | "review" | "bug" | "done";
 interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // When "review" is passed, skip the selection step and go straight to review
   preselect?: "review";
 }
 
@@ -21,7 +20,6 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
   const [submitting, setSubmitting] = useState(false);
   const [submittedType, setSubmittedType] = useState<"review" | "bug" | null>(null);
 
-  // Reset state every time the modal opens
   useEffect(() => {
     if (isOpen) {
       setStep(preselect === "review" ? "review" : "select");
@@ -33,7 +31,6 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
     }
   }, [isOpen, preselect]);
 
-  // Auto-close after showing confirmation for 3 seconds
   useEffect(() => {
     if (step !== "done") return;
     const timer = setTimeout(onClose, 3000);
@@ -97,14 +94,14 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
           <div className="space-y-3">
             <button
               onClick={() => setStep("review")}
-              className="w-full rounded-xl border-2 border-zinc-200 p-4 text-left transition-all hover:border-fuchsia-400 hover:bg-fuchsia-50"
+              className="w-full rounded-lg border border-zinc-200 p-4 text-left transition-all hover:border-zinc-300 hover:bg-zinc-50"
             >
               <p className="font-medium text-zinc-900">✅ Leave a Review</p>
               <p className="text-sm text-zinc-500 mt-0.5">I want to rate my experience</p>
             </button>
             <button
               onClick={() => setStep("bug")}
-              className="w-full rounded-xl border-2 border-zinc-200 p-4 text-left transition-all hover:border-amber-400 hover:bg-amber-50"
+              className="w-full rounded-lg border border-zinc-200 p-4 text-left transition-all hover:border-zinc-300 hover:bg-zinc-50"
             >
               <p className="font-medium text-zinc-900">🐛 Report an Issue</p>
               <p className="text-sm text-zinc-500 mt-0.5">Something isn&apos;t working</p>
@@ -123,7 +120,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
-                    className="text-2xl transition-transform hover:scale-110"
+                    className="text-2xl"
                   >
                     <Star
                       className={`h-7 w-7 transition-colors ${
@@ -145,7 +142,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 rows={4}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                 placeholder="Tell us what you think about the platform..."
               />
             </div>
@@ -153,7 +150,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
               {preselect !== "review" && (
                 <button
                   onClick={() => setStep("select")}
-                  className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                  className="flex-1 rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
                 >
                   Back
                 </button>
@@ -161,7 +158,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
               <button
                 onClick={submitReview}
                 disabled={submitting || rating === 0}
-                className="flex-1 rounded-full bg-fuchsia-500 px-4 py-2 text-sm font-medium text-white hover:bg-fuchsia-600 disabled:opacity-50 transition-colors"
+                className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
                 {submitting ? "Sending..." : "Send Review"}
               </button>
@@ -179,21 +176,21 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
                 value={issueText}
                 onChange={(e) => setIssueText(e.target.value)}
                 rows={5}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
                 placeholder="Describe the issue as clearly as possible..."
               />
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setStep("select")}
-                className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                className="flex-1 rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
                 Back
               </button>
               <button
                 onClick={submitBug}
                 disabled={submitting || !issueText.trim()}
-                className="flex-1 rounded-full bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                className="flex-1 rounded-md bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900 disabled:opacity-50 transition-colors"
               >
                 {submitting ? "Sending..." : "Send Report"}
               </button>
@@ -210,7 +207,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
             <p className="text-sm text-zinc-400 mt-1">This window will close automatically.</p>
             <button
               onClick={onClose}
-              className="mt-4 rounded-full border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+              className="mt-4 rounded-md border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               Close
             </button>

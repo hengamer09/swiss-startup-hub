@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Mountain, MessageSquare, Search, Menu } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import FeedbackModal from "@/components/FeedbackModal";
 
@@ -31,11 +30,11 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   }, [session]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900">
-            <Mountain className="h-5 w-5 text-red-500" />
+            <Mountain className="h-5 w-5 text-red-600" />
             <span className="hidden sm:inline">Swiss Startup Hub</span>
           </Link>
           {session && (
@@ -63,7 +62,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               setFeedbackOpen(true);
               if (onFeedback) onFeedback();
             }}
-            className="rounded-full bg-red-600 px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700"
+            className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
           >
             Feedback
           </button>
@@ -75,16 +74,16 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               >
                 <MessageSquare className="h-5 w-5" />
                 {unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
               </Link>
               <Link
                 href="/profile"
-                className="flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition-colors"
+                className="flex items-center gap-2 rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs text-white">
                   {session.user?.name?.charAt(0) || "U"}
                 </div>
                 <span className="hidden sm:inline">{session.user?.name}</span>
@@ -106,13 +105,13 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               </Link>
               <Link
                 href="/auth/signup"
-                className="rounded-full bg-red-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+                className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
               >
                 Join Free
               </Link>
             </div>
           )}
-          <button className="rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden">
+          <button className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden">
             <Menu className="h-5 w-5" />
           </button>
         </div>

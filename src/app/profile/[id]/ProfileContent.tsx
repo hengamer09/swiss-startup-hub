@@ -175,7 +175,7 @@ export default function ProfileContent({
               {isOwnProfile && (
                 <Link
                   href="/profile/edit"
-                  className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                  className="rounded-md border border-zinc-300 px-4 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
                 >
                   Edit Profile
                 </Link>
@@ -184,7 +184,7 @@ export default function ProfileContent({
                 <div className="flex items-center gap-2">
                   <Link
                     href="/messages"
-                    className="rounded-full bg-red-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+                    className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
                   >
                     Message
                   </Link>
@@ -359,13 +359,13 @@ export default function ProfileContent({
             <div className="mt-4 flex gap-3">
               <button
                 onClick={() => setShowBlockConfirm(false)}
-                className="flex-1 rounded-full border border-zinc-300 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                className="flex-1 rounded-md border border-zinc-300 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleBlock}
-                className="flex-1 rounded-full bg-red-500 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+                className="flex-1 rounded-md bg-red-600 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
               >
                 {isBlocked ? "Unblock" : "Block"}
               </button>

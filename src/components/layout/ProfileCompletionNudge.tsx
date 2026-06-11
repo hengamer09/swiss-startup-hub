@@ -35,40 +35,40 @@ export default function ProfileCompletionNudge() {
   const missing = segments.filter((s) => !s.done);
 
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-amber-800">
+            <p className="text-sm font-medium text-zinc-800">
               Your profile is {completion}% complete
             </p>
             <button
               onClick={dismiss}
-              className="rounded-full p-1 text-amber-500 hover:bg-amber-100 transition-colors"
+              className="rounded-full p-1 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="mt-2 h-2 w-full rounded-full bg-amber-200">
+          <div className="mt-2 h-1.5 w-full rounded-full bg-zinc-200">
             <div
-              className="h-2 rounded-full bg-amber-500 transition-all"
+              className="h-1.5 rounded-full bg-zinc-500 transition-all"
               style={{ width: `${completion}%` }}
             />
           </div>
-          <p className="mt-2 text-xs text-amber-700">
+          <p className="mt-2 text-xs text-zinc-500">
             Complete your profile to get{" "}
             <strong>3x more responses</strong> from founders and collaborators.
           </p>
           <div className="mt-2 space-y-1">
             {missing.slice(0, 2).map((s) => (
-              <p key={s.label} className="text-xs text-amber-600">
+              <p key={s.label} className="text-xs text-zinc-500">
                 &rarr; {s.label}
               </p>
             ))}
           </div>
           <Link
             href="/profile/edit"
-            className="mt-3 inline-block rounded-full bg-amber-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition-colors"
+            className="mt-3 inline-block rounded-md bg-zinc-800 px-4 py-1.5 text-xs font-medium text-white hover:bg-zinc-900 transition-colors"
           >
             Complete Profile
           </Link>

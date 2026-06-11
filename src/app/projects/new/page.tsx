@@ -287,7 +287,7 @@ export default function NewProjectPage() {
             <button
               type="button"
               onClick={() => setRolesNeeded((prev) => [...prev, { title: "", description: "" }])}
-              className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
+              className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
             >
               <Plus className="h-3.5 w-3.5" /> Add role
             </button>
@@ -336,7 +336,7 @@ export default function NewProjectPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-red-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
         >
           {loading ? "Creating..." : "Create Project"}
         </button>

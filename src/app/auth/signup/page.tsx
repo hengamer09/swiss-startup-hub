@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { Mountain, Sparkles, Rocket, Briefcase, Banknote } from "lucide-react";
+import { Mountain, Briefcase, Banknote } from "lucide-react";
 
 const SKILL_OPTIONS = [
   "React", "TypeScript", "Python", "Go", "Rust", "Solidity",
@@ -84,14 +84,14 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="flex flex-1 items-center justify-center px-4 py-12 bg-zinc-50">
+      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
         <div className="mb-8 text-center">
           <Link
             href="/"
-            className="mx-auto mb-4 flex w-fit items-center gap-2 text-lg font-semibold"
+            className="mx-auto mb-4 flex w-fit items-center gap-2 text-lg font-semibold text-zinc-900"
           >
-            <Mountain className="h-6 w-6 text-red-500" />
+            <Mountain className="h-6 w-6 text-red-600" />
             Swiss Startup Hub
           </Link>
           <h1 className="text-xl font-semibold text-zinc-900">
@@ -162,18 +162,18 @@ export default function SignUpPage() {
             <div className="grid grid-cols-3 gap-2">
               {(
                 [
-                  { value: "FOUNDER", label: "Founder", icon: Rocket, activeClass: "border-red-500 bg-red-50 text-red-700" },
-                  { value: "PROFESSIONAL", label: "Professional", icon: Briefcase, activeClass: "border-blue-500 bg-blue-50 text-blue-700" },
-                  { value: "INVESTOR", label: "Investor", icon: Banknote, activeClass: "border-amber-500 bg-amber-50 text-amber-700" },
+                  { value: "FOUNDER", label: "Founder", icon: RocketIcon },
+                  { value: "PROFESSIONAL", label: "Professional", icon: Briefcase },
+                  { value: "INVESTOR", label: "Investor", icon: Banknote },
                 ] as const
-              ).map(({ value, label, icon: Icon, activeClass }) => (
+              ).map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setRole(value)}
-                  className={`flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-sm transition-all ${
+                  className={`flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-sm transition-colors ${
                     role === value
-                      ? activeClass
+                      ? "border-red-500 bg-red-50 text-red-700"
                       : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
                   }`}
                 >
@@ -222,7 +222,7 @@ export default function SignUpPage() {
                 href="/terms"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-red-500 hover:underline"
+                className="font-medium text-red-600 hover:underline"
               >
                 Terms of Service
               </a>{" "}
@@ -231,7 +231,7 @@ export default function SignUpPage() {
                 href="/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-red-500 hover:underline"
+                className="font-medium text-red-600 hover:underline"
               >
                 Privacy Policy
               </a>
@@ -241,7 +241,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading || skills.length === 0}
-            className="w-full rounded-full bg-red-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+            className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
             {loading ? "Creating account..." : "Create account"}
           </button>
@@ -251,12 +251,34 @@ export default function SignUpPage() {
           Already have an account?{" "}
           <Link
             href="/auth/signin"
-            className="font-medium text-red-500 hover:text-red-600"
+            className="font-medium text-red-600 hover:text-red-700"
           >
             Sign in
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+function RocketIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+      <path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+    </svg>
   );
 }

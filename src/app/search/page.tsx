@@ -155,7 +155,7 @@ export default function SearchPage() {
           </div>
           <Link
             href="/projects/new"
-            className="rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
           >
             Create project
           </Link>
@@ -365,7 +365,7 @@ export default function SearchPage() {
                     setVerifiedOnly(false);
                     setQuery("");
                   }}
-                  className="mt-4 rounded-full bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+                  className="mt-4 rounded-md bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -415,7 +415,7 @@ function ProjectCard({ project }: { project: any }) {
             <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
               {project.industry}
             </span>
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+            <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
               {formatStage(project.stage)}
             </span>
             <span className="text-xs text-zinc-400 flex items-center gap-0.5">

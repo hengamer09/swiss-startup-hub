@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Compass, MapPin, Users, Star, RefreshCw, Sparkles } from "lucide-react";
+import { Compass, MapPin, Users, Star, RefreshCw } from "lucide-react";
 import ProfileCompletionNudge from "@/components/layout/ProfileCompletionNudge";
 import { formatStage, parseRolesNeeded } from "@/lib/utils";
 
@@ -66,15 +66,14 @@ export default function FeedContent({ userId }: { userId: string }) {
         <ProfileCompletionNudge />
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
-        <p className="text-xs text-blue-700 flex items-center gap-1">
-          <Sparkles className="h-3.5 w-3.5" />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+        <p className="text-xs text-zinc-600">
           <strong>{projects.length}</strong> project{projects.length === 1 ? "" : "s"} in your feed.
         </p>
         <button
           type="button"
           onClick={() => router.push("/projects/new")}
-          className="rounded-full bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 transition-colors"
+          className="rounded-md bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
         >
           Create a project
         </button>
@@ -85,7 +84,7 @@ export default function FeedContent({ userId }: { userId: string }) {
           <RefreshCw className="h-6 w-6 animate-spin text-zinc-300" />
         </div>
       ) : projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-zinc-50 py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 py-16 text-center">
           <Compass className="mb-3 h-10 w-10 text-zinc-300" />
           <h2 className="text-lg font-medium text-zinc-700">
             Your feed is empty
@@ -95,7 +94,7 @@ export default function FeedContent({ userId }: { userId: string }) {
           </p>
           <Link
             href="/search"
-            className="mt-4 rounded-full bg-red-500 px-5 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+            className="mt-4 rounded-md bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
           >
             Discover Projects
           </Link>
@@ -106,7 +105,7 @@ export default function FeedContent({ userId }: { userId: string }) {
             <Link
               key={project.id}
               href={`/projects/${project.id}`}
-              className="block rounded-xl border border-zinc-200 bg-white p-5 transition-all hover:shadow-md hover:border-zinc-300 animate-fade-in-up"
+              className="block rounded-lg border border-zinc-200 bg-white p-5 transition-shadow hover:shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -118,11 +117,11 @@ export default function FeedContent({ userId }: { userId: string }) {
                       <h3 className="font-semibold text-zinc-900 truncate">
                         {project.name}
                       </h3>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
                           {project.industry}
                         </span>
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
                           {formatStage(project.stage)}
                         </span>
                         <span className="text-xs text-zinc-400 flex items-center gap-0.5">
@@ -141,7 +140,7 @@ export default function FeedContent({ userId }: { userId: string }) {
                     return (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {roles.slice(0, 4).map((r, i) => (
-                          <span key={i} className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          <span key={i} className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
                             {r.title}
                           </span>
                         ))}
@@ -165,7 +164,7 @@ export default function FeedContent({ userId }: { userId: string }) {
                   </div>
                 </div>
                 <div className="shrink-0">
-                  <span className="inline-flex rounded-full border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-700">
+                  <span className="inline-flex rounded border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-600">
                     Follow
                   </span>
                 </div>
