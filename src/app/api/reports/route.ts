@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { stripTags } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logger } from "@/lib/logger";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -44,6 +45,25 @@ export async function POST(request: Request) {
         reason: cleanReason,
       },
     });
+
+    const ok = await sendEmail({
+      to: "henri@staehli.biz",
+      subject: "Content Report — Swiss Startup Hub",
+      text: `New Content Report\nType: ${targetType}\nTarget ID: ${targetId}\nReporter ID: ${session.user.id}\nReason: ${cleanReason}\nReport ID: ${report.id}`,
+      html: `
+        <h2>New Content Report</h2>
+        <p><strong>Type:</strong> ${targetType}</p>
+        <p><strong>Target ID:</strong> ${targetId}</p>
+        <p><strong>Reporter ID:</strong> ${session.user.id}</p>
+        <p><strong>Reason:</strong></p>
+        <blockquote style="border-left:3px solid #e5e7eb;padding-left:12px;color:#374151">${cleanReason}</blockquote>
+        <hr/>
+        <p style="font-size:12px;color:#9ca3af">Report ID: ${report.id} — ${new Date().toISOString()}</p>
+      `,
+    });
+    if (!ok) {
+      logger.error("Failed to send report notification email", { reportId: report.id });
+    }
 
     return NextResponse.json(report, { status: 201 });
   } catch (error) {

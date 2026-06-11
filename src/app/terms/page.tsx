@@ -18,6 +18,18 @@ export default function TermsPage() {
       <h1 className="text-3xl font-bold text-zinc-900">Terms of Service</h1>
       <p className="mt-2 text-sm text-zinc-500">Last updated: 11 June 2026</p>
 
+      <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-700">
+        <p className="font-semibold text-zinc-900">Responsible Party / Verantwortliche Stelle</p>
+        <p className="mt-2">Henri Stähli &amp; Johannes Pilhöfer · Höhenweg 6 · 8966 Oberwil-Lieli · Switzerland</p>
+        <p className="mt-1">
+          <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">henri@staehli.biz</a>
+        </p>
+        <p className="mt-2 text-xs text-zinc-500">
+          Note: Swiss Startup Hub is currently a prototype project. A company formation is planned.
+          These documents will be updated accordingly once the company is registered (company name, legal form, UID number).
+        </p>
+      </div>
+
       <div className="mt-10 space-y-8 text-zinc-700">
         <section>
           <h2 className="text-lg font-semibold text-zinc-900">1. Acceptance</h2>

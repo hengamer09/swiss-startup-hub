@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, email, password, role, skills, acceptedTerms } = await request.json();
+    const { name, email, password, role, skills, acceptedTerms, confirmedAge } = await request.json();
 
     if (!name || !email || !password || !role) {
       return NextResponse.json(
@@ -26,6 +26,13 @@ export async function POST(request: Request) {
     if (acceptedTerms !== true) {
       return NextResponse.json(
         { error: "You must accept the Terms of Service" },
+        { status: 400 }
+      );
+    }
+
+    if (confirmedAge !== true) {
+      return NextResponse.json(
+        { error: "You must be at least 18 years old to use this platform" },
         { status: 400 }
       );
     }
@@ -68,6 +75,7 @@ export async function POST(request: Request) {
         isEarlyMember: true,
         acceptedTerms: true,
         acceptedTermsAt: new Date(),
+        confirmedAge: true,
       },
       select: { id: true },
     });

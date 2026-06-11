@@ -24,6 +24,7 @@ export default function SignUpPage() {
   const [role, setRole] = useState<string>("PROFESSIONAL");
   const [skills, setSkills] = useState<string[]>([]);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmedAge, setConfirmedAge] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -54,11 +55,17 @@ export default function SignUpPage() {
       return;
     }
 
+    if (!confirmedAge) {
+      setError("You must confirm that you are at least 18 years old");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role, skills, acceptedTerms }),
+        body: JSON.stringify({ name, email, password, role, skills, acceptedTerms, confirmedAge }),
       });
 
       const data = await res.json();
@@ -238,9 +245,21 @@ export default function SignUpPage() {
             </span>
           </label>
 
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={confirmedAge}
+              onChange={(e) => setConfirmedAge(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-red-500 focus:ring-red-500"
+            />
+            <span className="text-sm text-zinc-600">
+              I confirm that I am at least 18 years old
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading || skills.length === 0}
+            disabled={loading || skills.length === 0 || !acceptedTerms || !confirmedAge}
             className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
             {loading ? "Creating account..." : "Create account"}

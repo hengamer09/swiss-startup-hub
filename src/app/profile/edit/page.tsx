@@ -34,6 +34,7 @@ export default function EditProfilePage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [downloading, setDownloading] = useState(false);
   const deleteTriggerRef = useRef<HTMLButtonElement>(null);
   const deleteConfirmRef = useRef<HTMLButtonElement>(null);
 
@@ -72,6 +73,27 @@ export default function EditProfilePage() {
       alert(err.message || "Image upload failed");
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDownloadData() {
+    setDownloading(true);
+    try {
+      const res = await fetch("/api/users/me/export");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Could not export data. Please try again later.");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "swiss-startup-hub-data-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -407,8 +429,24 @@ export default function EditProfilePage() {
         </button>
       </form>
 
+      {/* Your data */}
+      <div className="mt-12 rounded-xl border border-zinc-200 bg-white p-6">
+        <h2 className="text-sm font-semibold text-zinc-900">Your Data</h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          Download a copy of all personal data we hold about you (GDPR / nDSG right to data portability).
+        </p>
+        <button
+          type="button"
+          onClick={handleDownloadData}
+          disabled={downloading}
+          className="mt-4 rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 transition-colors focus:outline-2 focus:outline-zinc-600"
+        >
+          {downloading ? "Preparing download…" : "Download my data"}
+        </button>
+      </div>
+
       {/* Account deletion */}
-      <div className="mt-12 rounded-xl border border-red-200 bg-white p-6">
+      <div className="mt-6 rounded-xl border border-red-200 bg-white p-6">
         <h2 className="text-sm font-semibold text-zinc-900">Danger Zone</h2>
         <p className="mt-1 text-sm text-zinc-500">
           Permanently delete your account and all associated data. This cannot be undone.

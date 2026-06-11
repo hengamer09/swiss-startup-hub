@@ -12,7 +12,12 @@ export default function Footer() {
           </div>
           <p className="text-zinc-400 text-xs">Connecting the Swiss startup ecosystem</p>
           <nav aria-label="Footer navigation">
-            <ul className="flex gap-4 list-none m-0 p-0">
+            <ul className="flex flex-wrap justify-center gap-4 list-none m-0 p-0">
+              <li>
+                <Link href="/impressum" className="hover:text-zinc-700 transition-colors">
+                  Impressum
+                </Link>
+              </li>
               <li>
                 <Link href="/privacy" className="hover:text-zinc-700 transition-colors">
                   Privacy Policy
