@@ -32,6 +32,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
+        {/* Left: logo + nav links */}
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900">
             <Mountain className="h-5 w-5 text-red-600" />
@@ -56,18 +57,19 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
           )}
         </div>
 
+        {/* Right: auth-state-aware actions */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => {
-              setFeedbackOpen(true);
-              if (onFeedback) onFeedback();
-            }}
-            className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
-          >
-            Feedback
-          </button>
           {session ? (
             <>
+              <button
+                onClick={() => {
+                  setFeedbackOpen(true);
+                  if (onFeedback) onFeedback();
+                }}
+                className="hidden sm:inline-flex rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+              >
+                Feedback
+              </button>
               <Link
                 href="/messages"
                 className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors"
@@ -96,7 +98,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-3">
+            <>
               <Link
                 href="/auth/signin"
                 className="text-sm font-medium text-zinc-700 hover:text-zinc-900 transition-colors"
@@ -109,7 +111,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               >
                 Join Free
               </Link>
-            </div>
+            </>
           )}
           <button className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden">
             <Menu className="h-5 w-5" />
