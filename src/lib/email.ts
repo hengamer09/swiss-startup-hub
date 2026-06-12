@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export async function sendEmail({
   to,
@@ -17,6 +18,7 @@ export async function sendEmail({
   const pass = env.SMTP_PASS;
 
   if (!host || !user || !pass) {
+    logger.warn("SMTP not configured — email not sent");
     return false;
   }
 

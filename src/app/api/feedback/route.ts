@@ -20,6 +20,7 @@ export async function POST(request: Request) {
       const n = Math.min(Math.max(Number(rating) || 0, 0), 5);
       const stars = "★".repeat(n) + "☆".repeat(5 - n);
       const commentText = cleanReviewText || "No comment provided";
+      logger.info("Sending review feedback email", { rating: n });
       const sent = await sendEmail({
         to: "henri@staehli.biz",
         subject: "New Review — Swiss Startup Hub",
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
       }
     } else if (type === "bug") {
       const bodyText = cleanIssueText || "(no description provided)";
+      logger.info("Sending bug report feedback email");
       const sent = await sendEmail({
         to: "henri@staehli.biz",
         subject: "Bug Report — Swiss Startup Hub",

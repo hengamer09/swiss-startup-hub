@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 });
     }
 
+    logger.info("Sending contact form email", { from: cleanEmail });
     const sent = await sendEmail({
       to: "henri@staehli.biz",
       subject: "Contact Form — Swiss Startup Hub",
