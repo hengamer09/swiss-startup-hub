@@ -72,15 +72,11 @@ export default function ConversationThread({
     document.getElementById(`msg-${msgId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  async function handleJoinDecision(status: "APPROVED" | "REJECTED", joinRequestId: string) {
-    const role = joinRole.trim();
+  async function handleJoinDecision(status: "APPROVED" | "REJECTED", joinRequestId: string, fallbackRole = "") {
+    const role = (joinRole || fallbackRole).trim();
     const reason = joinReason.trim();
     if (status === "APPROVED" && !role) {
       setJoinError("Please enter a role title before accepting.");
-      return;
-    }
-    if (!reason) {
-      setJoinError("Please add a message before submitting.");
       return;
     }
     setJoinError("");
@@ -106,10 +102,6 @@ export default function ConversationThread({
 
   async function handleEventDecision(action: "ACCEPT" | "DECLINE", msg: any) {
     const reason = eventReason.trim();
-    if (!reason) {
-      setEventError("A note is required.");
-      return;
-    }
     const parsed = tryParse(msg.content) || {};
     const registrantId = parsed.registrantId || msg.senderId;
     const evtId = parsed.eventId || msg.event?.id;
@@ -178,8 +170,8 @@ export default function ConversationThread({
 
   const other = participants.find((p: any) => p.userId !== userId)?.user;
 
-  // Compute pending pin from messages (last unresolved pending request visible to current user)
-  let pendingPin: { msgId: string; label: string } | null = null;
+  // Collect all pending requests visible to current user as pinned chips
+  const pendingPins: Array<{ msgId: string; label: string }> = [];
   for (const msg of messages) {
     if (msg.type === "JOIN_REQUEST" && msg.receiverId === userId) {
       const hasResponse = messages.some(
@@ -187,7 +179,7 @@ export default function ConversationThread({
       );
       if (!hasResponse) {
         const d = tryParse(msg.content) || {};
-        pendingPin = { msgId: msg.id, label: `Join request pending — ${d.applicantRole || "view request"}` };
+        pendingPins.push({ msgId: msg.id, label: `📌 Join: ${d.projectName || "project"}` });
       }
     }
     if (msg.type === "EVENT_REGISTRATION" && msg.receiverId === userId) {
@@ -196,7 +188,7 @@ export default function ConversationThread({
       );
       if (!hasResponse) {
         const d = tryParse(msg.content) || {};
-        pendingPin = { msgId: msg.id, label: `Event registration pending — ${d.attendeeName || "view request"}` };
+        pendingPins.push({ msgId: msg.id, label: `📌 Event: ${d.eventTitle || "event"}` });
       }
     }
   }
@@ -217,16 +209,19 @@ export default function ConversationThread({
         </div>
       </div>
 
-      {/* Pinned bar — scrolls to the pending request card in the thread */}
-      {pendingPin && (
-        <button
-          onClick={() => scrollToMessage(pendingPin!.msgId)}
-          className="mb-3 flex w-full items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors"
-        >
-          <span>📌</span>
-          <span className="flex-1">{pendingPin.label}</span>
-          <span className="text-amber-500">↓ scroll</span>
-        </button>
+      {/* Pinned chips — one per pending request, click scrolls to its card */}
+      {pendingPins.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {pendingPins.map((pin) => (
+            <button
+              key={pin.msgId}
+              onClick={() => scrollToMessage(pin.msgId)}
+              className="bg-amber-50 border border-amber-200 px-3 py-1 rounded-md text-sm text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer"
+            >
+              {pin.label}
+            </button>
+          ))}
+        </div>
       )}
 
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 max-h-[60vh]">
@@ -278,7 +273,7 @@ export default function ConversationThread({
               );
               const canAct = msg.receiverId === userId && !hasResponse;
               return (
-                <div key={msg.id} id={`msg-${msg.id}`} className="flex justify-start">
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
                   <div className="max-w-[85%] rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
                     <p className="text-sm font-semibold text-amber-900">Join Request from {msg.sender?.name}</p>
                     {data.projectName && <p className="text-xs text-amber-700">Project: {data.projectName}</p>}
@@ -304,7 +299,7 @@ export default function ConversationThread({
                           />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-amber-700 mb-1">Message to applicant (required)</p>
+                          <p className="text-xs font-medium text-amber-700 mb-1">Message to applicant (optional)</p>
                           <textarea
                             value={joinReason}
                             onChange={(e) => { setJoinReason(e.target.value); if (joinError) setJoinError(""); }}
@@ -316,14 +311,14 @@ export default function ConversationThread({
                         {joinError && <p className="text-xs text-red-600">{joinError}</p>}
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleJoinDecision("APPROVED", data.joinRequestId)}
+                            onClick={() => handleJoinDecision("APPROVED", data.joinRequestId, data.applicantRole)}
                             disabled={joinProcessing}
                             className="flex items-center gap-1 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50"
                           >
                             <CheckCircle className="h-3 w-3" /> Accept
                           </button>
                           <button
-                            onClick={() => handleJoinDecision("REJECTED", data.joinRequestId)}
+                            onClick={() => handleJoinDecision("REJECTED", data.joinRequestId, data.applicantRole)}
                             disabled={joinProcessing}
                             className="flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
                           >
@@ -373,7 +368,7 @@ export default function ConversationThread({
               );
               const canAct = msg.receiverId === userId && !hasResponse;
               return (
-                <div key={msg.id} id={`msg-${msg.id}`} className="flex justify-start">
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
                   <div className="max-w-[85%] rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-1">
                     <p className="text-sm font-semibold text-amber-900">Event Registration: {data.eventTitle || "Event"}</p>
                     <p className="text-xs text-amber-800">From: {data.attendeeName || msg.sender?.name}</p>
@@ -382,7 +377,7 @@ export default function ConversationThread({
                     {canAct && (
                       <div className="space-y-2 pt-2 border-t border-amber-200">
                         <div>
-                          <p className="text-xs font-medium text-amber-700 mb-1">Note to attendee (required)</p>
+                          <p className="text-xs font-medium text-amber-700 mb-1">Note to attendee (optional)</p>
                           <textarea
                             value={eventReason}
                             onChange={(e) => { setEventReason(e.target.value); if (eventError) setEventError(""); }}

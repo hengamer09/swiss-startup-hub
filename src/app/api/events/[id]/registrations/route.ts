@@ -61,9 +61,6 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
     const reason = rawReason ? stripTags(String(rawReason).trim()).slice(0, 1000) : "";
-    if (!reason) {
-      return NextResponse.json({ error: "A note is required." }, { status: 400 });
-    }
 
     const event = await prisma.event.findUnique({ where: { id } });
     if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });

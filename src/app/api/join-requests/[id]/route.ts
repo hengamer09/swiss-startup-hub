@@ -27,9 +27,6 @@ export async function PUT(
       : "";
     const trimmedReason = stripTags((rawReason || rawReply || "").trim()).slice(0, 1000);
 
-    if (!trimmedReason) {
-      return NextResponse.json({ error: "A message or reason is required." }, { status: 400 });
-    }
     if (status === "APPROVED" && !trimmedRole) {
       return NextResponse.json({ error: "A role title is required when accepting." }, { status: 400 });
     }

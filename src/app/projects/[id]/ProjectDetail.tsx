@@ -400,7 +400,7 @@ export default function ProjectDetail({
                           </div>
                         )}
                         <div className={cn("max-w-[75%] flex flex-col", isOwner ? "items-end" : "items-start")}>
-                          {!isOwner && <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>}
+                          <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>
                           <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                             isOwner ? "bg-red-600 text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
                           )}>
