@@ -58,6 +58,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const msgContent = JSON.stringify({
         eventId: event.id,
         eventTitle: event.title,
+        registrantId: session.user.id,
         attendeeName: session.user.name || "Someone",
         attendeeMessage: message,
       });

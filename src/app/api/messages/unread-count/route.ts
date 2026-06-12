@@ -16,6 +16,8 @@ export async function GET() {
       where: {
         receiverId: userId,
         readAt: null,
+        type: { not: "BOT_NOTIFICATION" },
+        senderId: { not: userId },
       },
     });
 

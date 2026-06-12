@@ -23,13 +23,21 @@ export default function ConversationThread({
   const [messages, setMessages] = useState<any[]>([]);
   const [participants, setParticipants] = useState<any[]>([]);
   const [project, setProject] = useState<any>(null);
-  const [joinRequest, setJoinRequest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [joinReply, setJoinReply] = useState("");
+
+  // Join request decision state
+  const [joinRole, setJoinRole] = useState("");
+  const [joinReason, setJoinReason] = useState("");
   const [joinProcessing, setJoinProcessing] = useState(false);
   const [joinError, setJoinError] = useState("");
+
+  // Event registration decision state
+  const [eventReason, setEventReason] = useState("");
+  const [eventProcessing, setEventProcessing] = useState(false);
+  const [eventError, setEventError] = useState("");
+
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const fetchMessages = useCallback(async () => {
@@ -39,7 +47,6 @@ export default function ConversationThread({
       setMessages(data.messages || []);
       setParticipants(data.participants || []);
       setProject(data.project || null);
-      setJoinRequest(data.joinRequest || null);
     }
     setLoading(false);
   }, [conversationId]);
@@ -61,25 +68,32 @@ export default function ConversationThread({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const isFounderOfProject = joinRequest?.status === "PENDING" && joinRequest?.project?.ownerId === userId;
+  function scrollToMessage(msgId: string) {
+    document.getElementById(`msg-${msgId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
-  async function handleJoinDecision(status: "APPROVED" | "REJECTED") {
-    const reply = joinReply.trim();
-    if (!reply) {
-      setJoinError(status === "APPROVED" ? "Please enter a role title before accepting." : "Please enter a reason before declining.");
+  async function handleJoinDecision(status: "APPROVED" | "REJECTED", joinRequestId: string) {
+    const role = joinRole.trim();
+    const reason = joinReason.trim();
+    if (status === "APPROVED" && !role) {
+      setJoinError("Please enter a role title before accepting.");
+      return;
+    }
+    if (!reason) {
+      setJoinError("Please add a message before submitting.");
       return;
     }
     setJoinError("");
     setJoinProcessing(true);
     try {
-      const res = await fetch(`/api/join-requests/${joinRequest.id}`, {
+      const res = await fetch(`/api/join-requests/${joinRequestId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, reply }),
+        body: JSON.stringify({ status, role, reason }),
       });
       if (res.ok) {
-        setJoinRequest(null);
-        setJoinReply("");
+        setJoinRole("");
+        setJoinReason("");
         await fetchMessages();
       } else {
         const data = await res.json().catch(() => ({}));
@@ -87,6 +101,39 @@ export default function ConversationThread({
       }
     } finally {
       setJoinProcessing(false);
+    }
+  }
+
+  async function handleEventDecision(action: "ACCEPT" | "DECLINE", msg: any) {
+    const reason = eventReason.trim();
+    if (!reason) {
+      setEventError("A note is required.");
+      return;
+    }
+    const parsed = tryParse(msg.content) || {};
+    const registrantId = parsed.registrantId || msg.senderId;
+    const evtId = parsed.eventId || msg.event?.id;
+    if (!evtId || !registrantId) {
+      setEventError("Unable to process — missing event information.");
+      return;
+    }
+    setEventError("");
+    setEventProcessing(true);
+    try {
+      const res = await fetch(`/api/events/${evtId}/registrations`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ registrantId, action, reason, conversationId }),
+      });
+      if (res.ok) {
+        setEventReason("");
+        await fetchMessages();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEventError(data.error || "Something went wrong.");
+      }
+    } finally {
+      setEventProcessing(false);
     }
   }
 
@@ -131,6 +178,29 @@ export default function ConversationThread({
 
   const other = participants.find((p: any) => p.userId !== userId)?.user;
 
+  // Compute pending pin from messages (last unresolved pending request visible to current user)
+  let pendingPin: { msgId: string; label: string } | null = null;
+  for (const msg of messages) {
+    if (msg.type === "JOIN_REQUEST" && msg.receiverId === userId) {
+      const hasResponse = messages.some(
+        (m: any) => (m.type === "JOIN_ACCEPT" || m.type === "JOIN_DECLINE") && m.createdAt > msg.createdAt
+      );
+      if (!hasResponse) {
+        const d = tryParse(msg.content) || {};
+        pendingPin = { msgId: msg.id, label: `Join request pending — ${d.applicantRole || "view request"}` };
+      }
+    }
+    if (msg.type === "EVENT_REGISTRATION" && msg.receiverId === userId) {
+      const hasResponse = messages.some(
+        (m: any) => (m.type === "EVENT_ACCEPT" || m.type === "EVENT_DECLINE") && m.createdAt > msg.createdAt
+      );
+      if (!hasResponse) {
+        const d = tryParse(msg.content) || {};
+        pendingPin = { msgId: msg.id, label: `Event registration pending — ${d.attendeeName || "view request"}` };
+      }
+    }
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6">
       <div className="mb-4 flex items-center gap-3">
@@ -147,45 +217,16 @@ export default function ConversationThread({
         </div>
       </div>
 
-      {/* Join request banner — only for conversations with a pending join request */}
-      {isFounderOfProject && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-          <div>
-            <p className="text-sm font-semibold text-amber-900">Join Request from {other?.name}</p>
-            {joinRequest.applicantRole && (
-              <p className="mt-1 text-xs text-amber-800"><span className="font-medium">Role:</span> {joinRequest.applicantRole}</p>
-            )}
-            {joinRequest.motivation && (
-              <p className="mt-1 text-xs text-amber-800"><span className="font-medium">Message:</span> {joinRequest.motivation}</p>
-            )}
-            {joinRequest.links && (
-              <p className="mt-1 text-xs text-amber-800">
-                <span className="font-medium">Portfolio / Links:</span>{" "}
-                <a href={joinRequest.links} target="_blank" rel="noopener noreferrer" className="underline">{joinRequest.links}</a>
-              </p>
-            )}
-          </div>
-          <div>
-            <input
-              type="text"
-              value={joinReply}
-              onChange={(e) => { setJoinReply(e.target.value); if (joinError) setJoinError(""); }}
-              placeholder={`Role title (accept) or reason for declining — required`}
-              className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-            />
-            {joinError && <p className="mt-1 text-xs text-red-600">{joinError}</p>}
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => handleJoinDecision("APPROVED")} disabled={joinProcessing}
-              className="flex items-center gap-1.5 rounded-full bg-green-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50 transition-colors">
-              <CheckCircle className="h-3.5 w-3.5" /> Accept
-            </button>
-            <button onClick={() => handleJoinDecision("REJECTED")} disabled={joinProcessing}
-              className="flex items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 transition-colors">
-              <XCircle className="h-3.5 w-3.5" /> Decline
-            </button>
-          </div>
-        </div>
+      {/* Pinned bar — scrolls to the pending request card in the thread */}
+      {pendingPin && (
+        <button
+          onClick={() => scrollToMessage(pendingPin!.msgId)}
+          className="mb-3 flex w-full items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors"
+        >
+          <span>📌</span>
+          <span className="flex-1">{pendingPin.label}</span>
+          <span className="text-amber-500">↓ scroll</span>
+        </button>
       )}
 
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 max-h-[60vh]">
@@ -199,7 +240,6 @@ export default function ConversationThread({
             const type = msg.type || "NORMAL";
             const parsed = (type !== "NORMAL" && type !== "BOT_NOTIFICATION") ? tryParse(msg.content) : null;
 
-            // Context label
             const contextLabel = msg.project
               ? { href: `/projects/${msg.project.id}`, name: `via ${msg.project.name}` }
               : msg.event
@@ -207,10 +247,25 @@ export default function ConversationThread({
               : null;
 
             if (type === "BOT_NOTIFICATION") {
+              const projectId = msg.project?.id;
+              const eventId = msg.event?.id;
+              const discussionUrl = projectId
+                ? `/projects/${projectId}#discussion`
+                : eventId
+                ? `/events/${eventId}#discussion`
+                : null;
+              const hasViewLink = msg.content.includes("— View discussion");
+              const textPart = hasViewLink
+                ? msg.content.replace(/\s*—\s*View discussion\s*$/, "")
+                : msg.content;
               return (
-                <div key={msg.id} className="flex justify-center">
+                <div key={msg.id} id={`msg-${msg.id}`} className="flex justify-center">
                   <div className="rounded-xl bg-zinc-50 border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500 italic max-w-[85%] text-center">
-                    {msg.content}
+                    {textPart}
+                    {discussionUrl && hasViewLink && (
+                      <>{" — "}<Link href={discussionUrl} className="underline hover:text-zinc-700 not-italic">View discussion</Link></>
+                    )}
+                    {!discussionUrl && hasViewLink && " — View discussion"}
                   </div>
                 </div>
               );
@@ -221,32 +276,57 @@ export default function ConversationThread({
               const hasResponse = messages.some(
                 (m: any) => (m.type === "JOIN_ACCEPT" || m.type === "JOIN_DECLINE") && m.createdAt > msg.createdAt
               );
-              const canAct = !isMine && data.projectOwnerId === userId && !hasResponse;
+              const canAct = msg.receiverId === userId && !hasResponse;
               return (
-                <div key={msg.id} className="flex justify-start">
+                <div key={msg.id} id={`msg-${msg.id}`} className="flex justify-start">
                   <div className="max-w-[85%] rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
                     <p className="text-sm font-semibold text-amber-900">Join Request from {msg.sender?.name}</p>
                     {data.projectName && <p className="text-xs text-amber-700">Project: {data.projectName}</p>}
                     {data.applicantRole && <p className="text-xs text-amber-800"><span className="font-medium">Role:</span> {data.applicantRole}</p>}
                     {data.motivation && <p className="text-xs text-amber-800"><span className="font-medium">Message:</span> {data.motivation}</p>}
-                    {data.links && <p className="text-xs text-amber-800"><span className="font-medium">Portfolio:</span> <a href={data.links} target="_blank" rel="noopener noreferrer" className="underline">{data.links}</a></p>}
+                    {data.links && (
+                      <p className="text-xs text-amber-800">
+                        <span className="font-medium">Portfolio:</span>{" "}
+                        <a href={data.links} target="_blank" rel="noopener noreferrer" className="underline">{data.links}</a>
+                      </p>
+                    )}
                     <p className="text-xs text-amber-600">{formatTime(msg.createdAt)}</p>
-                    {canAct && !joinRequest && (
-                      <div className="space-y-2 pt-1 border-t border-amber-200">
-                        <input
-                          type="text"
-                          defaultValue={data.applicantRole || ""}
-                          onChange={(e) => setJoinReply(e.target.value)}
-                          placeholder="Role title (accept) or reason for declining"
-                          className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
-                        />
+                    {canAct && (
+                      <div className="space-y-2 pt-2 border-t border-amber-200">
+                        <div>
+                          <p className="text-xs font-medium text-amber-700 mb-1">Role title (for accept)</p>
+                          <input
+                            type="text"
+                            value={joinRole || data.applicantRole || ""}
+                            onChange={(e) => { setJoinRole(e.target.value); if (joinError) setJoinError(""); }}
+                            placeholder="e.g. Frontend Engineer"
+                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-amber-700 mb-1">Message to applicant (required)</p>
+                          <textarea
+                            value={joinReason}
+                            onChange={(e) => { setJoinReason(e.target.value); if (joinError) setJoinError(""); }}
+                            placeholder="Add a note for the applicant..."
+                            rows={2}
+                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                          />
+                        </div>
+                        {joinError && <p className="text-xs text-red-600">{joinError}</p>}
                         <div className="flex gap-2">
-                          <button onClick={() => handleJoinDecision("APPROVED")} disabled={joinProcessing}
-                            className="flex items-center gap-1 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50">
+                          <button
+                            onClick={() => handleJoinDecision("APPROVED", data.joinRequestId)}
+                            disabled={joinProcessing}
+                            className="flex items-center gap-1 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50"
+                          >
                             <CheckCircle className="h-3 w-3" /> Accept
                           </button>
-                          <button onClick={() => handleJoinDecision("REJECTED")} disabled={joinProcessing}
-                            className="flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50">
+                          <button
+                            onClick={() => handleJoinDecision("REJECTED", data.joinRequestId)}
+                            disabled={joinProcessing}
+                            className="flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+                          >
                             <XCircle className="h-3 w-3" /> Decline
                           </button>
                         </div>
@@ -260,7 +340,7 @@ export default function ConversationThread({
 
             if (type === "JOIN_ACCEPT") {
               return (
-                <div key={msg.id} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
                   <div className="max-w-[80%] rounded-xl border border-green-200 bg-green-50 px-4 py-2.5">
                     {contextLabel && (
                       <Link href={contextLabel.href} className="block text-xs text-zinc-400 hover:underline mb-1">{contextLabel.name}</Link>
@@ -274,7 +354,7 @@ export default function ConversationThread({
 
             if (type === "JOIN_DECLINE") {
               return (
-                <div key={msg.id} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
                   <div className="max-w-[80%] rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
                     {contextLabel && (
                       <Link href={contextLabel.href} className="block text-xs text-zinc-400 hover:underline mb-1">{contextLabel.name}</Link>
@@ -288,13 +368,79 @@ export default function ConversationThread({
 
             if (type === "EVENT_REGISTRATION") {
               const data = parsed || {};
+              const hasResponse = messages.some(
+                (m: any) => (m.type === "EVENT_ACCEPT" || m.type === "EVENT_DECLINE") && m.createdAt > msg.createdAt
+              );
+              const canAct = msg.receiverId === userId && !hasResponse;
               return (
-                <div key={msg.id} className="flex justify-start">
+                <div key={msg.id} id={`msg-${msg.id}`} className="flex justify-start">
                   <div className="max-w-[85%] rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-1">
                     <p className="text-sm font-semibold text-amber-900">Event Registration: {data.eventTitle || "Event"}</p>
                     <p className="text-xs text-amber-800">From: {data.attendeeName || msg.sender?.name}</p>
                     {data.attendeeMessage && <p className="text-xs text-amber-800">Message: {data.attendeeMessage}</p>}
                     <p className="text-xs text-amber-600">{formatTime(msg.createdAt)}</p>
+                    {canAct && (
+                      <div className="space-y-2 pt-2 border-t border-amber-200">
+                        <div>
+                          <p className="text-xs font-medium text-amber-700 mb-1">Note to attendee (required)</p>
+                          <textarea
+                            value={eventReason}
+                            onChange={(e) => { setEventReason(e.target.value); if (eventError) setEventError(""); }}
+                            placeholder="e.g. Looking forward to seeing you!"
+                            rows={2}
+                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                          />
+                        </div>
+                        {eventError && <p className="text-xs text-red-600">{eventError}</p>}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEventDecision("ACCEPT", msg)}
+                            disabled={eventProcessing}
+                            className="flex items-center gap-1 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50"
+                          >
+                            <CheckCircle className="h-3 w-3" /> Confirm
+                          </button>
+                          <button
+                            onClick={() => handleEventDecision("DECLINE", msg)}
+                            disabled={eventProcessing}
+                            className="flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+                          >
+                            <XCircle className="h-3 w-3" /> Decline
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {hasResponse && <p className="text-xs text-amber-600 italic">Registration resolved</p>}
+                  </div>
+                </div>
+              );
+            }
+
+            if (type === "EVENT_ACCEPT") {
+              return (
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                  <div className="max-w-[80%] rounded-xl border border-green-200 bg-green-50 px-4 py-2.5">
+                    {contextLabel && (
+                      <Link href={contextLabel.href} className="block text-xs text-zinc-400 hover:underline mb-1">{contextLabel.name}</Link>
+                    )}
+                    <p className="text-xs font-semibold text-green-700 mb-1">Registration Confirmed ✓</p>
+                    <p className="text-sm text-green-800">{msg.content}</p>
+                    <p className="mt-1 text-right text-xs text-green-500">{formatTime(msg.createdAt)}</p>
+                  </div>
+                </div>
+              );
+            }
+
+            if (type === "EVENT_DECLINE") {
+              return (
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                  <div className="max-w-[80%] rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
+                    {contextLabel && (
+                      <Link href={contextLabel.href} className="block text-xs text-zinc-400 hover:underline mb-1">{contextLabel.name}</Link>
+                    )}
+                    <p className="text-xs font-semibold text-red-700 mb-1">Registration Declined</p>
+                    <p className="text-sm text-red-800">{msg.content}</p>
+                    <p className="mt-1 text-right text-xs text-red-400">{formatTime(msg.createdAt)}</p>
                   </div>
                 </div>
               );
@@ -302,7 +448,7 @@ export default function ConversationThread({
 
             // NORMAL message
             return (
-              <div key={msg.id} className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}>
+              <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}>
                 {!isMine && (
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600 self-end">
                     {msg.sender?.name?.charAt(0) || "?"}

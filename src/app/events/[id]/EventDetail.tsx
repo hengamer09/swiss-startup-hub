@@ -301,7 +301,7 @@ export default function EventDetail({
         )}
       </div>
 
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-4">
+      <section id="discussion" className="mt-6 rounded-xl border border-zinc-200 bg-white p-4">
         <div className="mb-3">
           <h2 className="text-sm font-semibold text-zinc-900">Public Chat</h2>
           <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
@@ -314,21 +314,21 @@ export default function EventDetail({
             </div>
           ) : (
             posts.map((post) => {
-              const isMine = post.author?.id === userId;
+              const isOrganizer = post.author?.id === event.organizerId;
               return (
-                <div key={post.id} className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}>
-                  {!isMine && (
+                <div key={post.id} className={cn("flex gap-2", isOrganizer ? "justify-end" : "justify-start")}>
+                  {!isOrganizer && (
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600 self-end">
                       {(post.author?.name || "U").charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div className={cn("max-w-[75%] flex flex-col", isMine ? "items-end" : "items-start")}>
-                    {!isMine && <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>}
+                  <div className={cn("max-w-[75%] flex flex-col", isOrganizer ? "items-end" : "items-start")}>
+                    {!isOrganizer && <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>}
                     <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
-                      isMine ? "bg-red-600 text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
+                      isOrganizer ? "bg-red-600 text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
                     )}>
                       <p className="whitespace-pre-wrap">{post.content}</p>
-                      <p className={cn("mt-1 text-xs text-right", isMine ? "text-red-200" : "text-zinc-400")}>
+                      <p className={cn("mt-1 text-xs text-right", isOrganizer ? "text-red-200" : "text-zinc-400")}>
                         {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
