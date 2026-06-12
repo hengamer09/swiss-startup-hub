@@ -392,20 +392,27 @@ export default function ProjectDetail({
                 ) : (
                   posts.map((post: any) => {
                     const isOwner = post.author?.id === project.owner?.id;
+                    const isMe = post.author?.id === userId && !isOwner;
+                    const onRight = isOwner;
+                    const redBubble = isMe;
                     return (
-                      <div key={post.id} className={cn("flex gap-2", isOwner ? "justify-end" : "justify-start")}>
-                        {!isOwner && (
+                      <div key={post.id} className={cn("flex gap-2", onRight ? "justify-end" : "justify-start")}>
+                        {!onRight && (
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600 self-end">
                             {(post.author?.name || "U").charAt(0).toUpperCase()}
                           </div>
                         )}
-                        <div className={cn("max-w-[75%] flex flex-col", isOwner ? "items-end" : "items-start")}>
+                        <div className={cn("max-w-[75%] flex flex-col", onRight ? "items-end" : "items-start")}>
                           <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>
                           <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
-                            isOwner ? "bg-red-600 text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
+                            redBubble
+                              ? "bg-red-600 text-white rounded-bl-md"
+                              : onRight
+                              ? "bg-zinc-100 text-zinc-800 rounded-br-md"
+                              : "bg-zinc-100 text-zinc-800 rounded-bl-md"
                           )}>
                             <p className="whitespace-pre-wrap">{post.content}</p>
-                            <p className={cn("mt-1 text-xs text-right", isOwner ? "text-red-200" : "text-zinc-400")}>
+                            <p className={cn("mt-1 text-xs text-right", redBubble ? "text-red-200" : "text-zinc-400")}>
                               {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </p>
                           </div>
