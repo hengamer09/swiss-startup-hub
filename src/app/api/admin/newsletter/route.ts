@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { newsletterEmail } from "@/lib/emailTemplates";
+import { newsletterTextToHtml } from "@/lib/newsletterFormat";
 import { makeUnsubscribeToken } from "@/lib/emailTokens";
 import { APP_URL } from "@/lib/utils";
 import { logger } from "@/lib/logger";
@@ -21,11 +22,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { subject, htmlContent } = await request.json();
+    const body = await request.json();
+    const subject = body.subject;
+    // Accept raw text (`content`, preferred) and convert it; fall back to `htmlContent`.
+    const rawContent = typeof body.content === "string" ? body.content : "";
+    const htmlContent = rawContent
+      ? newsletterTextToHtml(rawContent)
+      : typeof body.htmlContent === "string"
+      ? body.htmlContent
+      : "";
 
-    if (!subject || typeof subject !== "string" || !htmlContent || typeof htmlContent !== "string") {
+    if (!subject || typeof subject !== "string" || !htmlContent) {
       return NextResponse.json(
-        { error: "subject and htmlContent are required" },
+        { error: "subject and content are required" },
         { status: 400 }
       );
     }

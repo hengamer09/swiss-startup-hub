@@ -5,6 +5,9 @@ import Link from "next/link";
 import { cn, parseRoles } from "@/lib/utils";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProjectsSection from "./SavedProjectsSection";
+import NewsletterAdmin from "./NewsletterAdmin";
+
+const ADMIN_EMAIL = "henri@staehli.biz";
 import {
   LayoutDashboard,
   Users,
@@ -35,6 +38,7 @@ export default function DashboardContent({ data }: { data: any }) {
   const projects = user?.ownedProjects || [];
   const roles = parseRoles(user?.roles || "[]");
   const isInvestor = roles.includes("INVESTOR");
+  const isAdmin = user?.email === ADMIN_EMAIL;
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [applicationReplies, setApplicationReplies] = useState<Record<string, string>>({});
@@ -763,6 +767,15 @@ export default function DashboardContent({ data }: { data: any }) {
               </Link>
             </div>
           )}
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="mt-8 border-t border-zinc-200 pt-6">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+            Admin
+          </h2>
+          <NewsletterAdmin />
         </div>
       )}
     </div>

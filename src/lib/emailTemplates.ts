@@ -157,16 +157,18 @@ export function eventReminderEmail(
   dateLabel: string,
   location: string,
   description: string,
-  eventUrl: string
+  eventUrl: string,
+  headline?: string
 ): { html: string; text: string } {
+  const lead = headline || `Reminder: ${eventTitle} is tomorrow`;
   const content = `
-    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">Reminder: ${escapeHtml(eventTitle)} is tomorrow</h2>
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">${escapeHtml(lead)}</h2>
     <p style="margin:0 0 4px 0;"><strong>When:</strong> ${escapeHtml(dateLabel)}</p>
     <p style="margin:0 0 8px 0;"><strong>Where:</strong> ${escapeHtml(location)}</p>
     ${description ? `<p style="margin:0 0 8px 0;color:#374151;">${escapeHtml(description.slice(0, 300))}</p>` : ""}
     ${button("View event", eventUrl)}
   `;
-  const text = `Reminder: ${eventTitle} is tomorrow.\n\nWhen: ${dateLabel}\nWhere: ${location}\n\n${(description || "").slice(0, 300)}\n\nView event: ${eventUrl}`;
+  const text = `${lead}.\n\nWhen: ${dateLabel}\nWhere: ${location}\n\n${(description || "").slice(0, 300)}\n\nView event: ${eventUrl}`;
   return { html: layout(content), text };
 }
 

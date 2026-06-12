@@ -379,7 +379,8 @@ model EventAttendee {
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   intention String
-  reminderSent Boolean @default(false)
+  reminder7dSent Boolean @default(false)
+  reminder1dSent Boolean @default(false)
   createdAt DateTime @default(now())
 
   @@unique([eventId, userId])

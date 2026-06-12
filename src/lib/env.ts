@@ -14,4 +14,6 @@ export const env = {
   get SMTP_PORT() { return process.env.SMTP_PORT ?? "587"; },
   get SMTP_FROM() { return process.env.SMTP_FROM ?? ""; },
   get CONTACT_EMAIL() { return process.env.CONTACT_EMAIL ?? "hello@swissstartuphub.ch"; },
+  // Shared secret used to authenticate Vercel Cron requests.
+  get CRON_SECRET() { return process.env.CRON_SECRET ?? ""; },
 };
