@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/email";
-import { APP_URL, stripTags } from "@/lib/utils";
+import { stripTags } from "@/lib/utils";
 import { logger } from "@/lib/logger";
+import { findOrCreateConversation } from "@/lib/messaging";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         author: { select: { id: true, name: true, image: true } },
         project: { select: { id: true, name: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
       take: 100,
     });
 
@@ -59,36 +59,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       where: { id },
       include: {
         owner: { select: { id: true, name: true, email: true } },
-        members: { include: { user: { select: { id: true, name: true, email: true } } } },
       },
     });
 
-    if (project) {
-      const recipients = [project.owner, ...project.members.map((member) => member.user)]
-        .filter((user): user is { id: string; name: string; email: string } => Boolean(user) && user.id !== session.user.id)
-        .filter((user, index, list) => list.findIndex((item) => item.id === user.id) === index);
-
-      await prisma.notification.createMany({
-        data: recipients.map((user) => ({
-          userId: user.id,
-          type: "project_post",
-          content: `${session.user.name || "Someone"} posted in ${project.name}.`,
-          link: `/projects/${project.id}`,
-        })),
+    if (project && project.owner.id !== session.user.id) {
+      const conversationId = await findOrCreateConversation(prisma, session.user.id, project.owner.id);
+      const preview = content.slice(0, 80);
+      await prisma.message.create({
+        data: {
+          conversationId,
+          senderId: session.user.id,
+          receiverId: project.owner.id,
+          content: `\u{1F4AC} ${session.user.name || "Someone"} posted in ${project.name} discussion: "${preview}${content.length > 80 ? "…" : ""}" — View discussion`,
+          type: "BOT_NOTIFICATION",
+          projectId: project.id,
+        },
       });
-
-      await Promise.allSettled(
-        recipients.map(async (user) => {
-          if (!user.email) return;
-
-          await sendEmail({
-            to: user.email,
-            subject: `New discussion post on ${project.name}`,
-            text: `${session.user.name || "Someone"} posted a new message in ${project.name}:\n\n${content}\n\nView the project: ${APP_URL}/projects/${project.id}`,
-            html: `<div style="font-family: Arial, sans-serif; color: #18181b; line-height: 1.5;"><p>Hi ${user.name || "there"},</p><p><strong>${session.user.name || "Someone"}</strong> posted a new message in <strong>${project.name}</strong>.</p><p>${content}</p><p><a href="${APP_URL}/projects/${project.id}" style="color:#dc2626;">Open the project</a></p></div>`,
-          });
-        })
-      );
+      await prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } });
     }
 
     return NextResponse.json(post, { status: 201 });

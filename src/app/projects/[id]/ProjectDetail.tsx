@@ -12,7 +12,7 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { cn, formatStage, parseRolesNeeded } from "@/lib/utils";
 import RateUserModal from "@/components/projects/RateUserModal";
@@ -49,8 +49,9 @@ export default function ProjectDetail({
   }>({ open: false, message: "", tone: "success" });
 
   // Join request state
-  const [hasApplied, setHasApplied] = useState(!!myRequest);
+  const [myRequestStatus, setMyRequestStatus] = useState<string | null>(myRequest?.status || null);
   const [pendingRequests, setPendingRequests] = useState<any[]>(initialPendingRequests || []);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -86,8 +87,9 @@ export default function ProjectDetail({
 
     if (res.ok) {
       const post = await res.json();
-      setPosts((prev) => [post, ...prev]);
+      setPosts((prev) => [...prev, post]);
       setPostDraft("");
+      setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     }
     setPosting(false);
   }
@@ -201,7 +203,15 @@ export default function ProjectDetail({
 
               {/* Join button — hidden for owner and existing members */}
               {userId && !isOwner && !isMember && (
-                hasApplied ? (
+                myRequestStatus === "APPROVED" ? (
+                  <button
+                    disabled
+                    className="flex items-center gap-1.5 rounded-md border border-green-300 bg-green-50 px-4 py-1.5 text-xs font-medium text-green-600 cursor-not-allowed"
+                  >
+                    <CheckCircle className="h-3 w-3" />
+                    Joined ✓
+                  </button>
+                ) : myRequestStatus === "PENDING" ? (
                   <button
                     disabled
                     className="flex items-center gap-1.5 rounded-md border border-zinc-300 bg-zinc-50 px-4 py-1.5 text-xs font-medium text-zinc-400 cursor-not-allowed"
@@ -369,22 +379,50 @@ export default function ProjectDetail({
           {/* Discussion Board */}
           <div className="mt-6 border-t border-zinc-100 pt-6 space-y-6">
             <section className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-sm font-semibold text-zinc-900">Public Chat / Discussion Board</h2>
-                  <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
-                </div>
-                <span className="rounded bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-600">
-                  Live discussion
-                </span>
+              <div className="mb-3">
+                <h2 className="text-sm font-semibold text-zinc-900">Public Chat / Discussion Board</h2>
+                <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
+              </div>
+
+              <div className="space-y-2 max-h-96 overflow-y-auto mb-3" id="chat-container">
+                {posts.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500">
+                    No discussion posts yet. Be the first to start the conversation.
+                  </div>
+                ) : (
+                  posts.map((post: any) => {
+                    const isMine = post.author?.id === userId;
+                    return (
+                      <div key={post.id} className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}>
+                        {!isMine && (
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600 self-end">
+                            {(post.author?.name || "U").charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className={cn("max-w-[75%] flex flex-col", isMine ? "items-end" : "items-start")}>
+                          {!isMine && <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>}
+                          <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
+                            isMine ? "bg-red-600 text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
+                          )}>
+                            <p className="whitespace-pre-wrap">{post.content}</p>
+                            <p className={cn("mt-1 text-xs text-right", isMine ? "text-red-200" : "text-zinc-400")}>
+                              {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={chatBottomRef} />
               </div>
 
               {userId ? (
-                <form onSubmit={handlePostSubmit} className="mb-4 space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
+                <form onSubmit={handlePostSubmit} className="space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
                   <textarea
                     value={postDraft}
                     onChange={(e) => setPostDraft(e.target.value)}
-                    rows={3}
+                    rows={2}
                     maxLength={500}
                     placeholder="Share an update, ask a question, or welcome the team..."
                     className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
@@ -396,48 +434,15 @@ export default function ProjectDetail({
                       disabled={posting || !postDraft.trim()}
                       className="rounded-md bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {posting ? "Posting..." : "Post update"}
+                      {posting ? "Sending..." : "Send"}
                     </button>
                   </div>
                 </form>
               ) : (
-                <div className="mb-4 rounded-xl border border-dashed border-zinc-300 bg-white p-3 text-sm text-zinc-500">
+                <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-3 text-sm text-zinc-500">
                   Sign in to post on the project discussion board.
                 </div>
               )}
-
-              <div className="space-y-3">
-                {posts.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500">
-                    No discussion posts yet. Be the first to start the conversation.
-                  </div>
-                ) : (
-                  posts.map((post: any) => (
-                    <article key={post.id} className="rounded-xl border border-zinc-200 bg-white p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700 overflow-hidden">
-                          {post.author?.image ? (
-                            <img src={post.author.image} alt={post.author.name || "User"} className="h-full w-full object-cover" />
-                          ) : (
-                            (post.author?.name || "U").charAt(0).toUpperCase()
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-semibold text-zinc-900">
-                              {post.author?.name || "Anonymous"}
-                            </span>
-                            <span className="text-xs text-zinc-400">
-                              {new Date(post.createdAt).toLocaleString()}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-sm text-zinc-600 whitespace-pre-wrap">{post.content}</p>
-                        </div>
-                      </div>
-                    </article>
-                  ))
-                )}
-              </div>
             </section>
 
             <section className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -578,7 +583,7 @@ export default function ProjectDetail({
           onClose={() => setShowJoinModal(false)}
           onSuccess={() => {
             setShowJoinModal(false);
-            setHasApplied(true);
+            setMyRequestStatus("PENDING");
             setToast({
               open: true,
               message: "Your request has been sent!",

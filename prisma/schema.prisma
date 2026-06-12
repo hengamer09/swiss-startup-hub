@@ -126,6 +126,7 @@ model Project {
   openRoles    OpenRole[]
   conversations Conversation[]
   ratings      Rating[]
+  directMessages  Message[] @relation("MessageProject")
 
   @@index([stage])
   @@index([industry])
@@ -240,6 +241,11 @@ model Message {
   content        String
   readAt         DateTime?
   createdAt      DateTime  @default(now())
+  type      String   @default("NORMAL")
+  projectId String?
+  project   Project? @relation("MessageProject", fields: [projectId], references: [id], onDelete: SetNull)
+  eventId   String?
+  event     Event?   @relation("MessageEvent", fields: [eventId], references: [id], onDelete: SetNull)
 
   @@index([conversationId, createdAt])
 }
@@ -321,6 +327,7 @@ model Event {
   maxAttendees Int?
   requireApproval Boolean @default(false)
   locationScope String? // Local / National / International / Online
+  directMessages  Message[] @relation("MessageEvent")
 }
 
 model EventPost {

@@ -9,58 +9,62 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const userId = session.user.id;
 
   try {
     const conversation = await prisma.conversation.findFirst({
-      where: {
-        id,
-        participants: { some: { userId } },
-      },
+      where: { id, participants: { some: { userId } } },
       include: {
         participants: {
-          include: {
-            user: {
-              select: { id: true, name: true, image: true, roles: true },
-            },
-          },
+          include: { user: { select: { id: true, name: true, image: true, roles: true } } },
         },
-        project: {
-          select: { id: true, name: true, ownerId: true },
-        },
+        project: { select: { id: true, name: true, ownerId: true } },
         messages: {
           orderBy: { createdAt: "asc" },
           include: {
             sender: { select: { id: true, name: true, image: true } },
+            project: { select: { id: true, name: true } },
+            event: { select: { id: true, title: true } },
           },
         },
       },
     });
 
     if (!conversation) {
-      return NextResponse.json(
-        { error: "Conversation not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
 
-    // If this conversation is linked to a project, check for a pending join request
-    // between the current user and the other participant
+    // Find any pending join requests between the two participants
+    const other = conversation.participants.find((p) => p.userId !== userId);
     let joinRequest = null;
-    if (conversation.projectId) {
-      const other = conversation.participants.find((p) => p.userId !== userId);
-      if (other) {
-        joinRequest = await prisma.joinRequest.findUnique({
+    if (other) {
+      // Check if other person has a pending request for a project the current user owns
+      joinRequest = await prisma.joinRequest.findFirst({
+        where: {
+          userId: other.userId,
+          status: "PENDING",
+          project: { ownerId: userId },
+        },
+        select: {
+          id: true,
+          status: true,
+          motivation: true,
+          applicantRole: true,
+          links: true,
+          userId: true,
+          project: { select: { id: true, name: true, ownerId: true } },
+        },
+      });
+      // Also check if current user has a pending request for a project the other person owns
+      if (!joinRequest) {
+        joinRequest = await prisma.joinRequest.findFirst({
           where: {
-            userId_projectId: {
-              userId: other.userId,
-              projectId: conversation.projectId,
-            },
+            userId,
+            status: "PENDING",
+            project: { ownerId: other.userId },
           },
           select: {
             id: true,
@@ -69,9 +73,7 @@ export async function GET(
             applicantRole: true,
             links: true,
             userId: true,
-            project: {
-              select: { id: true, name: true, ownerId: true },
-            },
+            project: { select: { id: true, name: true, ownerId: true } },
           },
         });
       }
@@ -80,9 +82,6 @@ export async function GET(
     return NextResponse.json({ ...conversation, joinRequest });
   } catch (error) {
     logger.error("Get conversation error", { id, error: String(error) });
-    return NextResponse.json(
-      { error: "Failed to load conversation" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load conversation" }, { status: 500 });
   }
 }

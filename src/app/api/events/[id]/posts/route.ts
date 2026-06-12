@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripTags } from "@/lib/utils";
 import { logger } from "@/lib/logger";
+import { findOrCreateConversation } from "@/lib/messaging";
 
 export async function GET(
   _request: Request,
@@ -17,7 +18,7 @@ export async function GET(
       include: {
         author: { select: { id: true, name: true, image: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
       take: 100,
     });
 
@@ -82,6 +83,22 @@ export async function POST(
           link: `/events/${id}`,
         })),
       });
+    }
+
+    if (event.organizerId !== session.user.id) {
+      const conversationId = await findOrCreateConversation(prisma, session.user.id, event.organizerId);
+      const preview = content.slice(0, 80);
+      await prisma.message.create({
+        data: {
+          conversationId,
+          senderId: session.user.id,
+          receiverId: event.organizerId,
+          content: `\u{1F4AC} ${session.user.name || "Someone"} posted in ${event.title} discussion: "${preview}${content.length > 80 ? "…" : ""}" — View discussion`,
+          type: "BOT_NOTIFICATION",
+          eventId: event.id,
+        },
+      });
+      await prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } });
     }
 
     return NextResponse.json(post, { status: 201 });
