@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { sendEmail } from "@/lib/email";
+import { messageNotificationEmail } from "@/lib/emailTemplates";
+import { makeUnsubscribeToken } from "@/lib/emailTokens";
 import { APP_URL } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
@@ -46,23 +48,28 @@ export async function maybeSendMessageEmail({
   if (recipientId === senderId) return;
   if (!checkRateLimit(`email:conv:${conversationId}`, 1, 5 * 60_000)) return;
 
-  const recipient = await prisma.user.findUnique({
-    where: { id: recipientId },
-    select: { email: true, name: true },
-  });
+  const [recipient, sender] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: recipientId },
+      select: { email: true, name: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: senderId },
+      select: { name: true },
+    }),
+  ]);
   if (!recipient?.email) return;
 
   const preview = previewText.slice(0, 200) + (previewText.length > 200 ? "…" : "");
   const convUrl = `${APP_URL}/messages/${conversationId}`;
-  const html = `<div style="font-family:Arial,sans-serif;line-height:1.5;color:#18181b;max-width:600px">
-    <p>Hi ${recipient.name || "there"},</p>
-    ${context ? `<p><strong>Regarding:</strong> ${context}</p>` : ""}
-    <blockquote style="border-left:3px solid #e5e7eb;padding-left:12px;margin:12px 0;color:#374151">${preview}</blockquote>
-    <p><a href="${convUrl}" style="display:inline-block;background:#dc2626;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600">View conversation</a></p>
-    <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0"/>
-    <p style="font-size:12px;color:#9ca3af">You received this email because you have an account on Swiss Startup Hub. You can manage your notification preferences in your profile settings.</p>
-  </div>`;
-  const text = `${context ? `Regarding: ${context}\n\n` : ""}${preview}\n\nView conversation: ${convUrl}`;
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${makeUnsubscribeToken(recipient.email)}`;
+  const { html, text } = messageNotificationEmail(
+    sender?.name || "Someone",
+    context,
+    preview,
+    convUrl,
+    unsubscribeUrl
+  );
 
   sendEmail({ to: recipient.email, subject, text, html })
     .catch((err) => logger.error("Message notification email failed", { error: String(err), conversationId }));

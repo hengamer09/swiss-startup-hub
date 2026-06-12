@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { Mountain, Briefcase, Banknote } from "lucide-react";
+import { Mountain, Briefcase, Banknote, MailCheck } from "lucide-react";
 
 const SKILL_OPTIONS = [
   "React", "TypeScript", "Python", "Go", "Rust", "Solidity",
@@ -17,7 +15,6 @@ const SKILL_OPTIONS = [
 ];
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +24,7 @@ export default function SignUpPage() {
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   function toggleSkill(skill: string) {
     setSkills((prev) =>
@@ -76,18 +74,41 @@ export default function SignUpPage() {
         return;
       }
 
-      await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      router.push("/feed");
-      router.refresh();
+      // Do NOT log the user in — they must verify their email first.
+      setRegisteredEmail(data.email || email);
+      setLoading(false);
     } catch {
       setError("Something went wrong");
       setLoading(false);
     }
+  }
+
+  if (registeredEmail) {
+    return (
+      <div className="flex flex-1 items-center justify-center px-4 py-12 bg-zinc-50">
+        <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-sm text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+            <MailCheck className="h-6 w-6 text-red-600" />
+          </div>
+          <h1 className="text-xl font-semibold text-zinc-900">Account created!</h1>
+          <p className="mt-3 text-sm text-zinc-600">
+            We sent a verification email to{" "}
+            <span className="font-medium text-zinc-900">{registeredEmail}</span>.
+            Please check your inbox and verify your email to continue.
+          </p>
+          <p className="mt-2 text-xs text-zinc-400">
+            Didn&apos;t get it? Check your spam folder, or request a new link from the
+            sign-in page.
+          </p>
+          <Link
+            href="/auth/signin"
+            className="mt-6 inline-block rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+          >
+            Go to sign in
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (

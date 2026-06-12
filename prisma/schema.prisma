@@ -19,7 +19,9 @@ model User {
   canton          String?
   roles           String   @default("[\"PROFESSIONAL\"]")
   activityStatus  String   @default("ACTIVE_THIS_WEEK")
-  emailVerified   DateTime?
+  emailVerified   Boolean  @default(false)
+  verificationToken       String?
+  verificationTokenExpiry DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   lastLoginAt     DateTime?
@@ -65,9 +67,20 @@ model User {
   organizedEvents    Event[]        @relation("EventOrganizer")
   reviewsGiven       Review[]       @relation("ReviewAuthor")
   reviewsReceived    Review[]       @relation("ReviewTarget")
+  emailSubscriptions EmailSubscription[]
 
   @@index([email])
   @@index([location])
+}
+
+model EmailSubscription {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  subscribed Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Skill {

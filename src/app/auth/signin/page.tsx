@@ -11,12 +11,17 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [needsVerification, setNeedsVerification] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setNeedsVerification(false);
+    setResent(false);
 
     const result = await signIn("credentials", {
       email,
@@ -25,11 +30,34 @@ export default function SignInPage() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      if (result.error.includes("EMAIL_NOT_VERIFIED")) {
+        setNeedsVerification(true);
+        setError("Please verify your email first. Check your inbox.");
+      } else if (result.error.includes("Too many")) {
+        setError("Too many login attempts. Please try again later.");
+      } else {
+        setError("Invalid email or password");
+      }
       setLoading(false);
     } else {
       router.push("/feed");
       router.refresh();
+    }
+  }
+
+  async function handleResend() {
+    setResending(true);
+    try {
+      await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      setResent(true);
+    } catch {
+      // ignore — resend is best-effort
+    } finally {
+      setResending(false);
     }
   }
 
@@ -54,6 +82,24 @@ export default function SignInPage() {
           {error && (
             <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
               {error}
+              {needsVerification && (
+                <div className="mt-2">
+                  {resent ? (
+                    <span className="text-zinc-600">
+                      Verification email sent — please check your inbox.
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resending}
+                      className="font-medium text-red-700 underline hover:text-red-800 disabled:opacity-50"
+                    >
+                      {resending ? "Sending…" : "Resend verification email"}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div>

@@ -43,6 +43,11 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        if (!user.emailVerified) {
+          logger.warn("Failed login: email not verified", { userId: user.id });
+          throw new Error("EMAIL_NOT_VERIFIED");
+        }
+
         await prisma.user.update({
           where: { id: user.id },
           data: {
