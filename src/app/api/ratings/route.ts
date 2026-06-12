@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { stripTags } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
@@ -19,7 +20,8 @@ export async function POST(request: Request) {
   const fromUserId = session.user.id;
 
   try {
-    const { toUserId, projectId, stars, comment } = await request.json();
+    const { toUserId, projectId, stars, comment: rawComment } = await request.json();
+    const comment = rawComment ? stripTags(String(rawComment).trim()).slice(0, 1000) : null;
 
     if (!toUserId || !projectId || !stars || stars < 1 || stars > 5) {
       return NextResponse.json({ error: "Invalid rating data" }, { status: 400 });

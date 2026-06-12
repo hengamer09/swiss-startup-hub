@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const { projectId, motivation, applicantRole, links } = await request.json();
     const trimmedMotivation = stripTags(motivation?.trim() || "").slice(0, 2000);
     const trimmedApplicantRole = stripTags(applicantRole?.trim() || "").slice(0, 200) || null;
-    const trimmedLinks = links?.trim().slice(0, 500) || null;
+    const trimmedLinks = stripTags(links?.trim() || "").slice(0, 500) || null;
 
     if (!projectId || !trimmedMotivation || !trimmedApplicantRole) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

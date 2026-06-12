@@ -29,6 +29,7 @@ export async function GET(
   }
 }
 
+// Public chat: any authenticated user can post. This is intentional.
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

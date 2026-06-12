@@ -28,6 +28,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const attendee = await prisma.eventAttendee.findUnique({ where: { id: attendeeId } });
+    if (!attendee || attendee.eventId !== id) {
+      return NextResponse.json({ error: "Attendee not found for this event" }, { status: 404 });
+    }
+
     await prisma.eventAttendee.delete({
       where: { id: attendeeId },
     });
