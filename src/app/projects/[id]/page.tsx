@@ -12,7 +12,7 @@ export default async function ProjectPage(props: {
   const userId = (session?.user as { id: string })?.id || null;
   const userName = session?.user?.name || null;
 
-  const [project, myRequest] = await Promise.all([
+  const [project, myRequest, approvedRequests] = await Promise.all([
     prisma.project.findUnique({
       where: { id },
       include: {
@@ -43,6 +43,10 @@ export default async function ProjectPage(props: {
           select: { id: true, status: true },
         })
       : Promise.resolve(null),
+    prisma.joinRequest.findMany({
+      where: { projectId: id, status: "APPROVED" },
+      select: { userId: true, applicantRole: true },
+    }),
   ]);
 
   if (!project) notFound();
@@ -52,8 +56,21 @@ export default async function ProjectPage(props: {
   const { joinRequests, ...projectWithoutRequests } = project;
   const pendingRequests = isOwner ? joinRequests : [];
 
+  // Use applicantRole from the original join request as the canonical role display
+  const roleByUser: Record<string, string> = {};
+  for (const req of approvedRequests) {
+    if (req.applicantRole) roleByUser[req.userId] = req.applicantRole;
+  }
+  const projectWithRoles = {
+    ...projectWithoutRequests,
+    members: projectWithoutRequests.members.map((m) => ({
+      ...m,
+      roleTitle: roleByUser[m.userId] || m.roleTitle,
+    })),
+  };
+
   const serialized = JSON.parse(
-    JSON.stringify({ project: projectWithoutRequests, pendingRequests, myRequest })
+    JSON.stringify({ project: projectWithRoles, pendingRequests, myRequest })
   );
 
   return (

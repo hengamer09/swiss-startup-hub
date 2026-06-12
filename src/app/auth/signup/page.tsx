@@ -257,13 +257,29 @@ export default function SignUpPage() {
             </span>
           </label>
 
-          <button
-            type="submit"
-            disabled={loading || skills.length === 0 || !acceptedTerms || !confirmedAge}
-            className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? "Creating account..." : "Create account"}
-          </button>
+          {(() => {
+            const ready =
+              !loading &&
+              name.trim().length > 0 &&
+              email.trim().length > 0 &&
+              password.length >= 8 &&
+              skills.length > 0 &&
+              acceptedTerms &&
+              confirmedAge;
+            return (
+              <button
+                type="submit"
+                disabled={!ready}
+                className={`w-full rounded-md px-4 py-2.5 text-sm font-medium text-white transition-colors ${
+                  ready
+                    ? "bg-red-600 hover:bg-red-700 cursor-pointer"
+                    : "bg-zinc-300 cursor-not-allowed opacity-50"
+                }`}
+              >
+                {loading ? "Creating account..." : "Create account"}
+              </button>
+            );
+          })()}
         </form>
 
         <p className="mt-6 text-center text-sm text-zinc-500">

@@ -92,7 +92,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
                 <span className="hidden sm:inline">{session.user?.name}</span>
               </Link>
               <button
-                onClick={() => signOut()}
+                onClick={() => signOut({ callbackUrl: "/" })}
                 aria-label="Sign out of your account"
                 className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm"
               >

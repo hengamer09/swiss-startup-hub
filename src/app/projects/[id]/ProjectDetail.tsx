@@ -490,16 +490,6 @@ export default function ProjectDetail({
                         )}
                       </div>
                     </div>
-                    {userId && m.user.id !== userId && (
-                      <button
-                        onClick={() =>
-                          setShowRateModal({ id: m.user.id, name: m.user.name })
-                        }
-                        className="rounded border border-zinc-200 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50 transition-colors"
-                      >
-                        Rate
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
