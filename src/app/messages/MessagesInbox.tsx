@@ -15,11 +15,20 @@ export default function MessagesInbox({ userId }: { userId: string }) {
     const res = await fetch("/api/messages");
     if (res.ok) {
       const data = await res.json();
-      setConversations(data.conversations || []);
+      // Deduplicate by other participant (keep only the most recent conversation per user)
+      const seen = new Set<string>();
+      const deduped = (data.conversations || []).filter((conv: any) => {
+        const other = conv.participants?.find((p: any) => p.userId !== userId)?.user;
+        if (!other) return true;
+        if (seen.has(other.id)) return false;
+        seen.add(other.id);
+        return true;
+      });
+      setConversations(deduped);
       setNextCursor(data.nextCursor ?? null);
     }
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   const loadMore = async () => {
     if (!nextCursor || loadingMore) return;
@@ -27,7 +36,20 @@ export default function MessagesInbox({ userId }: { userId: string }) {
     const res = await fetch(`/api/messages?cursor=${nextCursor}`);
     if (res.ok) {
       const data = await res.json();
-      setConversations(prev => [...prev, ...(data.conversations || [])]);
+      const seen = new Set<string>(
+        conversations.map((conv: any) => {
+          const other = conv.participants?.find((p: any) => p.userId !== userId)?.user;
+          return other?.id || "";
+        }).filter(Boolean)
+      );
+      const deduped = (data.conversations || []).filter((conv: any) => {
+        const other = conv.participants?.find((p: any) => p.userId !== userId)?.user;
+        if (!other) return true;
+        if (seen.has(other.id)) return false;
+        seen.add(other.id);
+        return true;
+      });
+      setConversations(prev => [...prev, ...deduped]);
       setNextCursor(data.nextCursor ?? null);
     }
     setLoadingMore(false);

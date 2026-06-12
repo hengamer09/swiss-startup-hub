@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Send, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +60,7 @@ export default function EventDetail({
   const [postDraft, setPostDraft] = useState("");
   const [posting, setPosting] = useState(false);
   const [showHostMessage, setShowHostMessage] = useState(false);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<Toast>({
     open: false,
     message: "",
@@ -142,8 +143,9 @@ export default function EventDetail({
 
     if (res.ok) {
       const post = await res.json();
-      setPosts((current) => [post, ...current]);
+      setPosts((current) => [...current, post]);
       setPostDraft("");
+      setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     }
 
     setPosting(false);
@@ -300,22 +302,50 @@ export default function EventDetail({
       </div>
 
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-900">Public Chat</h2>
-            <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
-          </div>
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
-            Event discussion
-          </span>
+        <div className="mb-3">
+          <h2 className="text-sm font-semibold text-zinc-900">Public Chat</h2>
+          <p className="text-xs text-zinc-500">Visible to everyone. Only signed-in users can post.</p>
+        </div>
+
+        <div className="space-y-2 max-h-96 overflow-y-auto mb-3">
+          {posts.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-500">
+              No event chat messages yet.
+            </div>
+          ) : (
+            posts.map((post) => {
+              const isMine = post.author?.id === userId;
+              return (
+                <div key={post.id} className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}>
+                  {!isMine && (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600 self-end">
+                      {(post.author?.name || "U").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className={cn("max-w-[75%] flex flex-col", isMine ? "items-end" : "items-start")}>
+                    {!isMine && <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>}
+                    <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
+                      isMine ? "bg-red-600 text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
+                    )}>
+                      <p className="whitespace-pre-wrap">{post.content}</p>
+                      <p className={cn("mt-1 text-xs text-right", isMine ? "text-red-200" : "text-zinc-400")}>
+                        {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div ref={chatBottomRef} />
         </div>
 
         {userId ? (
-          <form onSubmit={submitPost} className="mb-4 space-y-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+          <form onSubmit={submitPost} className="space-y-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
             <textarea
               value={postDraft}
               onChange={(e) => setPostDraft(e.target.value)}
-              rows={3}
+              rows={2}
               maxLength={500}
               placeholder="Share a question, prep note, or event thought..."
               className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
@@ -327,48 +357,15 @@ export default function EventDetail({
                 disabled={posting || !postDraft.trim()}
                 className="rounded-full bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 disabled:opacity-50"
               >
-                {posting ? "Posting..." : "Post"}
+                {posting ? "Sending..." : "Send"}
               </button>
             </div>
           </form>
         ) : (
-          <div className="mb-4 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm text-zinc-500">
+          <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm text-zinc-500">
             Sign in to post in the event chat.
           </div>
         )}
-
-        <div className="space-y-3">
-          {posts.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-500">
-              No event chat messages yet.
-            </div>
-          ) : (
-            posts.map((post) => (
-              <article key={post.id} className="rounded-xl border border-zinc-200 bg-white p-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700">
-                    {post.author?.image ? (
-                      <img src={post.author.image} alt={post.author.name || "User"} className="h-full w-full object-cover" />
-                    ) : (
-                      (post.author?.name || "U").charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold text-zinc-900">
-                        {post.author?.name || "Anonymous"}
-                      </span>
-                      <span className="text-xs text-zinc-400">
-                        {formatTime(post.createdAt)}
-                      </span>
-                    </div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-600">{post.content}</p>
-                  </div>
-                </div>
-              </article>
-            ))
-          )}
-        </div>
       </section>
 
       {showHostMessage && (
@@ -421,7 +418,8 @@ function MessageHostModal({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         receiverId: hostId,
-        content: `Message about ${eventTitle}:\n\n${content.trim()}\n\nEvent: ${process.env.NEXT_PUBLIC_APP_URL || ""}/events/${eventId}`,
+        content: content.trim(),
+        eventId: eventId,
       }),
     });
 
