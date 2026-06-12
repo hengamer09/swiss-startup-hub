@@ -95,6 +95,81 @@ export function newsletterEmail(
   return { html: layout(content, unsubscribeUrl), text };
 }
 
+export function skillMatchEmail(
+  projectName: string,
+  description: string,
+  roleTitle: string,
+  matchedSkill: string,
+  projectUrl: string
+): { html: string; text: string } {
+  const safeName = escapeHtml(projectName);
+  const safeDesc = escapeHtml(description || "").slice(0, 200);
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">🔍 ${safeName} is looking for a ${escapeHtml(roleTitle)}</h2>
+    <p style="margin:0 0 8px 0;">Your <strong>${escapeHtml(matchedSkill)}</strong> skills might be a match!</p>
+    ${safeDesc ? `<p style="margin:0 0 8px 0;color:#374151;">${safeDesc}</p>` : ""}
+    ${button("View project", projectUrl)}
+    <p style="margin:8px 0 0 0;font-size:13px;color:#6b7280;">You received this because your skills match a role on Swiss Startup Hub.</p>
+  `;
+  const text = `${projectName} is looking for a ${roleTitle} — your ${matchedSkill} skills might be a match!\n\n${(description || "").slice(0, 200)}\n\nView project: ${projectUrl}`;
+  return { html: layout(content), text };
+}
+
+interface DigestProject {
+  name: string;
+  description: string;
+  stage: string;
+  roles: string;
+  url: string;
+}
+
+export function weeklyDigestEmail(
+  name: string,
+  projects: DigestProject[],
+  exploreUrl: string,
+  unsubscribeUrl: string
+): { html: string; text: string } {
+  const items = projects
+    .map(
+      (p) => `
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px;">
+        <a href="${p.url}" style="font-size:16px;font-weight:600;color:#dc2626;text-decoration:none;">${escapeHtml(p.name)}</a>
+        <span style="display:inline-block;margin-left:8px;font-size:11px;font-weight:600;color:#374151;background:#f4f4f5;border-radius:999px;padding:2px 8px;">${escapeHtml(p.stage)}</span>
+        <p style="margin:6px 0 4px 0;color:#374151;font-size:13px;">${escapeHtml(p.description)}</p>
+        ${p.roles ? `<p style="margin:0;color:#6b7280;font-size:12px;">Looking for: ${escapeHtml(p.roles)}</p>` : ""}
+      </div>`
+    )
+    .join("");
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">Hi ${escapeHtml(name || "there")}, here's what's new this week on Swiss Startup Hub:</h2>
+    ${items}
+    ${button("Explore all projects", exploreUrl)}
+  `;
+  const text =
+    `Hi ${name || "there"}, here's what's new this week on Swiss Startup Hub:\n\n` +
+    projects.map((p) => `- ${p.name} (${p.stage})${p.roles ? ` — looking for ${p.roles}` : ""}\n  ${p.url}`).join("\n") +
+    `\n\nExplore all projects: ${exploreUrl}\n\nUnsubscribe: ${unsubscribeUrl}`;
+  return { html: layout(content, unsubscribeUrl), text };
+}
+
+export function eventReminderEmail(
+  eventTitle: string,
+  dateLabel: string,
+  location: string,
+  description: string,
+  eventUrl: string
+): { html: string; text: string } {
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">Reminder: ${escapeHtml(eventTitle)} is tomorrow</h2>
+    <p style="margin:0 0 4px 0;"><strong>When:</strong> ${escapeHtml(dateLabel)}</p>
+    <p style="margin:0 0 8px 0;"><strong>Where:</strong> ${escapeHtml(location)}</p>
+    ${description ? `<p style="margin:0 0 8px 0;color:#374151;">${escapeHtml(description.slice(0, 300))}</p>` : ""}
+    ${button("View event", eventUrl)}
+  `;
+  const text = `Reminder: ${eventTitle} is tomorrow.\n\nWhen: ${dateLabel}\nWhere: ${location}\n\n${(description || "").slice(0, 300)}\n\nView event: ${eventUrl}`;
+  return { html: layout(content), text };
+}
+
 export function feedbackConfirmationEmail(
   type: "review" | "bug",
   rating?: number,

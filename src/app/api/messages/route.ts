@@ -32,6 +32,7 @@ export async function GET(request: Request) {
           include: { sender: { select: { id: true, name: true } } },
         },
         project: { select: { id: true, name: true } },
+        pins: { where: { userId }, select: { pinned: true } },
         _count: {
           select: { messages: { where: { receiverId: userId, readAt: null } } },
         },

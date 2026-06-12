@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger";
 export async function findOrCreateConversation(db: any, userId1: string, userId2: string): Promise<string> {
   const existing = await db.conversation.findFirst({
     where: {
+      isGroup: false,
       AND: [
         { participants: { some: { userId: userId1 } } },
         { participants: { some: { userId: userId2 } } },
@@ -21,6 +22,7 @@ export async function findOrCreateConversation(db: any, userId1: string, userId2
 
   const created = await db.conversation.create({
     data: {
+      isGroup: false,
       participants: {
         create: [{ userId: userId1 }, { userId: userId2 }],
       },

@@ -68,6 +68,8 @@ model User {
   reviewsGiven       Review[]       @relation("ReviewAuthor")
   reviewsReceived    Review[]       @relation("ReviewTarget")
   emailSubscriptions EmailSubscription[]
+  bookmarks          Bookmark[]
+  pinnedConversations ConversationPin[]
 
   @@index([email])
   @@index([location])
@@ -140,6 +142,7 @@ model Project {
   conversations Conversation[]
   ratings      Rating[]
   directMessages  Message[] @relation("MessageProject")
+  bookmarks    Bookmark[]
 
   @@index([stage])
   @@index([industry])
@@ -222,14 +225,28 @@ model ProjectPost {
 }
 
 model Conversation {
-  id        String   @id @default(cuid())
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  projectId       String?
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  isGroup         Boolean  @default(false)
+  pinnedByDefault Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   messages     Message[]
   participants ConversationParticipant[]
+  pins         ConversationPin[]
+}
+
+model ConversationPin {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pinned         Boolean      @default(true)
+
+  @@unique([conversationId, userId])
 }
 
 model ConversationParticipant {
@@ -362,7 +379,19 @@ model EventAttendee {
   userId    String
   user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   intention String
+  reminderSent Boolean @default(false)
   createdAt DateTime @default(now())
 
   @@unique([eventId, userId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
 }

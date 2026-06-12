@@ -16,6 +16,7 @@ export default async function DashboardPage() {
     prisma.user.findUnique({
       where: { id: userId },
       include: {
+        _count: { select: { skills: true } },
         ownedProjects: {
           include: {
             joinRequests: {

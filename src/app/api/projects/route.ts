@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { stripTags } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logger } from "@/lib/logger";
+import { createProjectGroupChat } from "@/lib/groupChat";
+import { notifyMatchingUsers } from "@/lib/skillMatch";
 
 const PAGE_SIZE = 20;
 
@@ -90,13 +92,27 @@ export async function POST(request: Request) {
       },
     });
 
-    await prisma.conversation.create({
-      data: {
-        projectId: project.id,
-        participants: {
-          create: [{ userId }],
-        },
-      },
+    // Auto-create the project group chat with a welcome message (best-effort).
+    try {
+      await createProjectGroupChat(prisma, {
+        id: project.id,
+        name: project.name,
+        ownerId: userId,
+        problem: project.problem,
+        solution: project.solution,
+        industry: project.industry,
+      });
+    } catch (err) {
+      logger.error("Group chat creation failed", { projectId: project.id, error: String(err) });
+    }
+
+    // Notify users whose skills match the project's open roles (best-effort).
+    await notifyMatchingUsers({
+      id: project.id,
+      name: project.name,
+      ownerId: userId,
+      problem: project.problem,
+      rolesNeeded: project.rolesNeeded,
     });
 
     return NextResponse.json(project, { status: 201 });

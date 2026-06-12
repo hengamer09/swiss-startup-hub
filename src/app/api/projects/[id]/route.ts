@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { stripTags } from "@/lib/utils";
+import { stripTags, formatStage } from "@/lib/utils";
 import { logger } from "@/lib/logger";
+import { notifyMatchingUsers } from "@/lib/skillMatch";
 
 export async function GET(
   _request: Request,
@@ -85,10 +86,58 @@ export async function PUT(
       } catch { updateData.rolesNeeded = null; }
     }
 
+    const stageChanged =
+      typeof updateData.stage === "string" && updateData.stage !== project.stage;
+    const rolesChanged =
+      updateData.rolesNeeded !== undefined &&
+      (updateData.rolesNeeded ?? null) !== (project.rolesNeeded ?? null);
+
     const updated = await prisma.project.update({
       where: { id },
       data: updateData,
     });
+
+    // Stage change → announcement post + notify followers.
+    if (stageChanged) {
+      const stageLabel = formatStage(updated.stage);
+      try {
+        await prisma.projectPost.create({
+          data: {
+            projectId: id,
+            authorId: userId,
+            content: `🎉 ${updated.name} has moved to ${stageLabel}!`,
+            isAnnouncement: true,
+          },
+        });
+        const followers = await prisma.projectFollower.findMany({
+          where: { projectId: id },
+          select: { userId: true },
+        });
+        if (followers.length > 0) {
+          await prisma.notification.createMany({
+            data: followers.map((f) => ({
+              userId: f.userId,
+              type: "project_stage_change",
+              content: `${updated.name} has moved to ${stageLabel}!`,
+              link: `/projects/${id}`,
+            })),
+          });
+        }
+      } catch (err) {
+        logger.error("Stage-change announcement failed", { id, error: String(err) });
+      }
+    }
+
+    // Roles changed → notify matching users (best-effort).
+    if (rolesChanged) {
+      await notifyMatchingUsers({
+        id: updated.id,
+        name: updated.name,
+        ownerId: updated.ownerId,
+        problem: updated.problem,
+        rolesNeeded: updated.rolesNeeded,
+      });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

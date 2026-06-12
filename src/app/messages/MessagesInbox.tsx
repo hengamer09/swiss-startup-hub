@@ -2,22 +2,27 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, Users, Pin, PinOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function MessagesInbox({ userId }: { userId: string }) {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Local optimistic pin overrides: conversationId -> pinned boolean
+  const [pinOverrides, setPinOverrides] = useState<Record<string, boolean>>({});
 
   const fetchConversations = useCallback(async () => {
     const res = await fetch("/api/messages");
     if (res.ok) {
       const data = await res.json();
-      // Deduplicate by other participant (keep only the most recent conversation per user)
+      // Deduplicate 1:1 chats by other participant; always keep group chats.
       const seen = new Set<string>();
       const deduped = (data.conversations || []).filter((conv: any) => {
+        if (conv.isGroup) return true;
         const other = conv.participants?.find((p: any) => p.userId !== userId)?.user;
         if (!other) return true;
         if (seen.has(other.id)) return false;
@@ -37,19 +42,23 @@ export default function MessagesInbox({ userId }: { userId: string }) {
     if (res.ok) {
       const data = await res.json();
       const seen = new Set<string>(
-        conversations.map((conv: any) => {
-          const other = conv.participants?.find((p: any) => p.userId !== userId)?.user;
-          return other?.id || "";
-        }).filter(Boolean)
+        conversations
+          .map((conv: any) => {
+            if (conv.isGroup) return "";
+            const other = conv.participants?.find((p: any) => p.userId !== userId)?.user;
+            return other?.id || "";
+          })
+          .filter(Boolean)
       );
       const deduped = (data.conversations || []).filter((conv: any) => {
+        if (conv.isGroup) return true;
         const other = conv.participants?.find((p: any) => p.userId !== userId)?.user;
         if (!other) return true;
         if (seen.has(other.id)) return false;
         seen.add(other.id);
         return true;
       });
-      setConversations(prev => [...prev, ...deduped]);
+      setConversations((prev) => [...prev, ...deduped]);
       setNextCursor(data.nextCursor ?? null);
     }
     setLoadingMore(false);
@@ -80,9 +89,45 @@ export default function MessagesInbox({ userId }: { userId: string }) {
     }
   };
 
-  const getOtherParticipant = (conv: any) => {
-    return conv.participants?.find((p: any) => p.userId !== userId)?.user;
+  const getOtherParticipant = (conv: any) =>
+    conv.participants?.find((p: any) => p.userId !== userId)?.user;
+
+  const isPinned = (conv: any): boolean => {
+    if (conv.id in pinOverrides) return pinOverrides[conv.id];
+    if (conv.pins && conv.pins.length > 0) return conv.pins[0].pinned;
+    return Boolean(conv.pinnedByDefault);
   };
+
+  async function togglePin(e: React.MouseEvent, conv: any) {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !isPinned(conv);
+    setPinOverrides((prev) => ({ ...prev, [conv.id]: next }));
+    try {
+      await fetch(`/api/conversations/${conv.id}/pin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pinned: next }),
+      });
+    } catch {
+      // revert on failure
+      setPinOverrides((prev) => ({ ...prev, [conv.id]: !next }));
+    }
+  }
+
+  const title = (conv: any) =>
+    conv.isGroup
+      ? conv.project?.name
+        ? `${conv.project.name} — Team`
+        : "Team chat"
+      : getOtherParticipant(conv)?.name || "Unknown";
+
+  // Pinned conversations float to the top, preserving recency order within groups.
+  const sorted = [...conversations].sort((a, b) => {
+    const pa = isPinned(a) ? 1 : 0;
+    const pb = isPinned(b) ? 1 : 0;
+    return pb - pa;
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6">
@@ -113,36 +158,44 @@ export default function MessagesInbox({ userId }: { userId: string }) {
         </div>
       ) : (
         <div className="flex-1 space-y-1">
-          {conversations.map((conv: any) => {
-            const other = getOtherParticipant(conv);
+          {sorted.map((conv: any) => {
             const lastMessage = conv.messages?.[0];
             const unread = conv._count?.messages || 0;
+            const pinned = isPinned(conv);
+            const isGroup = Boolean(conv.isGroup);
 
             return (
               <Link
                 key={conv.id}
                 href={`/messages/${conv.id}`}
                 className={cn(
-                  "flex items-center gap-4 rounded-xl px-4 py-4 transition-colors",
-                  unread > 0
-                    ? "bg-blue-50 hover:bg-blue-100"
-                    : "hover:bg-zinc-50"
+                  "group flex items-center gap-4 rounded-xl px-4 py-4 transition-colors",
+                  unread > 0 ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-zinc-50"
                 )}
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
-                  {other?.name?.charAt(0) || "?"}
+                <div
+                  className={cn(
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+                    isGroup ? "bg-red-100 text-red-600" : "bg-zinc-100 text-zinc-600"
+                  )}
+                >
+                  {isGroup ? <Users className="h-5 w-5" /> : title(conv).charAt(0) || "?"}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={cn(
-                        "truncate text-sm",
-                        unread > 0
-                          ? "font-semibold text-zinc-900"
-                          : "font-medium text-zinc-700"
+                        "flex items-center gap-1.5 truncate text-sm",
+                        unread > 0 ? "font-semibold text-zinc-900" : "font-medium text-zinc-700"
                       )}
                     >
-                      {other?.name || "Unknown"}
+                      {pinned && <Pin className="h-3 w-3 shrink-0 text-amber-500" aria-label="Pinned" />}
+                      {title(conv)}
+                      {isGroup && (
+                        <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-500">
+                          Group
+                        </span>
+                      )}
                     </span>
                     {lastMessage && (
                       <span className="shrink-0 text-xs text-zinc-400">
@@ -150,11 +203,6 @@ export default function MessagesInbox({ userId }: { userId: string }) {
                       </span>
                     )}
                   </div>
-                  {conv.project && (
-                    <span className="text-xs text-red-500 font-medium">
-                      {conv.project.name}
-                    </span>
-                  )}
                   <p
                     className={cn(
                       "mt-0.5 truncate text-sm",
@@ -162,10 +210,18 @@ export default function MessagesInbox({ userId }: { userId: string }) {
                     )}
                   >
                     {lastMessage
-                      ? `${lastMessage.sender.name}: ${lastMessage.content}`
+                      ? `${lastMessage.sender?.name ? lastMessage.sender.name + ": " : ""}${lastMessage.content}`
                       : "Start a conversation"}
                   </p>
                 </div>
+                <button
+                  onClick={(e) => togglePin(e, conv)}
+                  aria-label={pinned ? "Unpin conversation" : "Pin conversation"}
+                  title={pinned ? "Unpin" : "Pin to top"}
+                  className="shrink-0 rounded-full p-1.5 text-zinc-300 opacity-0 transition-opacity hover:bg-zinc-100 hover:text-zinc-600 group-hover:opacity-100"
+                >
+                  {pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                </button>
                 {unread > 0 && (
                   <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
                     {unread}

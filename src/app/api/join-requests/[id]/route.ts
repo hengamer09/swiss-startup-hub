@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { APP_URL, stripTags } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 import { findOrCreateConversation, maybeSendMessageEmail } from "@/lib/messaging";
+import { addMemberToGroupChat } from "@/lib/groupChat";
 
 export async function PUT(
   request: Request,
@@ -65,6 +66,14 @@ export async function PUT(
           where: { id: joinRequest.projectId },
           data: { teamSize: { increment: 1 } },
         });
+        // Add the new member to the project group chat with a system message.
+        await addMemberToGroupChat(
+          tx,
+          joinRequest.projectId,
+          joinRequest.userId,
+          joinRequest.user.name || "A new member",
+          trimmedRole
+        );
       }
 
       // Find or create conversation

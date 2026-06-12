@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Compass, MapPin, Users, Star, RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
 import ProfileCompletionNudge from "@/components/layout/ProfileCompletionNudge";
+import BookmarkButton from "@/components/BookmarkButton";
 import { formatStage, parseRolesNeeded } from "@/lib/utils";
 
 const INDUSTRIES = [
@@ -44,8 +45,19 @@ export default function FeedContent({ userId }: { userId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const filterRowRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/bookmarks");
+      if (res.ok) {
+        const data = await res.json();
+        setBookmarkedIds(new Set((data.bookmarks || []).map((b: any) => b.project.id)));
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -377,7 +389,7 @@ export default function FeedContent({ userId }: { userId: string }) {
                         <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
                           {project.industry}
                         </span>
-                        <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                        <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
                           {formatStage(project.stage)}
                         </span>
                         <span className="text-xs text-zinc-400 flex items-center gap-0.5">
@@ -419,7 +431,8 @@ export default function FeedContent({ userId }: { userId: string }) {
                     )}
                   </div>
                 </div>
-                <div className="shrink-0">
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <BookmarkButton projectId={project.id} initialSaved={bookmarkedIds.has(project.id)} />
                   <span className="inline-flex rounded border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-600">
                     Follow
                   </span>

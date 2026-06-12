@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Send, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Send, CheckCircle, XCircle, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function tryParse(s: string) {
@@ -23,6 +23,7 @@ export default function ConversationThread({
   const [messages, setMessages] = useState<any[]>([]);
   const [participants, setParticipants] = useState<any[]>([]);
   const [project, setProject] = useState<any>(null);
+  const [isGroup, setIsGroup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -47,6 +48,7 @@ export default function ConversationThread({
       setMessages(data.messages || []);
       setParticipants(data.participants || []);
       setProject(data.project || null);
+      setIsGroup(Boolean(data.isGroup));
     }
     setLoading(false);
   }, [conversationId]);
@@ -131,18 +133,13 @@ export default function ConversationThread({
 
   async function sendMessage() {
     if (!input.trim() || sending) return;
-    const other = participants.find((p: any) => p.userId !== userId);
-    if (!other) return;
     setSending(true);
     try {
-      const res = await fetch("/api/messages", {
+      // Conversation-scoped endpoint handles both 1:1 and group chats.
+      const res = await fetch(`/api/messages/${conversationId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          receiverId: other.userId,
-          content: input.trim(),
-          projectId: project?.id || null,
-        }),
+        body: JSON.stringify({ content: input.trim() }),
       });
       if (res.ok) {
         setInput("");
@@ -169,6 +166,21 @@ export default function ConversationThread({
   }
 
   const other = participants.find((p: any) => p.userId !== userId)?.user;
+  const isProjectOwner = isGroup && project?.ownerId === userId;
+  const headerTitle = isGroup
+    ? project?.name
+      ? `${project.name} — Team`
+      : "Team chat"
+    : other?.name || "Unknown";
+
+  async function removeGroupMember(memberUserId: string) {
+    if (!project?.id) return;
+    if (!confirm("Remove this member from the team and group chat?")) return;
+    const res = await fetch(`/api/projects/${project.id}/members/${memberUserId}`, {
+      method: "DELETE",
+    });
+    if (res.ok) await fetchMessages();
+  }
 
   // Collect all pending requests visible to current user as pinned chips
   const pendingPins: Array<{ msgId: string; label: string }> = [];
@@ -199,8 +211,11 @@ export default function ConversationThread({
         <Link href="/messages" className="text-zinc-400 hover:text-zinc-600 transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div>
-          <h1 className="text-lg font-semibold text-zinc-900">{other?.name || "Unknown"}</h1>
+        <div className="flex-1">
+          <h1 className="flex items-center gap-2 text-lg font-semibold text-zinc-900">
+            {isGroup && <Users className="h-4 w-4 text-red-500" />}
+            {headerTitle}
+          </h1>
           {project && (
             <Link href={`/projects/${project.id}`} className="text-xs text-red-500 hover:underline font-medium">
               {project.name}
@@ -208,6 +223,32 @@ export default function ConversationThread({
           )}
         </div>
       </div>
+
+      {/* Group participant avatar row */}
+      {isGroup && participants.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {participants.map((p: any) => (
+            <div
+              key={p.userId}
+              className="group/member flex items-center gap-1.5 rounded-full bg-zinc-100 py-1 pl-1 pr-2.5 text-xs text-zinc-700"
+            >
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-300 text-[10px] font-bold text-zinc-700">
+                {p.user?.name?.charAt(0) || "?"}
+              </div>
+              <span>{p.user?.id === userId ? "You" : p.user?.name || "Member"}</span>
+              {isProjectOwner && p.userId !== userId && (
+                <button
+                  onClick={() => removeGroupMember(p.userId)}
+                  aria-label={`Remove ${p.user?.name || "member"}`}
+                  className="text-zinc-400 hover:text-red-500"
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Pinned chips — one per pending request, click scrolls to its card */}
       {pendingPins.length > 0 && (

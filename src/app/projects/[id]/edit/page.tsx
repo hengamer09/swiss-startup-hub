@@ -162,6 +162,7 @@ export default function EditProjectPage() {
                 <option value="MVP">MVP</option>
                 <option value="EARLY_REVENUE">Early Revenue</option>
                 <option value="SCALING">Scaling</option>
+                <option value="LAUNCHED">Launched</option>
               </select>
             </div>
           </div>

@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { cn, formatStage, parseRolesNeeded } from "@/lib/utils";
+import { cn, formatStage, parseRolesNeeded, PROJECT_STAGES } from "@/lib/utils";
 import RateUserModal from "@/components/projects/RateUserModal";
+import BookmarkButton from "@/components/BookmarkButton";
 
 export default function ProjectDetail({
   project,
@@ -35,6 +36,8 @@ export default function ProjectDetail({
 
   const [followed, setFollowed] = useState(false);
   const [followerCount, setFollowerCount] = useState(project._count?.followers || 0);
+  const [stage, setStage] = useState<string>(project.stage || "IDEA");
+  const [stageSaving, setStageSaving] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showAskModal, setShowAskModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState<{ id: string; name: string } | null>(null);
@@ -105,6 +108,38 @@ export default function ProjectDetail({
     }
   }
 
+  async function handleStageChange(newStage: string) {
+    if (!isOwner || newStage === stage || stageSaving) return;
+    setStageSaving(true);
+    const prev = stage;
+    setStage(newStage);
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: newStage }),
+      });
+      if (res.ok) {
+        setToast({
+          open: true,
+          message: `Stage updated to ${formatStage(newStage)}! Followers notified.`,
+          tone: "success",
+        });
+        // Reload the announcement post into the public chat.
+        const postsRes = await fetch(`/api/projects/${project.id}/posts`);
+        if (postsRes.ok) setPosts(await postsRes.json());
+      } else {
+        setStage(prev);
+        setToast({ open: true, message: "Could not update stage.", tone: "error" });
+      }
+    } catch {
+      setStage(prev);
+      setToast({ open: true, message: "Could not update stage.", tone: "error" });
+    } finally {
+      setStageSaving(false);
+    }
+  }
+
   async function handleDecision(requestId: string, status: "APPROVED" | "REJECTED") {
     const reply = replies[requestId]?.trim();
     if (!reply) {
@@ -166,8 +201,8 @@ export default function ProjectDetail({
                   <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
                     {project.industry}
                   </span>
-                  <span className="rounded bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
-                    {formatStage(project.stage)}
+                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+                    {formatStage(stage)}
                   </span>
                   <span className="flex items-center gap-1 text-xs text-zinc-400">
                     <MapPin className="h-3 w-3" />
@@ -191,6 +226,14 @@ export default function ProjectDetail({
               >
                 {followed ? "Following" : "Follow"}
               </button>
+
+              {userId && (
+                <BookmarkButton
+                  projectId={project.id}
+                  variant="button"
+                  onToast={(message) => setToast({ open: true, message, tone: "success" })}
+                />
+              )}
 
               {isOwner && (
                 <Link
@@ -258,6 +301,76 @@ export default function ProjectDetail({
               <Star className="h-4 w-4" />
               {followerCount} followers
             </span>
+          </div>
+
+          {/* Progress tracker / stage stepper */}
+          <div className="mt-5 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                Project Progress
+              </h2>
+              {isOwner && (
+                <span className="text-xs text-zinc-400">
+                  {stageSaving ? "Saving…" : "Tap a stage to update"}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center">
+              {PROJECT_STAGES.map((s, i) => {
+                const currentIndex = PROJECT_STAGES.findIndex((x) => x.value === stage);
+                const isCompleted = i < currentIndex;
+                const isCurrent = i === currentIndex;
+                const StepInner = (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div
+                      className={cn(
+                        "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors",
+                        isCurrent
+                          ? "bg-red-600 text-white"
+                          : isCompleted
+                          ? "bg-red-100 text-red-600"
+                          : "bg-zinc-200 text-zinc-400"
+                      )}
+                    >
+                      {isCompleted ? <CheckCircle className="h-4 w-4" /> : i + 1}
+                    </div>
+                    <span
+                      className={cn(
+                        "text-center text-[10px] font-medium leading-tight",
+                        isCurrent ? "text-red-600" : isCompleted ? "text-zinc-600" : "text-zinc-400"
+                      )}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                );
+                return (
+                  <div key={s.value} className="flex flex-1 items-center">
+                    {isOwner ? (
+                      <button
+                        type="button"
+                        onClick={() => handleStageChange(s.value)}
+                        disabled={stageSaving}
+                        className="flex-1 disabled:cursor-not-allowed"
+                        aria-label={`Set stage to ${s.label}`}
+                      >
+                        {StepInner}
+                      </button>
+                    ) : (
+                      <div className="flex-1">{StepInner}</div>
+                    )}
+                    {i < PROJECT_STAGES.length - 1 && (
+                      <div
+                        className={cn(
+                          "mx-1 h-0.5 flex-1 rounded -translate-y-2",
+                          i < currentIndex ? "bg-red-300" : "bg-zinc-200"
+                        )}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Problem / Solution / Roles */}

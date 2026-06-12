@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn, parseRoles, formatActivityStatus } from "@/lib/utils";
 import ReportModal from "@/components/ui/ReportModal";
+import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   FOUNDER: { label: "Founder", color: "red", icon: "🚀" },
@@ -75,6 +76,26 @@ export default function ProfileContent({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      {isOwnProfile && (
+        <div className="mb-4">
+          <ProfileCompletenessCard
+            compact
+            user={{
+              name: user.name,
+              emailVerified: user.emailVerified,
+              image: user.image,
+              bio: user.bio,
+              skillsCount: skillList.length,
+              rolesCount: roles.length,
+              portfolioUrl: user.portfolioUrl,
+              websiteUrl: user.websiteUrl,
+              githubUrl: user.githubUrl,
+              linkedinUrl: user.linkedinUrl,
+              portfolio: user.portfolio,
+            }}
+          />
+        </div>
+      )}
       <div className="rounded-xl border border-zinc-200 bg-white">
         <div className="p-6 sm:p-8">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">

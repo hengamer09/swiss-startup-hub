@@ -36,10 +36,21 @@ export function formatStage(stage: string): string {
       return "Early Revenue";
     case "SCALING":
       return "Scaling";
+    case "LAUNCHED":
+      return "Launched";
     default:
       return stage;
   }
 }
+
+// Ordered project lifecycle stages, used by the progress tracker.
+export const PROJECT_STAGES: { value: string; label: string }[] = [
+  { value: "IDEA", label: "Idea" },
+  { value: "MVP", label: "MVP" },
+  { value: "EARLY_REVENUE", label: "Early Revenue" },
+  { value: "SCALING", label: "Scaling" },
+  { value: "LAUNCHED", label: "Launched" },
+];
 
 export function formatAvailability(avail: string): string {
   switch (avail) {

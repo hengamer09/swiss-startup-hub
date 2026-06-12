@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { cn, parseRoles } from "@/lib/utils";
+import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
+import SavedProjectsSection from "./SavedProjectsSection";
 import {
   LayoutDashboard,
   Users,
@@ -201,6 +203,22 @@ export default function DashboardContent({ data }: { data: any }) {
 
       {activeTab === "overview" && (
         <div className="space-y-6">
+          <ProfileCompletenessCard
+            user={{
+              name: user?.name,
+              emailVerified: user?.emailVerified,
+              image: user?.image,
+              bio: user?.bio,
+              skillsCount: user?._count?.skills,
+              rolesCount: roles.length,
+              portfolioUrl: user?.portfolioUrl,
+              websiteUrl: user?.websiteUrl,
+              githubUrl: user?.githubUrl,
+              linkedinUrl: user?.linkedinUrl,
+              portfolio: user?.portfolio,
+            }}
+          />
+
           {/* Stats cards */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -341,6 +359,8 @@ export default function DashboardContent({ data }: { data: any }) {
               </div>
             )}
           </div>
+
+          <SavedProjectsSection />
 
           {isInvestor && followedProjects?.length > 0 && (
             <div>
