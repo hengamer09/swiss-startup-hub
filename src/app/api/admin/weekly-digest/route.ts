@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { runWeeklyDigest } from "@/lib/digest";
 import { logger } from "@/lib/logger";
 
-const ADMIN_EMAIL = "henri@staehli.biz";
+const ADMIN_EMAIL = "swissstartuphub@gmail.com";
 
 export async function POST() {
   const session = await getServerSession(authOptions);

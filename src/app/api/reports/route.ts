@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     });
 
     const ok = await sendEmail({
-      to: "henri@staehli.biz",
+      to: "swissstartuphub@gmail.com",
       subject: "Content Report — Swiss Startup Hub",
       text: `New Content Report\nType: ${targetType}\nTarget ID: ${targetId}\nReporter ID: ${session.user.id}\nReason: ${cleanReason}\nReport ID: ${report.id}`,
       html: `

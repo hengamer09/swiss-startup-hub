@@ -41,6 +41,13 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
+        {/* Prototype banner — always visible, not dismissable */}
+        <div
+          role="alert"
+          className="flex h-9 w-full items-center justify-center bg-red-600 px-4 text-center text-xs font-medium text-white sm:text-sm"
+        >
+          ⚠️ This is a prototype — some features are still being refined
+        </div>
         <SessionProvider>
           <Navbar />
           <FloatingFeedbackButton />

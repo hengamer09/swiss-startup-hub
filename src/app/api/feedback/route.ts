@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       logger.info("Sending review feedback email", { rating: n });
       const { html, text } = feedbackConfirmationEmail("review", n, cleanReviewText);
       const sent = await sendEmail({
-        to: "henri@staehli.biz",
+        to: "swissstartuphub@gmail.com",
         subject: "New Review — Swiss Startup Hub",
         text,
         html,
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       logger.info("Sending bug report feedback email");
       const { html, text } = feedbackConfirmationEmail("bug", undefined, cleanIssueText);
       const sent = await sendEmail({
-        to: "henri@staehli.biz",
+        to: "swissstartuphub@gmail.com",
         subject: "Bug Report — Swiss Startup Hub",
         text,
         html,

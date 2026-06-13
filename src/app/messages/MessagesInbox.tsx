@@ -122,6 +122,32 @@ export default function MessagesInbox({ userId }: { userId: string }) {
         : "Team chat"
       : getOtherParticipant(conv)?.name || "Unknown";
 
+  // Build a clean preview line based on message type (sender name is shown separately).
+  const previewText = (msg: any, conv: any): string => {
+    if (!msg) return "Start a conversation";
+    const type = msg.type || "NORMAL";
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(msg.content);
+    } catch {
+      parsed = null;
+    }
+    switch (type) {
+      case "BOT_NOTIFICATION":
+        return `New activity in ${conv.project?.name || "your project"}`;
+      case "JOIN_REQUEST":
+        return `Join request${parsed?.applicantRole ? ` — ${parsed.applicantRole}` : ""}`;
+      case "JOIN_ACCEPT":
+        return "Request accepted ✓";
+      case "JOIN_DECLINE":
+        return "Request declined";
+      case "EVENT_REGISTRATION":
+        return "Event registration";
+      default:
+        return (msg.content || "").slice(0, 80);
+    }
+  };
+
   // Pinned conversations float to the top, preserving recency order within groups.
   const sorted = [...conversations].sort((a, b) => {
     const pa = isPinned(a) ? 1 : 0;
@@ -209,9 +235,7 @@ export default function MessagesInbox({ userId }: { userId: string }) {
                       unread > 0 ? "font-medium text-zinc-800" : "text-zinc-500"
                     )}
                   >
-                    {lastMessage
-                      ? `${lastMessage.sender?.name ? lastMessage.sender.name + ": " : ""}${lastMessage.content}`
-                      : "Start a conversation"}
+                    {previewText(lastMessage, conv)}
                   </p>
                 </div>
                 <button

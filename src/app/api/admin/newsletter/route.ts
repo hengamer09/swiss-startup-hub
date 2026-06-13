@@ -9,7 +9,7 @@ import { makeUnsubscribeToken } from "@/lib/emailTokens";
 import { APP_URL } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
-const ADMIN_EMAIL = "henri@staehli.biz";
+const ADMIN_EMAIL = "swissstartuphub@gmail.com";
 const BATCH_SIZE = 10;
 const BATCH_DELAY_MS = 1000;
 

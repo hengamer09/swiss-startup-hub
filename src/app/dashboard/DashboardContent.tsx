@@ -7,7 +7,7 @@ import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProjectsSection from "./SavedProjectsSection";
 import NewsletterAdmin from "./NewsletterAdmin";
 
-const ADMIN_EMAIL = "henri@staehli.biz";
+const ADMIN_EMAIL = "swissstartuphub@gmail.com";
 import {
   LayoutDashboard,
   Users,

@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-const ADMIN_EMAIL = "henri@staehli.biz";
+const ADMIN_EMAIL = "swissstartuphub@gmail.com";
 
 export async function GET() {
   const session = await getServerSession(authOptions);

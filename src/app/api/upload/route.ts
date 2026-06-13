@@ -16,6 +16,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    logger.error("Upload attempted but BLOB_READ_WRITE_TOKEN is not configured");
+    return NextResponse.json({ error: "Image upload is not configured" }, { status: 503 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file");
@@ -26,6 +31,7 @@ export async function POST(request: Request) {
 
     const blob = await put(`uploads/${Date.now()}-${file.name}`, file, {
       access: "public",
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
     return NextResponse.json({ url: blob.url }, { status: 201 });

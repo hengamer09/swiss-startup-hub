@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
     logger.info("Sending contact form email", { from: cleanEmail });
     const sent = await sendEmail({
-      to: "henri@staehli.biz",
+      to: "swissstartuphub@gmail.com",
       subject: "Contact Form — Swiss Startup Hub",
       text: `From: ${cleanName} <${cleanEmail}>\n\n${cleanMessage}`,
       html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18181b">
