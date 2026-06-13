@@ -112,6 +112,7 @@ export async function PUT(
         const followers = await prisma.projectFollower.findMany({
           where: { projectId: id },
           select: { userId: true },
+          take: 1000,
         });
         if (followers.length > 0) {
           await prisma.notification.createMany({

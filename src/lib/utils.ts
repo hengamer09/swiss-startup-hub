@@ -113,6 +113,27 @@ export function stripTags(value: string): string {
   return value.replace(/<[^>]*>/g, "");
 }
 
+// Only allow http(s) URLs — blocks javascript:, data:, etc. Returns "" if invalid.
+export function sanitizeUrl(value: unknown): string {
+  const url = String(value ?? "").trim();
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url.slice(0, 500);
+  return "";
+}
+
+// Known disposable / throwaway email domains — blocked at signup.
+export const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  "guerrillamail.com", "tempmail.com", "throwaway.email", "mailinator.com",
+  "yopmail.com", "guerrillamail.info", "grr.la", "guerrillamail.net",
+  "sharklasers.com", "guerrillamail.org", "guerrillamail.de", "tmail.com",
+  "temp-mail.org",
+]);
+
+export function isDisposableEmail(email: string): boolean {
+  const domain = String(email).toLowerCase().split("@")[1] || "";
+  return DISPOSABLE_EMAIL_DOMAINS.has(domain);
+}
+
 export function limitStr(value: unknown, max: number): string {
   const s = typeof value === "string" ? value : "";
   return s.slice(0, max);

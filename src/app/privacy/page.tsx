@@ -59,12 +59,17 @@ export default function PrivacyPage() {
               social media links, profile photo, and portfolio projects you choose to add.
             </li>
             <li>
-              <strong>Activity data:</strong> projects you create or follow, join requests you send
-              or receive, messages you exchange with other users, event registrations, and reviews.
+              <strong>Activity data:</strong> projects you create, follow or bookmark, join requests
+              you send or receive, messages you exchange with other users (including group chats),
+              event registrations, ratings and reviews you give or receive.
+            </li>
+            <li>
+              <strong>Communication preferences:</strong> your email subscription / newsletter
+              preference (subscribed or unsubscribed).
             </li>
             <li>
               <strong>Technical data:</strong> IP address (used for rate limiting and security
-              logging only), session tokens, and timestamps of key actions.
+              logging only), session cookies / tokens, and timestamps of key actions.
             </li>
           </ul>
         </section>
@@ -94,18 +99,24 @@ export default function PrivacyPage() {
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
             <li>
-              <strong>Vercel</strong> — application hosting (EU region where available).
+              <strong>Vercel</strong> — application hosting and image storage (Vercel Blob),
+              EU region (Frankfurt) where available.
             </li>
             <li>
-              <strong>Neon / Supabase</strong> — PostgreSQL database (EU region).
+              <strong>Neon</strong> — PostgreSQL database, EU region.
             </li>
             <li>
-              <strong>Vercel Blob</strong> — file and image storage.
+              <strong>Brevo</strong> — transactional and newsletter email delivery, EU-based.
+            </li>
+            <li>
+              <strong>GitHub</strong> — source code repository (USA). No personal user data is
+              stored there.
             </li>
           </ul>
           <p className="mt-3 leading-relaxed">
-            No personal data is transferred to countries outside the EU/EEA without adequate
-            safeguards as required by the nDSG and GDPR.
+            Each of these providers maintains its own privacy policy and acts as a data processor
+            under a data processing agreement. No personal data is transferred to countries outside
+            the EU/EEA without adequate safeguards as required by the nDSG and GDPR.
           </p>
         </section>
 

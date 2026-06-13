@@ -6,6 +6,7 @@ import { cn, parseRoles } from "@/lib/utils";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProjectsSection from "./SavedProjectsSection";
 import NewsletterAdmin from "./NewsletterAdmin";
+import BackupStats from "./BackupStats";
 
 const ADMIN_EMAIL = "swissstartuphub@gmail.com";
 import {
@@ -775,7 +776,10 @@ export default function DashboardContent({ data }: { data: any }) {
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
             Admin
           </h2>
-          <NewsletterAdmin />
+          <div className="space-y-4">
+            <NewsletterAdmin />
+            <BackupStats />
+          </div>
         </div>
       )}
     </div>

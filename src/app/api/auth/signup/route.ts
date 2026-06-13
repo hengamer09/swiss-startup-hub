@@ -3,8 +3,9 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { stripTags, APP_URL } from "@/lib/utils";
+import { stripTags, APP_URL, isDisposableEmail } from "@/lib/utils";
 import { logger } from "@/lib/logger";
+import { logSecurityEvent } from "@/lib/securityLog";
 import { sendEmail } from "@/lib/email";
 import { verificationEmail } from "@/lib/emailTemplates";
 
@@ -12,7 +13,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`signup:${ip}`, 10, 60_000)) {
+  // Strict: max 3 signups per hour per IP (prevents mass account creation).
+  if (!checkRateLimit(`signup:${ip}`, 3, 60 * 60 * 1000)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
@@ -46,6 +48,10 @@ export async function POST(request: Request) {
     if (cleanName.length > 100) return NextResponse.json({ error: "Name too long" }, { status: 400 });
     if (cleanEmail.length > 255) return NextResponse.json({ error: "Email too long" }, { status: 400 });
     if (!EMAIL_RE.test(cleanEmail)) return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+    if (isDisposableEmail(cleanEmail)) {
+      logSecurityEvent("disposable_email", { ip });
+      return NextResponse.json({ error: "Please use a permanent email address" }, { status: 400 });
+    }
     if (String(password).length < 8) return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
     if (String(password).length > 128) return NextResponse.json({ error: "Password too long" }, { status: 400 });
 

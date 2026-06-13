@@ -13,6 +13,7 @@ export async function GET() {
     const bookmarks = await prisma.bookmark.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
+      take: 100,
       include: {
         project: {
           select: {

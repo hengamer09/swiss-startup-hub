@@ -13,6 +13,7 @@ export async function GET() {
   try {
     const blocked = await prisma.blockedUser.findMany({
       where: { blockerId: session.user.id },
+      take: 200,
       include: {
         blocked: {
           select: { id: true, name: true, image: true },

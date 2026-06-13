@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { del } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { stripTags } from "@/lib/utils";
+import { stripTags, sanitizeUrl } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
 export async function DELETE() {
@@ -14,37 +15,88 @@ export async function DELETE() {
   const userId = session.user.id;
 
   try {
+    const me = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, image: true },
+    });
+    if (!me) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
     await prisma.$transaction(async (tx) => {
-      // 1. Ratings have no cascade — delete before projects/user
-      await tx.rating.deleteMany({
-        where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
+      // Conversations the user is part of — checked for emptiness after deletion.
+      const myConvs = await tx.conversationParticipant.findMany({
+        where: { userId },
+        select: { conversationId: true },
+        take: 1000,
       });
-      // Also ratings on projects owned by this user (from other users)
+      const myConvIds = myConvs.map((c) => c.conversationId);
+
+      // 1. Conversation pins
+      await tx.conversationPin.deleteMany({ where: { userId } });
+      // 2. Messages sent or received by the user
+      await tx.message.deleteMany({ where: { OR: [{ senderId: userId }, { receiverId: userId }] } });
+      // 3. Remove the user from all conversations
+      await tx.conversationParticipant.deleteMany({ where: { userId } });
+      // 4. Bookmarks
+      await tx.bookmark.deleteMany({ where: { userId } });
+      // 5. Ratings (no cascade) — given, received, and on the user's projects
+      await tx.rating.deleteMany({ where: { OR: [{ fromUserId: userId }, { toUserId: userId }] } });
       await tx.rating.deleteMany({ where: { project: { ownerId: userId } } });
-
-      // 2. BlockedUser has no cascade
-      await tx.blockedUser.deleteMany({
-        where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
-      });
-
-      // 3. Reports by this user have no cascade
+      // 6. Blocks and reports (no cascade)
+      await tx.blockedUser.deleteMany({ where: { OR: [{ blockerId: userId }, { blockedId: userId }] } });
       await tx.report.deleteMany({ where: { reporterId: userId } });
-
-      // 4. Messages — sender has no cascade; receiver is nullable but also no cascade
-      await tx.message.deleteMany({
-        where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+      // 7. Posts authored by the user (author is SetNull, so delete explicitly)
+      await tx.projectPost.deleteMany({ where: { authorId: userId } });
+      await tx.eventPost.deleteMany({ where: { authorId: userId } });
+      // 8. Join requests + event attendance
+      await tx.joinRequest.deleteMany({ where: { userId } });
+      await tx.eventAttendee.deleteMany({ where: { userId } });
+      // 9. Email subscription (relation is SetNull, so delete explicitly)
+      await tx.emailSubscription.deleteMany({
+        where: { OR: [{ userId }, ...(me.email ? [{ email: me.email }] : [])] },
       });
 
-      // 5. Delete projects (cascades: members, followers, joinRequests, posts, faqs, openRoles)
-      await tx.project.deleteMany({ where: { ownerId: userId } });
+      // 10. Projects owned — delete their group chats first (projectId is SetNull),
+      //     then the projects (cascades members, followers, posts, faqs, openRoles).
+      const myProjects = await tx.project.findMany({
+        where: { ownerId: userId },
+        select: { id: true },
+        take: 1000,
+      });
+      const projectIds = myProjects.map((p) => p.id);
+      if (projectIds.length > 0) {
+        await tx.conversation.deleteMany({ where: { projectId: { in: projectIds } } });
+        await tx.project.deleteMany({ where: { id: { in: projectIds } } });
+      }
 
-      // 6. Delete events (cascades: attendees, posts)
+      // 11. Events organized (cascades attendees, posts)
       await tx.event.deleteMany({ where: { organizerId: userId } });
 
-      // 7. Delete user (cascades: skills, memberships, followers, joinRequests,
-      //    conversationParticipants, notifications, reviews given/received, eventAttendance)
+      // 12. The user (cascades skills, memberships, followers, notifications, reviews)
       await tx.user.delete({ where: { id: userId } });
+
+      // 13. Clean up conversations left broken by the user's departure
+      if (myConvIds.length > 0) {
+        const remaining = await tx.conversation.findMany({
+          where: { id: { in: myConvIds } },
+          select: { id: true, isGroup: true, _count: { select: { participants: true } } },
+        });
+        const toDelete = remaining
+          .filter((c) => (c.isGroup ? c._count.participants === 0 : c._count.participants < 2))
+          .map((c) => c.id);
+        if (toDelete.length > 0) {
+          await tx.conversation.deleteMany({ where: { id: { in: toDelete } } });
+        }
+      }
     });
+
+    // Best-effort: delete the profile image from Blob storage.
+    if (me.image && sanitizeUrl(me.image) && me.image.includes("blob.vercel-storage.com")) {
+      try {
+        await del(me.image, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      } catch (err) {
+        logger.error("Failed to delete profile image from blob", { userId, error: String(err) });
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -71,10 +123,10 @@ export async function PUT(request: Request) {
     if (data.location !== undefined) updateData.location = stripTags(String(data.location).trim()).slice(0, 200);
     if (data.country !== undefined) updateData.country = data.country;
     if (data.canton !== undefined) updateData.canton = data.canton;
-    if (data.portfolioUrl !== undefined) updateData.portfolioUrl = String(data.portfolioUrl).slice(0, 500);
-    if (data.websiteUrl !== undefined) updateData.websiteUrl = String(data.websiteUrl).slice(0, 500);
-    if (data.githubUrl !== undefined) updateData.githubUrl = String(data.githubUrl).slice(0, 500);
-    if (data.linkedinUrl !== undefined) updateData.linkedinUrl = String(data.linkedinUrl).slice(0, 500);
+    if (data.portfolioUrl !== undefined) updateData.portfolioUrl = sanitizeUrl(data.portfolioUrl);
+    if (data.websiteUrl !== undefined) updateData.websiteUrl = sanitizeUrl(data.websiteUrl);
+    if (data.githubUrl !== undefined) updateData.githubUrl = sanitizeUrl(data.githubUrl);
+    if (data.linkedinUrl !== undefined) updateData.linkedinUrl = sanitizeUrl(data.linkedinUrl);
     if (data.portfolioProjects !== undefined) updateData.portfolioProjects = data.portfolioProjects;
     if (data.roles !== undefined) updateData.roles = JSON.stringify(data.roles);
     if (data.openToMessages !== undefined)

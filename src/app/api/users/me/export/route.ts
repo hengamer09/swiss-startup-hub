@@ -40,11 +40,13 @@ export async function GET(request: Request) {
 
     const conversations = await prisma.conversation.findMany({
       where: { participants: { some: { userId } } },
+      take: 200,
       include: {
         messages: {
           where: { senderId: userId },
           select: { id: true, content: true, createdAt: true, receiverId: true },
           orderBy: { createdAt: "asc" },
+          take: 1000,
         },
       },
     });

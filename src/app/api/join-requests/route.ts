@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { escapeHtml, APP_URL, stripTags } from "@/lib/utils";
+import { escapeHtml, APP_URL, stripTags, sanitizeUrl } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { sendEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const { projectId, motivation, applicantRole, links } = await request.json();
     const trimmedMotivation = stripTags(motivation?.trim() || "").slice(0, 2000);
     const trimmedApplicantRole = stripTags(applicantRole?.trim() || "").slice(0, 200) || null;
-    const trimmedLinks = stripTags(links?.trim() || "").slice(0, 500) || null;
+    const trimmedLinks = sanitizeUrl(links) || null;
 
     if (!projectId || !trimmedMotivation || !trimmedApplicantRole) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

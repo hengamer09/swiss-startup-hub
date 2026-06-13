@@ -8,6 +8,8 @@ function requireEnv(name: string): string {
 export const env = {
   get DATABASE_URL() { return requireEnv("DATABASE_URL"); },
   get AUTH_SECRET() { return requireEnv("AUTH_SECRET"); },
+  get NEXTAUTH_URL() { return process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? ""; },
+  get NEXT_PUBLIC_APP_URL() { return process.env.NEXT_PUBLIC_APP_URL ?? ""; },
   get SMTP_HOST() { return process.env.SMTP_HOST ?? ""; },
   get SMTP_USER() { return process.env.SMTP_USER ?? ""; },
   get SMTP_PASS() { return process.env.SMTP_PASS ?? ""; },

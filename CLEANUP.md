@@ -296,3 +296,26 @@ To put Cloudflare in front of the app before launch (takes ~10 minutes):
 - **CSP `unsafe-inline` / `unsafe-eval`**: Required by Next.js for inline styles and hydration scripts. Can be tightened with nonce-based CSP in a future pass.
 - **Sentry integration**: No error monitoring is wired up. Add `@sentry/nextjs` before launch or shortly after.
 - **Pagination on the search route**: `GET /api/search` uses offset-based pagination (page/limit) — fine for current scale.
+
+---
+
+## Backup & Recovery
+
+### Database (Neon PostgreSQL)
+- **Automatic backups:** Neon provides continuous **point-in-time recovery (PITR)** on all plans, including the free tier. No manual backup job is required — the write-ahead log is retained automatically.
+- **How to access:** Neon dashboard → select the project → **Branches** (PITR is exposed via history/restore on the branch).
+- **How to restore:** create a new branch from a chosen point in time (Neon dashboard → Branches → "Create branch" → "from a past state"), then point the app at it by updating `DATABASE_URL` to the new branch's connection string in Vercel → redeploy. Once verified, you can promote/swap it.
+- **Retention:** free tier retains history for **7 days**. When scaling, upgrade to **Neon Pro** for up to **30-day** retention.
+
+### Code (GitHub)
+- The full codebase is backed up on GitHub (`hengamer09/swiss-startup-hub`, branch `master`). Every change in these passes is committed and pushed.
+- **Recommendation:** enable **branch protection** on `master` (GitHub → Settings → Branches → Add rule): require pull requests, disallow force pushes and deletions, to prevent accidental history loss.
+
+### Blob storage (Vercel Blob)
+- Uploaded images live in Vercel Blob. There is no automatic versioned backup; images are referenced by URL from the database. Check usage in the Vercel dashboard → Storage.
+
+### Application data export
+- Each user can export their own data as JSON via `GET /api/users/me/export` (Right to data portability).
+
+### Orphan-data cleanup
+- `scripts/cleanup-orphans.ts` (`npx tsx scripts/cleanup-orphans.ts`) removes broken/orphaned rows (conversations missing participants, messages with missing senders, etc.). Safe to re-run.
