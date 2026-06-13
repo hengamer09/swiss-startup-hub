@@ -23,13 +23,11 @@ export default function ImpressumPage() {
           <h2 className="text-lg font-semibold text-zinc-900">Verantwortlich für den Inhalt</h2>
           <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-5 leading-relaxed">
             <p className="font-medium text-zinc-900">Henri Stähli &amp; Johannes Pilhöfer</p>
-            <p className="mt-1">Höhenweg 6</p>
-            <p>8966 Oberwil-Lieli</p>
-            <p>Schweiz</p>
+            <p className="mt-1">Standort: Aargau, Schweiz</p>
             <p className="mt-3">
               <span className="font-medium">E-Mail:</span>{" "}
-              <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">
-                henri@staehli.biz
+              <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+                swissstartuphub@gmail.com
               </a>
             </p>
           </div>

@@ -20,9 +20,9 @@ export default function PrivacyPage() {
 
       <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-700">
         <p className="font-semibold text-zinc-900">Responsible Party / Verantwortliche Stelle</p>
-        <p className="mt-2">Henri Stähli &amp; Johannes Pilhöfer · Höhenweg 6 · 8966 Oberwil-Lieli · Switzerland</p>
+        <p className="mt-2">Henri Stähli &amp; Johannes Pilhöfer · Standort: Aargau, Schweiz</p>
         <p className="mt-1">
-          <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">henri@staehli.biz</a>
+          <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">swissstartuphub@gmail.com</a>
         </p>
         <p className="mt-2 text-xs text-zinc-500">
           Note: Swiss Startup Hub is currently a prototype project. A company formation is planned.
@@ -41,8 +41,8 @@ export default function PrivacyPage() {
           </p>
           <p className="mt-2 leading-relaxed">
             Data controller: Swiss Startup Hub, Switzerland. Contact:{" "}
-            <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">
-              henri@staehli.biz
+            <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+              swissstartuphub@gmail.com
             </a>
           </p>
         </section>
@@ -152,8 +152,8 @@ export default function PrivacyPage() {
           </ul>
           <p className="mt-3 leading-relaxed">
             To exercise any of these rights, email us at{" "}
-            <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">
-              henri@staehli.biz
+            <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+              swissstartuphub@gmail.com
             </a>
             . We will respond within 30 days. If you believe your rights have not been respected,
             you may lodge a complaint with the Swiss Federal Data Protection and Information
@@ -187,8 +187,8 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-zinc-900">10. Contact</h2>
           <p className="mt-2 leading-relaxed">
             Questions or concerns about how we handle your data? Contact us at{" "}
-            <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">
-              henri@staehli.biz
+            <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+              swissstartuphub@gmail.com
             </a>
             .
           </p>

@@ -20,9 +20,9 @@ export default function TermsPage() {
 
       <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-700">
         <p className="font-semibold text-zinc-900">Responsible Party / Verantwortliche Stelle</p>
-        <p className="mt-2">Henri Stähli &amp; Johannes Pilhöfer · Höhenweg 6 · 8966 Oberwil-Lieli · Switzerland</p>
+        <p className="mt-2">Henri Stähli &amp; Johannes Pilhöfer · Standort: Aargau, Schweiz</p>
         <p className="mt-1">
-          <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">henri@staehli.biz</a>
+          <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">swissstartuphub@gmail.com</a>
         </p>
         <p className="mt-2 text-xs text-zinc-500">
           Note: Swiss Startup Hub is currently a prototype project. A company formation is planned.
@@ -59,8 +59,8 @@ export default function TermsPage() {
             </li>
             <li>
               You must notify us immediately at{" "}
-              <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">
-                henri@staehli.biz
+              <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+                swissstartuphub@gmail.com
               </a>{" "}
               if you suspect unauthorised access to your account.
             </li>
@@ -169,8 +169,8 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-zinc-900">12. Contact</h2>
           <p className="mt-2 leading-relaxed">
             Questions about these terms? Contact us at{" "}
-            <a href="mailto:henri@staehli.biz" className="text-red-600 hover:underline">
-              henri@staehli.biz
+            <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+              swissstartuphub@gmail.com
             </a>{" "}
             or visit our{" "}
             <Link href="/contact" className="text-red-600 hover:underline">

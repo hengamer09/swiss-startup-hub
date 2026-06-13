@@ -40,8 +40,21 @@ export async function GET(request: Request) {
       orderBy: { updatedAt: "desc" },
     });
 
+    // Cursor is based on the raw fetched page so pagination stays consistent.
     const nextCursor = conversations.length === PAGE_SIZE ? conversations[conversations.length - 1].id : null;
-    return NextResponse.json({ conversations, nextCursor });
+
+    // Safeguard: skip broken conversations whose participants reference a
+    // missing user, and 1:1 chats that lost their other participant ("Unknown").
+    const valid = conversations.filter((c) => {
+      if (c.participants.some((p) => !p.user)) return false;
+      if (!c.isGroup) {
+        const other = c.participants.find((p) => p.userId !== userId);
+        if (!other) return false;
+      }
+      return true;
+    });
+
+    return NextResponse.json({ conversations: valid, nextCursor });
   } catch (error) {
     logger.error("List conversations error", { error: String(error) });
     return NextResponse.json({ error: "Failed to load conversations" }, { status: 500 });
