@@ -218,7 +218,7 @@ export default function EventDetail({
           {userId && event.organizerId !== userId && (
             <button
               onClick={() => setShowHostMessage(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+              className="inline-flex items-center gap-2 rounded-full bg-[#1e40af] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d4ed8]"
             >
               <MessageSquare className="h-4 w-4" />
               Message Host
@@ -444,7 +444,7 @@ function MessageHostModal({
             <p className="mt-1 text-sm text-zinc-500">The host will get it in their inbox.</p>
             <button
               onClick={onClose}
-              className="mt-4 rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+              className="mt-4 rounded-full bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8]"
             >
               Done
             </button>

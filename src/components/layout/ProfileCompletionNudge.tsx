@@ -68,7 +68,7 @@ export default function ProfileCompletionNudge() {
           </div>
           <Link
             href="/profile/edit"
-            className="mt-3 inline-block rounded-md bg-zinc-800 px-4 py-1.5 text-xs font-medium text-white hover:bg-zinc-900 transition-colors"
+            className="mt-3 inline-block rounded-md bg-[#1e40af] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
           >
             Complete Profile
           </Link>

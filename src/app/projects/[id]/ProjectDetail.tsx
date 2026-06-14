@@ -574,7 +574,7 @@ export default function ProjectDetail({
               </div>
               <button
                 onClick={() => setShowAskModal(true)}
-                className="rounded-md bg-zinc-900 px-4 py-2 text-xs font-medium text-white hover:bg-zinc-800 transition-colors"
+                className="rounded-md bg-[#1e40af] px-4 py-2 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
               >
                 Message Founder
               </button>
@@ -939,7 +939,7 @@ function AskModal({
           <p className="mt-1 text-sm text-zinc-500">The founder will get back to you.</p>
           <button
             onClick={onClose}
-            className="mt-4 rounded-md bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
+            className="mt-4 rounded-md bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
           >
             Done
           </button>

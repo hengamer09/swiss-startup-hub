@@ -4,9 +4,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Compass, MapPin, Users, Star, RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
-import ProfileCompletionNudge from "@/components/layout/ProfileCompletionNudge";
+import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import BookmarkButton from "@/components/BookmarkButton";
 import { formatStage, parseRolesNeeded, stageBadgeClass } from "@/lib/utils";
+import type { CompletenessInput } from "@/lib/profileCompleteness";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const INDUSTRIES = [
   "FinTech", "DeepTech", "Health", "Climate", "EdTech",
@@ -18,6 +21,7 @@ const STAGES = [
   { value: "MVP", label: "MVP" },
   { value: "EARLY_REVENUE", label: "Early Revenue" },
   { value: "SCALING", label: "Scaling" },
+  { value: "LAUNCHED", label: "Launched" },
 ];
 
 const LOCATIONS = ["Zurich", "Geneva", "Basel", "Bern", "Lausanne", "Remote"];
@@ -36,12 +40,23 @@ interface Filters {
 
 const EMPTY_FILTERS: Filters = { industry: "", stage: "", location: "", lookingFor: [] };
 
-export default function FeedContent({ userId }: { userId: string }) {
+type View = "all" | "following";
+
+export default function FeedContent({
+  userId,
+  completeness,
+}: {
+  userId: string;
+  completeness: CompletenessInput;
+}) {
   const router = useRouter();
+  const [view, setView] = useState<View>("all");
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [followPage, setFollowPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -69,42 +84,67 @@ export default function FeedContent({ userId }: { userId: string }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchProjects = useCallback(async (pageNum: number, append: boolean) => {
-    const res = await fetch(`/api/feed?page=${pageNum}`);
-    if (res.ok) {
-      const data = await res.json();
-      const items = data.projects || [];
-      if (append) {
-        setProjects((prev) => [...prev, ...items]);
-      } else {
-        setProjects(items);
+  // Load the first page whenever the view (All / Following) changes.
+  const loadInitial = useCallback(async (v: View) => {
+    setLoading(true);
+    if (v === "all") {
+      const res = await fetch("/api/projects");
+      if (res.ok) {
+        const d = await res.json();
+        setProjects(d.projects || []);
+        setNextCursor(d.nextCursor ?? null);
+        setHasMore(Boolean(d.nextCursor));
       }
-      setHasMore(Boolean(data.hasMore) && pageNum < (data.totalPages || 1));
+    } else {
+      const res = await fetch("/api/feed?page=1");
+      if (res.ok) {
+        const d = await res.json();
+        setProjects(d.projects || []);
+        setFollowPage(1);
+        setHasMore(Boolean(d.hasMore) && 1 < (d.totalPages || 1));
+      }
     }
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchProjects(1, false);
-  }, [fetchProjects]);
+    loadInitial(view);
+  }, [view, loadInitial]);
 
-  useEffect(() => {
-    if (page <= 1) return;
-    fetchProjects(page, true);
-  }, [page, fetchProjects]);
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || loading) return;
+    setLoadingMore(true);
+    if (view === "all") {
+      const res = await fetch(`/api/projects?cursor=${nextCursor}`);
+      if (res.ok) {
+        const d = await res.json();
+        setProjects((prev) => [...prev, ...(d.projects || [])]);
+        setNextCursor(d.nextCursor ?? null);
+        setHasMore(Boolean(d.nextCursor));
+      }
+    } else {
+      const np = followPage + 1;
+      const res = await fetch(`/api/feed?page=${np}`);
+      if (res.ok) {
+        const d = await res.json();
+        setProjects((prev) => [...prev, ...(d.projects || [])]);
+        setFollowPage(np);
+        setHasMore(Boolean(d.hasMore) && np < (d.totalPages || 1));
+      }
+    }
+    setLoadingMore(false);
+  }, [view, nextCursor, followPage, hasMore, loadingMore, loading]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          setPage((p) => p + 1);
-        }
+        if (entries[0].isIntersecting) loadMore();
       },
       { threshold: 0.1 }
     );
     if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [hasMore, loading]);
+  }, [loadMore]);
 
   const hasActiveFilters =
     Boolean(filters.industry) ||
@@ -156,13 +196,41 @@ export default function FeedContent({ userId }: { userId: string }) {
     });
   });
 
+  const countLabel = hasActiveFilters || searchQuery.trim()
+    ? "matching filters"
+    : view === "following"
+    ? "you follow"
+    : "on the platform";
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-zinc-900">Your Feed</h1>
-        <p className="text-sm text-zinc-500">
-          Discover projects and people in the Swiss startup ecosystem
+        <h1 className="text-xl font-semibold text-[#0f172a]">Discover Projects</h1>
+        <p className="text-sm text-[#475569]">
+          Explore projects and people in the Swiss startup ecosystem
         </p>
+      </div>
+
+      {/* View toggle: All / Following */}
+      <div className="mb-4 inline-flex rounded-lg border border-[#e2e8f0] bg-white p-1 text-sm">
+        <button
+          type="button"
+          onClick={() => setView("all")}
+          className={`rounded-md px-4 py-1.5 font-medium transition-colors ${
+            view === "all" ? "bg-[#1e40af] text-white" : "text-[#475569] hover:text-[#0f172a]"
+          }`}
+        >
+          All Projects
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("following")}
+          className={`rounded-md px-4 py-1.5 font-medium transition-colors ${
+            view === "following" ? "bg-[#1e40af] text-white" : "text-[#475569] hover:text-[#0f172a]"
+          }`}
+        >
+          Following
+        </button>
       </div>
 
       {/* Search bar + filter button */}
@@ -174,7 +242,7 @@ export default function FeedContent({ userId }: { userId: string }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search projects..."
-            className="w-full rounded-lg border border-zinc-200 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+            className="w-full rounded-xl border border-[#e2e8f0] py-2 pl-9 pr-3 text-sm text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#3b82f6] focus:outline-none focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
@@ -185,30 +253,30 @@ export default function FeedContent({ userId }: { userId: string }) {
             onClick={() => setFilterOpen((v) => !v)}
             className={`flex h-full items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors ${
               filterOpen || hasActiveFilters
-                ? "border-zinc-400 bg-zinc-100 text-zinc-900"
-                : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
+                : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#f8fafc]"
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
             <span className="hidden sm:inline">Filters</span>
             {hasActiveFilters && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-zinc-700 text-[10px] font-bold text-white">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#1e40af] text-[10px] font-bold text-white">
                 {activeChips.length}
               </span>
             )}
           </button>
 
           {filterOpen && (
-            <div className="absolute right-0 top-full z-20 mt-1 w-72 rounded-md border border-zinc-200 bg-white p-4 shadow-md">
+            <div className="absolute right-0 top-full z-20 mt-1 w-72 rounded-xl border border-[#e2e8f0] bg-white p-4 shadow-md">
               {/* Category */}
               <div className="mb-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#94a3b8]">
                   Category
                 </label>
                 <select
                   value={filters.industry}
                   onChange={(e) => setFilters((f) => ({ ...f, industry: e.target.value }))}
-                  className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none"
+                  className="w-full rounded-md border border-[#e2e8f0] px-2 py-1.5 text-sm text-[#0f172a] focus:border-[#3b82f6] focus:outline-none"
                 >
                   <option value="">All categories</option>
                   {INDUSTRIES.map((ind) => (
@@ -219,13 +287,13 @@ export default function FeedContent({ userId }: { userId: string }) {
 
               {/* Stage */}
               <div className="mb-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#94a3b8]">
                   Stage
                 </label>
                 <select
                   value={filters.stage}
                   onChange={(e) => setFilters((f) => ({ ...f, stage: e.target.value }))}
-                  className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none"
+                  className="w-full rounded-md border border-[#e2e8f0] px-2 py-1.5 text-sm text-[#0f172a] focus:border-[#3b82f6] focus:outline-none"
                 >
                   <option value="">All stages</option>
                   {STAGES.map((s) => (
@@ -236,13 +304,13 @@ export default function FeedContent({ userId }: { userId: string }) {
 
               {/* Location */}
               <div className="mb-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#94a3b8]">
                   Location
                 </label>
                 <select
                   value={filters.location}
                   onChange={(e) => setFilters((f) => ({ ...f, location: e.target.value }))}
-                  className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none"
+                  className="w-full rounded-md border border-[#e2e8f0] px-2 py-1.5 text-sm text-[#0f172a] focus:border-[#3b82f6] focus:outline-none"
                 >
                   <option value="">All locations</option>
                   {LOCATIONS.map((loc) => (
@@ -253,7 +321,7 @@ export default function FeedContent({ userId }: { userId: string }) {
 
               {/* Looking for */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#94a3b8]">
                   Looking for
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -273,8 +341,8 @@ export default function FeedContent({ userId }: { userId: string }) {
                         }
                         className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                           active
-                            ? "bg-zinc-800 text-white"
-                            : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                            ? "bg-[#1e40af] text-white"
+                            : "bg-[#f1f5f9] text-[#475569] hover:bg-zinc-200"
                         }`}
                       >
                         {role}
@@ -294,14 +362,14 @@ export default function FeedContent({ userId }: { userId: string }) {
           {activeChips.map((chip) => (
             <span
               key={chip.label}
-              className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700"
+              className="inline-flex items-center gap-1 rounded-full bg-[#1e40af] px-3 py-1 text-xs font-medium text-white"
             >
               {chip.label}
               <button
                 type="button"
                 onClick={chip.onRemove}
                 aria-label={`Remove ${chip.label} filter`}
-                className="text-zinc-400 hover:text-zinc-700 transition-colors"
+                className="text-white/70 hover:text-white transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -310,7 +378,7 @@ export default function FeedContent({ userId }: { userId: string }) {
           <button
             type="button"
             onClick={() => setFilters(EMPTY_FILTERS)}
-            className="ml-1 text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+            className="ml-1 text-xs text-[#94a3b8] hover:text-[#475569] transition-colors"
           >
             Clear all
           </button>
@@ -318,18 +386,17 @@ export default function FeedContent({ userId }: { userId: string }) {
       )}
 
       <div className="mb-6">
-        <ProfileCompletionNudge />
+        <ProfileCompletenessCard user={completeness} />
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-        <p className="text-xs text-zinc-600">
-          <strong>{filteredProjects.length}</strong> project{filteredProjects.length === 1 ? "" : "s"}
-          {hasActiveFilters || searchQuery.trim() ? " matching filters" : " in your feed"}.
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e2e8f0] bg-white p-3">
+        <p className="text-xs text-[#475569]">
+          <strong>{filteredProjects.length}</strong> project{filteredProjects.length === 1 ? "" : "s"} {countLabel}.
         </p>
         <button
           type="button"
           onClick={() => router.push("/projects/new")}
-          className="rounded-md bg-[#1e40af] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
+          className="rounded-lg bg-[#1e40af] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
         >
           Create a project
         </button>
@@ -340,31 +407,45 @@ export default function FeedContent({ userId }: { userId: string }) {
           <RefreshCw className="h-6 w-6 animate-spin text-zinc-300" />
         </div>
       ) : filteredProjects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e2e8f0] bg-white py-16 text-center">
           <Compass className="mb-3 h-10 w-10 text-zinc-300" />
-          <h2 className="text-lg font-medium text-zinc-700">
-            {projects.length === 0 ? "Your feed is empty" : "No projects match your filters"}
+          <h2 className="text-lg font-medium text-[#0f172a]">
+            {hasActiveFilters || searchQuery.trim()
+              ? "No projects match your filters"
+              : view === "following"
+              ? "You're not following any projects yet"
+              : "No projects yet"}
           </h2>
-          <p className="mt-1 max-w-sm text-sm text-zinc-500">
-            {projects.length === 0
-              ? "Start following projects and people to see their updates here."
-              : "Try adjusting your search or removing some filters."}
+          <p className="mt-1 max-w-sm text-sm text-[#475569]">
+            {hasActiveFilters || searchQuery.trim()
+              ? "Try adjusting your search or removing some filters."
+              : view === "following"
+              ? "Follow projects to see them here, or browse all projects."
+              : "Be the first to create a project for the community."}
           </p>
-          {projects.length === 0 ? (
-            <Link
-              href="/search"
-              className="mt-4 rounded-md bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
-            >
-              Discover Projects
-            </Link>
-          ) : (
+          {hasActiveFilters || searchQuery.trim() ? (
             <button
               type="button"
               onClick={() => { setFilters(EMPTY_FILTERS); setSearchQuery(""); }}
-              className="mt-4 rounded-md border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+              className="mt-4 rounded-lg border border-[#e2e8f0] px-5 py-2 text-sm font-medium text-[#0f172a] hover:bg-[#f8fafc] transition-colors"
             >
               Clear filters
             </button>
+          ) : view === "following" ? (
+            <button
+              type="button"
+              onClick={() => setView("all")}
+              className="mt-4 rounded-lg bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
+            >
+              Browse all projects
+            </button>
+          ) : (
+            <Link
+              href="/projects/new"
+              className="mt-4 rounded-lg bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
+            >
+              Create a project
+            </Link>
           )}
         </div>
       ) : (
@@ -373,33 +454,37 @@ export default function FeedContent({ userId }: { userId: string }) {
             <Link
               key={project.id}
               href={`/projects/${project.id}`}
-              className="block rounded-lg border border-zinc-200 bg-white p-5 transition-shadow hover:shadow-sm"
+              className="block rounded-xl border border-[#e2e8f0] bg-white p-5 transition-shadow hover:shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-base font-bold text-zinc-600 shrink-0">
-                      {project.name?.charAt(0) || "P"}
+                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-zinc-100 text-base font-bold text-zinc-600 shrink-0">
+                      {project.logo ? (
+                        <img src={project.logo} alt={project.name} className="h-full w-full object-cover" />
+                      ) : (
+                        project.name?.charAt(0) || "P"
+                      )}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-zinc-900 truncate">
+                      <h3 className="font-semibold text-[#0f172a] truncate">
                         {project.name}
                       </h3>
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                        <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                        <span className="rounded bg-[#f1f5f9] px-2 py-0.5 text-xs font-medium text-[#475569]">
                           {project.industry}
                         </span>
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${stageBadgeClass(project.stage)}`}>
                           {formatStage(project.stage)}
                         </span>
-                        <span className="text-xs text-zinc-400 flex items-center gap-0.5">
+                        <span className="text-xs text-[#94a3b8] flex items-center gap-0.5">
                           <MapPin className="h-3 w-3" />
                           {project.location}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <p className="mt-2 text-sm text-zinc-600 line-clamp-1">
+                  <p className="mt-2 text-sm text-[#475569] line-clamp-1">
                     {project.problem}
                   </p>
                   {(() => {
@@ -408,14 +493,14 @@ export default function FeedContent({ userId }: { userId: string }) {
                     return (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {roles.slice(0, 4).map((r, i) => (
-                          <span key={i} className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                          <span key={i} className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-xs font-medium text-[#475569]">
                             {r.title}
                           </span>
                         ))}
                       </div>
                     );
                   })()}
-                  <div className="mt-2 flex items-center gap-4 text-xs text-zinc-400">
+                  <div className="mt-2 flex items-center gap-4 text-xs text-[#94a3b8]">
                     <span className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
                       {project.teamSize} members
@@ -433,7 +518,7 @@ export default function FeedContent({ userId }: { userId: string }) {
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <BookmarkButton projectId={project.id} initialSaved={bookmarkedIds.has(project.id)} />
-                  <span className="inline-flex rounded border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-600">
+                  <span className="inline-flex rounded-lg border border-[#e2e8f0] px-3 py-1 text-xs font-medium text-[#475569]">
                     Follow
                   </span>
                 </div>
@@ -444,7 +529,7 @@ export default function FeedContent({ userId }: { userId: string }) {
       )}
 
       <div ref={loaderRef} className="py-4 text-center">
-        {loading && projects.length > 0 && (
+        {loadingMore && (
           <RefreshCw className="mx-auto h-5 w-5 animate-spin text-zinc-400" />
         )}
       </div>

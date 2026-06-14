@@ -43,7 +43,7 @@ export default function ReportModal({
             </p>
             <button
               onClick={onClose}
-              className="mt-4 rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
+              className="mt-4 rounded-full bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
             >
               Done
             </button>

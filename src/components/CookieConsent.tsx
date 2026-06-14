@@ -45,7 +45,7 @@ export default function CookieConsent() {
           <button
             type="button"
             onClick={accept}
-            className="rounded-md bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 transition-colors focus:outline-2 focus:outline-[#1e40af]"
+            className="rounded-md bg-[#1e40af] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors focus:outline-2 focus:outline-[#1e40af]"
           >
             Accept
           </button>

@@ -235,7 +235,7 @@ export default function FeedbackModal({ isOpen, onClose, preselect }: FeedbackMo
                 onClick={submitBug}
                 disabled={submitting || !issueText.trim()}
                 aria-disabled={submitting || !issueText.trim()}
-                className="flex-1 rounded-md bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900 disabled:opacity-50 transition-colors focus:outline-2 focus:outline-zinc-900"
+                className="flex-1 rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors focus:outline-2 focus:outline-[#1e40af]"
               >
                 {submitting ? "Sending..." : "Send Report"}
               </button>
