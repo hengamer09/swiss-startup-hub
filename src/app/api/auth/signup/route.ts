@@ -112,6 +112,18 @@ export async function POST(request: Request) {
       }
     }
 
+    // Auto-add the new user to the waitlist (skip if already on it). Best-effort
+    // — no separate confirmation/notification email (they get the verification email).
+    try {
+      await prisma.waitlistEntry.upsert({
+        where: { email: cleanEmail },
+        update: {},
+        create: { name: cleanName, email: cleanEmail, role },
+      });
+    } catch (err) {
+      logger.error("Failed to add signup to waitlist", { userId: user.id, error: String(err) });
+    }
+
     // Send the verification email (failure does not block signup — user can resend).
     const verifyUrl = `${APP_URL}/auth/verify?token=${verificationToken}`;
     const { html, text } = verificationEmail(cleanName, verifyUrl);
