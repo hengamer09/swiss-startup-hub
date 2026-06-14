@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FloatingFeedbackButton from "@/components/FloatingFeedbackButton";
 import CookieConsent from "@/components/CookieConsent";
+import WaitlistProvider from "@/components/waitlist/WaitlistProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,13 +50,15 @@ export default function RootLayout({
           ⚠️ This is a prototype — some features are still being refined
         </div>
         <SessionProvider>
-          <Navbar />
-          <FloatingFeedbackButton />
-          <main id="main-content" className="flex-1 flex flex-col">
-            {children}
-          </main>
-          <Footer />
-          <CookieConsent />
+          <WaitlistProvider>
+            <Navbar />
+            <FloatingFeedbackButton />
+            <main id="main-content" className="flex-1 flex flex-col">
+              {children}
+            </main>
+            <Footer />
+            <CookieConsent />
+          </WaitlistProvider>
         </SessionProvider>
       </body>
     </html>

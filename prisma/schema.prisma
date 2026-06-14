@@ -396,3 +396,12 @@ model Bookmark {
 
   @@unique([userId, projectId])
 }
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String
+  message   String?
+  createdAt DateTime @default(now())
+}

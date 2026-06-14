@@ -7,6 +7,7 @@ import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import SavedProjectsSection from "./SavedProjectsSection";
 import NewsletterAdmin from "./NewsletterAdmin";
 import BackupStats from "./BackupStats";
+import WaitlistAdmin from "./WaitlistAdmin";
 
 const ADMIN_EMAIL = "swissstartuphub@gmail.com";
 import {
@@ -777,6 +778,7 @@ export default function DashboardContent({ data }: { data: any }) {
             Admin
           </h2>
           <div className="space-y-4">
+            <WaitlistAdmin />
             <NewsletterAdmin />
             <BackupStats />
           </div>

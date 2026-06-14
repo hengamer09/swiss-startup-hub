@@ -3,6 +3,7 @@ import { ArrowRight, Users, Briefcase, Banknote } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import WaitlistSection from "@/components/waitlist/WaitlistSection";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -95,6 +96,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Join the Waitlist */}
+      <WaitlistSection />
 
       {/* Active Projects */}
       <section className="py-16">

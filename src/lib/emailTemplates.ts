@@ -46,6 +46,50 @@ function button(label: string, url: string): string {
   </table>`;
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  FOUNDER: "Founder",
+  PROFESSIONAL: "Professional",
+  INVESTOR: "Investor",
+};
+
+export function waitlistConfirmationEmail(
+  name: string,
+  role: string,
+  appUrl: string
+): { html: string; text: string } {
+  const safeName = escapeHtml(name || "there");
+  const roleLabel = ROLE_LABEL[role] || "member";
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">You're on the waitlist! 🚀</h2>
+    <p style="margin:0 0 8px 0;">Hi ${safeName},</p>
+    <p style="margin:0 0 8px 0;">Thanks for joining our waitlist as a <strong>${escapeHtml(roleLabel)}</strong>.
+    We'll notify you as soon as new features are available.</p>
+    <p style="margin:0 0 8px 0;">In the meantime, feel free to explore the platform:</p>
+    ${button("Explore Swiss Startup Hub", appUrl)}
+  `;
+  const text = `Hi ${name || "there"},\n\nThanks for joining our waitlist as a ${roleLabel}. We'll notify you as soon as new features are available.\n\nIn the meantime, feel free to explore the platform: ${appUrl}`;
+  return { html: layout(content), text };
+}
+
+export function waitlistNotificationEmail(
+  name: string,
+  email: string,
+  role: string,
+  message?: string | null
+): { html: string; text: string } {
+  const roleLabel = ROLE_LABEL[role] || role;
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">New waitlist signup</h2>
+    <p style="margin:0 0 4px 0;"><strong>Name:</strong> ${escapeHtml(name)}</p>
+    <p style="margin:0 0 4px 0;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+    <p style="margin:0 0 4px 0;"><strong>Role:</strong> ${escapeHtml(roleLabel)}</p>
+    ${message ? `<p style="margin:0 0 4px 0;"><strong>Message:</strong><br>${escapeHtml(message).replace(/\n/g, "<br>")}</p>` : ""}
+    <p style="margin:8px 0 0 0;font-size:13px;color:#6b7280;">${escapeHtml(new Date().toISOString())}</p>
+  `;
+  const text = `New waitlist signup\nName: ${name}\nEmail: ${email}\nRole: ${roleLabel}${message ? `\nMessage: ${message}` : ""}\nTime: ${new Date().toISOString()}`;
+  return { html: layout(content), text };
+}
+
 export function verificationEmail(name: string, verifyUrl: string): { html: string; text: string } {
   const safeName = escapeHtml(name || "there");
   const content = `

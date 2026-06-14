@@ -5,11 +5,14 @@ import { useSession, signOut } from "next-auth/react";
 import { Mountain, MessageSquare, Menu } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import FeedbackModal from "@/components/FeedbackModal";
+import { useWaitlist } from "@/components/waitlist/WaitlistProvider";
 
 export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   const { data: session } = useSession();
+  const { open: openWaitlist } = useWaitlist();
   const [unread, setUnread] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -52,6 +55,13 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               </Link>
             </div>
           )}
+          <button
+            type="button"
+            onClick={openWaitlist}
+            className="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm md:inline-flex"
+          >
+            Join Waitlist
+          </button>
         </div>
 
         {/* Right: auth-state-aware actions */}
@@ -117,12 +127,42 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
           )}
           <button
             aria-label="Open navigation menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
             className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden focus:outline-2 focus:outline-red-600"
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="border-t border-zinc-200 bg-white px-4 py-3 md:hidden">
+          <div className="flex flex-col gap-2 text-sm">
+            {session && (
+              <>
+                <Link href="/feed" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Feed</Link>
+                <Link href="/events" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Events</Link>
+                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Dashboard</Link>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); openWaitlist(); }}
+              className="py-1 text-left font-medium text-red-600 hover:text-red-700"
+            >
+              Join Waitlist
+            </button>
+            {!session && (
+              <>
+                <Link href="/auth/signin" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Login</Link>
+                <Link href="/auth/signup" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Join for Free</Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <FeedbackModal
         isOpen={feedbackOpen}
         onClose={() => {

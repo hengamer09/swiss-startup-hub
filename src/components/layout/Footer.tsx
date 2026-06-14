@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mountain } from "lucide-react";
+import WaitlistButton from "@/components/waitlist/WaitlistButton";
 
 export default function Footer() {
   return (
@@ -13,6 +14,9 @@ export default function Footer() {
           <p className="text-zinc-400 text-xs">Connecting the Swiss startup ecosystem</p>
           <nav aria-label="Footer navigation">
             <ul className="flex flex-wrap justify-center gap-4 list-none m-0 p-0">
+              <li>
+                <WaitlistButton variant="footer">Join Waitlist</WaitlistButton>
+              </li>
               <li>
                 <Link href="/impressum" className="hover:text-zinc-700 transition-colors">
                   Impressum
