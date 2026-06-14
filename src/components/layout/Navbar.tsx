@@ -58,7 +58,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
           <button
             type="button"
             onClick={openWaitlist}
-            className="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm md:inline-flex"
+            className="hidden rounded-md border border-red-600 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-2 focus:outline-red-600 md:inline-flex"
           >
             Join Waitlist
           </button>
