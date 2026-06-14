@@ -83,12 +83,12 @@ export default function BookmarkButton({
         className={cn(
           "flex items-center justify-center gap-1.5 rounded-md border px-4 py-1.5 text-xs font-medium transition-colors",
           saved
-            ? "border-red-500 bg-red-50 text-red-600"
+            ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
             : "border-zinc-300 text-zinc-700 hover:bg-zinc-50",
           className
         )}
       >
-        <Bookmark className={cn("h-3.5 w-3.5", saved && "fill-red-600")} />
+        <Bookmark className={cn("h-3.5 w-3.5", saved && "fill-[#1e40af]")} />
         {saved ? "Saved" : "Save for later"}
       </button>
     );
@@ -102,11 +102,11 @@ export default function BookmarkButton({
       title={saved ? "Remove bookmark" : "Save for later"}
       className={cn(
         "rounded-full p-1.5 text-zinc-300 transition-colors hover:bg-zinc-100 hover:text-zinc-500",
-        saved && "text-red-500 hover:text-red-600",
+        saved && "text-[#1e40af] hover:text-[#1e40af]",
         className
       )}
     >
-      <Bookmark className={cn("h-4 w-4", saved && "fill-red-500")} />
+      <Bookmark className={cn("h-4 w-4", saved && "fill-[#1e40af]")} />
     </button>
   );
 }

@@ -50,13 +50,13 @@ export default function SavedProjectsSection() {
                 <p className="truncate font-semibold text-zinc-900">{b.project.name}</p>
                 <p className="mt-0.5 text-xs text-zinc-500">
                   {b.project.industry || "—"} &middot;{" "}
-                  <span className="font-medium text-red-600">{formatStage(b.project.stage)}</span>
+                  <span className="font-medium text-[#1e40af]">{formatStage(b.project.stage)}</span>
                 </p>
               </Link>
               <button
                 onClick={() => remove(b.project.id)}
                 aria-label="Remove bookmark"
-                className="shrink-0 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-red-500 transition-colors"
+                className="shrink-0 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-[#1e40af] transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>

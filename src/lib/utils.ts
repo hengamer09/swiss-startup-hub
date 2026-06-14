@@ -43,6 +43,18 @@ export function formatStage(stage: string): string {
   }
 }
 
+// Per-stage badge colors (subtle bg + text).
+export function stageBadgeClass(stage: string): string {
+  switch (stage) {
+    case "IDEA": return "bg-blue-50 text-blue-700";
+    case "MVP": return "bg-amber-50 text-amber-700";
+    case "EARLY_REVENUE": return "bg-green-50 text-green-700";
+    case "SCALING": return "bg-purple-50 text-purple-700";
+    case "LAUNCHED": return "bg-emerald-50 text-emerald-700";
+    default: return "bg-[#f1f5f9] text-[#475569]";
+  }
+}
+
 // Ordered project lifecycle stages, used by the progress tracker.
 export const PROJECT_STAGES: { value: string; label: string }[] = [
   { value: "IDEA", label: "Idea" },

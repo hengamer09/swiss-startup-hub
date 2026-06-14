@@ -177,7 +177,7 @@ export default function MessagesInbox({ userId }: { userId: string }) {
           </p>
           <Link
             href="/search"
-            className="mt-4 rounded-md bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+            className="mt-4 rounded-md bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
           >
             Find People
           </Link>
@@ -202,7 +202,7 @@ export default function MessagesInbox({ userId }: { userId: string }) {
                 <div
                   className={cn(
                     "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold",
-                    isGroup ? "bg-red-100 text-red-600" : "bg-zinc-100 text-zinc-600"
+                    isGroup ? "bg-blue-100 text-[#1e40af]" : "bg-zinc-100 text-zinc-600"
                   )}
                 >
                   {isGroup ? <Users className="h-5 w-5" /> : title(conv).charAt(0) || "?"}
@@ -218,7 +218,7 @@ export default function MessagesInbox({ userId }: { userId: string }) {
                       {pinned && <Pin className="h-3 w-3 shrink-0 text-amber-500" aria-label="Pinned" />}
                       {title(conv)}
                       {isGroup && (
-                        <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-500">
+                        <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-[#1e40af]">
                           Group
                         </span>
                       )}
@@ -247,7 +247,7 @@ export default function MessagesInbox({ userId }: { userId: string }) {
                   {pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
                 </button>
                 {unread > 0 && (
-                  <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+                  <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1e40af] px-1.5 text-xs font-bold text-white">
                     {unread}
                   </div>
                 )}

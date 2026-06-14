@@ -4,11 +4,11 @@ import WaitlistButton from "@/components/waitlist/WaitlistButton";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-200 bg-zinc-50">
+    <footer className="border-t border-[#e2e8f0] bg-white">
       <div className="mx-auto max-w-7xl px-4 py-8 text-sm text-zinc-500">
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex items-center gap-2">
-            <Mountain className="h-4 w-4 text-red-500" aria-hidden="true" />
+            <Mountain className="h-4 w-4 text-[#1e40af]" aria-hidden="true" />
             <span className="font-medium text-zinc-700">Swiss Startup Hub</span>
           </div>
           <p className="text-zinc-400 text-xs">Connecting the Swiss startup ecosystem</p>

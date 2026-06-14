@@ -142,14 +142,14 @@ export default function EditProjectPage() {
           <div>
             <label className="block text-sm font-medium text-zinc-700">Project name</label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700">Industry</label>
               <select value={industry} onChange={(e) => setIndustry(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
                 <option value="">Select</option>
                 {industries.map((i) => (<option key={i} value={i}>{i}</option>))}
               </select>
@@ -157,7 +157,7 @@ export default function EditProjectPage() {
             <div>
               <label className="block text-sm font-medium text-zinc-700">Stage</label>
               <select value={stage} onChange={(e) => setStage(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
                 <option value="IDEA">Idea</option>
                 <option value="MVP">MVP</option>
                 <option value="EARLY_REVENUE">Early Revenue</option>
@@ -171,7 +171,7 @@ export default function EditProjectPage() {
             <div>
               <label className="block text-sm font-medium text-zinc-700">Location</label>
               <input type="text" value={location} onChange={(e) => setLocation(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
             </div>
             <div className="flex items-end pb-2">
               <label className="flex items-center gap-2 text-sm text-zinc-700">
@@ -191,7 +191,7 @@ export default function EditProjectPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">Project seriousness</label>
-            <select value={seriousness} onChange={(e) => setSeriousness(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+            <select value={seriousness} onChange={(e) => setSeriousness(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
               <option value="SCHOOL_PROJECT">School project</option>
               <option value="SIDE_PROJECT">Side project</option>
               <option value="SERIOUS_STARTUP">Serious startup</option>
@@ -201,7 +201,7 @@ export default function EditProjectPage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">Team compensation</label>
-            <select value={teamCompensation} onChange={(e) => setTeamCompensation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+            <select value={teamCompensation} onChange={(e) => setTeamCompensation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
               <option value="UNPAID">Unpaid / volunteer</option>
               <option value="PAID">Paid</option>
             </select>
@@ -210,13 +210,13 @@ export default function EditProjectPage() {
           <div>
             <label className="block text-sm font-medium text-zinc-700">Problem</label>
             <textarea value={problem} onChange={(e) => setProblem(e.target.value)} maxLength={500} rows={3}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">Solution</label>
             <textarea value={solution} onChange={(e) => setSolution(e.target.value)} maxLength={500} rows={3}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
 
           <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
@@ -242,13 +242,13 @@ export default function EditProjectPage() {
                         setRolesNeeded((prev) => prev.map((r, i) => i === idx ? { ...r, title: v } : r));
                       }}
                       placeholder="Role title (e.g. Frontend Developer)"
-                      className="flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                      className="flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                     />
                     {rolesNeeded.length > 1 && (
                       <button
                         type="button"
                         onClick={() => setRolesNeeded((prev) => prev.filter((_, i) => i !== idx))}
-                        className="rounded-full p-1 text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        className="rounded-full p-1 text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -262,7 +262,7 @@ export default function EditProjectPage() {
                     }}
                     rows={2}
                     placeholder="What do you need from this person? (optional)"
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                   />
                 </div>
               ))}
@@ -276,13 +276,13 @@ export default function EditProjectPage() {
           <div>
             <label className="block text-sm font-medium text-zinc-700">Target customer</label>
             <input type="text" value={targetCustomer} onChange={(e) => setTargetCustomer(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">Scope</label>
             <select value={scope} onChange={(e) => setScope(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
               <option value="">Select</option>
               <option value="Swiss">Swiss</option>
               <option value="International">International</option>
@@ -292,7 +292,7 @@ export default function EditProjectPage() {
           <div>
             <label className="block text-sm font-medium text-zinc-700">Competitive landscape</label>
             <textarea value={competitiveLandscape} onChange={(e) => setCompetitiveLandscape(e.target.value)} rows={3}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
         </div>
 
@@ -309,27 +309,27 @@ export default function EditProjectPage() {
           <div>
             <label className="block text-sm font-medium text-zinc-700">Investor pitch</label>
             <textarea value={investorPitch} onChange={(e) => setInvestorPitch(e.target.value)} rows={3}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700">Funding amount (CHF)</label>
               <input type="number" value={fundingAmount} onChange={(e) => setFundingAmount(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">Use of funds</label>
             <textarea value={useOfFunds} onChange={(e) => setUseOfFunds(e.target.value)} rows={2}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">Traction metrics</label>
             <textarea value={tractionMetrics} onChange={(e) => setTractionMetrics(e.target.value)} rows={2}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
         </div>
 
@@ -339,7 +339,7 @@ export default function EditProjectPage() {
             Cancel
           </Link>
           <button type="submit" disabled={loading}
-            className="flex-1 rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
+            className="flex-1 rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors">
             {loading ? "Saving..." : "Save Changes"}
           </button>
         </div>

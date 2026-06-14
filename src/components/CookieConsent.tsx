@@ -37,7 +37,7 @@ export default function CookieConsent() {
         <p className="text-sm text-zinc-600">
           We use strictly necessary cookies to keep you logged in. No tracking or advertising
           cookies are used.{" "}
-          <Link href="/privacy" className="font-medium text-zinc-900 underline hover:text-red-600 transition-colors">
+          <Link href="/privacy" className="font-medium text-zinc-900 underline hover:text-[#1e40af] transition-colors">
             Learn more
           </Link>
         </p>
@@ -45,7 +45,7 @@ export default function CookieConsent() {
           <button
             type="button"
             onClick={accept}
-            className="rounded-md bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 transition-colors focus:outline-2 focus:outline-red-600"
+            className="rounded-md bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 transition-colors focus:outline-2 focus:outline-[#1e40af]"
           >
             Accept
           </button>

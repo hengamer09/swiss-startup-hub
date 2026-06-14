@@ -87,8 +87,8 @@ export default function SignUpPage() {
     return (
       <div className="flex flex-1 items-center justify-center px-4 py-12 bg-zinc-50">
         <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-sm text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
-            <MailCheck className="h-6 w-6 text-red-600" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+            <MailCheck className="h-6 w-6 text-[#1e40af]" />
           </div>
           <h1 className="text-xl font-semibold text-zinc-900">Account created!</h1>
           <p className="mt-3 text-sm text-zinc-600">
@@ -102,7 +102,7 @@ export default function SignUpPage() {
           </p>
           <Link
             href="/auth/signin"
-            className="mt-6 inline-block rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+            className="mt-6 inline-block rounded-md bg-[#1e40af] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
           >
             Go to sign in
           </Link>
@@ -119,7 +119,7 @@ export default function SignUpPage() {
             href="/"
             className="mx-auto mb-4 flex w-fit items-center gap-2 text-lg font-semibold text-zinc-900"
           >
-            <Mountain className="h-6 w-6 text-red-600" />
+            <Mountain className="h-6 w-6 text-[#1e40af]" />
             Swiss Startup Hub
           </Link>
           <h1 className="text-xl font-semibold text-zinc-900">
@@ -147,7 +147,7 @@ export default function SignUpPage() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="Maria Meier"
             />
           </div>
@@ -162,7 +162,7 @@ export default function SignUpPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="maria@example.com"
             />
           </div>
@@ -178,7 +178,7 @@ export default function SignUpPage() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="At least 8 characters"
             />
           </div>
@@ -201,7 +201,7 @@ export default function SignUpPage() {
                   onClick={() => setRole(value)}
                   className={`flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-sm transition-colors ${
                     role === value
-                      ? "border-red-500 bg-red-50 text-red-700"
+                      ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
                       : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
                   }`}
                 >
@@ -224,7 +224,7 @@ export default function SignUpPage() {
                   onClick={() => toggleSkill(skill)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${
                     skills.includes(skill)
-                      ? "border-red-500 bg-red-50 text-red-700"
+                      ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
                       : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
                   }`}
                 >
@@ -242,7 +242,7 @@ export default function SignUpPage() {
               type="checkbox"
               checked={acceptedTerms}
               onChange={(e) => setAcceptedTerms(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-red-500 focus:ring-red-500"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-[#1e40af] focus:ring-[#3b82f6]"
             />
             <span className="text-sm text-zinc-600">
               I agree to the{" "}
@@ -250,7 +250,7 @@ export default function SignUpPage() {
                 href="/terms"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-red-600 hover:underline"
+                className="font-medium text-[#1e40af] hover:underline"
               >
                 Terms of Service
               </a>{" "}
@@ -259,7 +259,7 @@ export default function SignUpPage() {
                 href="/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-red-600 hover:underline"
+                className="font-medium text-[#1e40af] hover:underline"
               >
                 Privacy Policy
               </a>
@@ -271,7 +271,7 @@ export default function SignUpPage() {
               type="checkbox"
               checked={confirmedAge}
               onChange={(e) => setConfirmedAge(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-red-500 focus:ring-red-500"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-[#1e40af] focus:ring-[#3b82f6]"
             />
             <span className="text-sm text-zinc-600">
               I confirm that I am at least 18 years old
@@ -293,7 +293,7 @@ export default function SignUpPage() {
                 disabled={!ready}
                 className={`w-full rounded-md px-4 py-2.5 text-sm font-medium text-white transition-colors ${
                   ready
-                    ? "bg-red-600 hover:bg-red-700 cursor-pointer"
+                    ? "bg-[#1e40af] hover:bg-[#1d4ed8] cursor-pointer"
                     : "bg-zinc-300 cursor-not-allowed opacity-50"
                 }`}
               >
@@ -307,7 +307,7 @@ export default function SignUpPage() {
           Already have an account?{" "}
           <Link
             href="/auth/signin"
-            className="font-medium text-red-600 hover:text-red-700"
+            className="font-medium text-[#1e40af] hover:text-[#1e40af]"
           >
             Sign in
           </Link>

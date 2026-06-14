@@ -126,26 +126,26 @@ export default function NewProjectPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-700">
-            Project name <span className="text-red-500">*</span>
+            Project name <span className="text-[#1e40af]">*</span>
           </label>
           <input
             type="text"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             placeholder="e.g. CarbonClear"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-zinc-700">
-            Industry <span className="text-red-500">*</span>
+            Industry <span className="text-[#1e40af]">*</span>
           </label>
           <select
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
           >
             <option value="">Select an industry</option>
             {industries.map((ind) => (
@@ -160,7 +160,7 @@ export default function NewProjectPage() {
             <select
               value={stage}
               onChange={(e) => setStage(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             >
               <option value="IDEA">Idea</option>
               <option value="MVP">MVP</option>
@@ -176,7 +176,7 @@ export default function NewProjectPage() {
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="e.g. Zurich"
             />
           </div>
@@ -194,7 +194,7 @@ export default function NewProjectPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-700">
-            The Problem <span className="text-red-500">*</span>
+            The Problem <span className="text-[#1e40af]">*</span>
           </label>
           <textarea
             required
@@ -202,7 +202,7 @@ export default function NewProjectPage() {
             value={problem}
             onChange={(e) => setProblem(e.target.value)}
             rows={3}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             placeholder="What problem does your startup solve?"
           />
           <p className="mt-1 text-xs text-zinc-400">{problem.length}/500</p>
@@ -222,7 +222,7 @@ export default function NewProjectPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-700">Project seriousness</label>
-          <select value={seriousness} onChange={(e) => setSeriousness(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+          <select value={seriousness} onChange={(e) => setSeriousness(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
             <option value="SCHOOL_PROJECT">School project</option>
             <option value="SIDE_PROJECT">Side project</option>
             <option value="SERIOUS_STARTUP">Serious startup</option>
@@ -232,7 +232,7 @@ export default function NewProjectPage() {
 
         <div>
           <label className="block text-sm font-medium text-zinc-700">Team compensation</label>
-          <select value={teamCompensation} onChange={(e) => setTeamCompensation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+          <select value={teamCompensation} onChange={(e) => setTeamCompensation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
             <option value="UNPAID">Unpaid / volunteer</option>
             <option value="PAID">Paid</option>
           </select>
@@ -242,11 +242,11 @@ export default function NewProjectPage() {
           <h2 className="text-sm font-semibold text-zinc-900">Market & Competition</h2>
           <div>
             <label className="block text-sm font-medium text-zinc-700">Target customer</label>
-            <input value={targetCustomer} onChange={(e) => setTargetCustomer(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+            <input value={targetCustomer} onChange={(e) => setTargetCustomer(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">Scope</label>
-            <select value={scope} onChange={(e) => setScope(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+            <select value={scope} onChange={(e) => setScope(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
               <option value="">Select</option>
               <option value="Swiss">Swiss</option>
               <option value="International">International</option>
@@ -254,18 +254,18 @@ export default function NewProjectPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">Competitive landscape</label>
-            <textarea value={competitiveLandscape} onChange={(e) => setCompetitiveLandscape(e.target.value)} rows={3} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
+            <textarea value={competitiveLandscape} onChange={(e) => setCompetitiveLandscape(e.target.value)} rows={3} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
         </div>
 
         <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-4">
           <h2 className="text-sm font-semibold text-zinc-900">Investor Pitch</h2>
-          <textarea value={investorPitch} onChange={(e) => setInvestorPitch(e.target.value)} rows={3} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="Brief investor summary…" />
+          <textarea value={investorPitch} onChange={(e) => setInvestorPitch(e.target.value)} rows={3} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" placeholder="Brief investor summary…" />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-zinc-700">
-            The Solution <span className="text-red-500">*</span>
+            The Solution <span className="text-[#1e40af]">*</span>
           </label>
           <textarea
             required
@@ -273,7 +273,7 @@ export default function NewProjectPage() {
             value={solution}
             onChange={(e) => setSolution(e.target.value)}
             rows={3}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             placeholder="How does your startup solve this problem?"
           />
           <p className="mt-1 text-xs text-zinc-400">{solution.length}/500</p>
@@ -282,7 +282,7 @@ export default function NewProjectPage() {
         <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-zinc-900">
-              Who We&apos;re Looking For <span className="text-red-500">*</span>
+              Who We&apos;re Looking For <span className="text-[#1e40af]">*</span>
             </label>
             <button
               type="button"
@@ -292,7 +292,7 @@ export default function NewProjectPage() {
               <Plus className="h-3.5 w-3.5" /> Add role
             </button>
           </div>
-          {rolesNeededError && <p className="text-xs text-red-500">{rolesNeededError}</p>}
+          {rolesNeededError && <p className="text-xs text-[#1e40af]">{rolesNeededError}</p>}
           <div className="space-y-3">
             {rolesNeeded.map((role, idx) => (
               <div key={idx} className="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
@@ -306,13 +306,13 @@ export default function NewProjectPage() {
                       if (rolesNeededError) setRolesNeededError("");
                     }}
                     placeholder="Role title (e.g. Frontend Developer)"
-                    className="flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="flex-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                   />
                   {rolesNeeded.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setRolesNeeded((prev) => prev.filter((_, i) => i !== idx))}
-                      className="rounded-full p-1 text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="rounded-full p-1 text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -326,7 +326,7 @@ export default function NewProjectPage() {
                   }}
                   rows={2}
                   placeholder="What do you need from this person? (optional)"
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                 />
               </div>
             ))}
@@ -336,7 +336,7 @@ export default function NewProjectPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+          className="w-full rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
         >
           {loading ? "Creating..." : "Create Project"}
         </button>

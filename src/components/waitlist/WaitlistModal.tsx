@@ -133,7 +133,7 @@ export default function WaitlistModal({ isOpen, onClose }: { isOpen: boolean; on
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               />
             </div>
             <div>
@@ -146,7 +146,7 @@ export default function WaitlistModal({ isOpen, onClose }: { isOpen: boolean; on
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               />
             </div>
             <div>
@@ -161,7 +161,7 @@ export default function WaitlistModal({ isOpen, onClose }: { isOpen: boolean; on
                     className={cn(
                       "flex flex-col items-center gap-1 rounded-md border-2 p-3 text-sm transition-colors",
                       role === value
-                        ? "border-red-500 bg-red-50 text-red-700"
+                        ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
                         : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
                     )}
                   >
@@ -182,13 +182,13 @@ export default function WaitlistModal({ isOpen, onClose }: { isOpen: boolean; on
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Tell us briefly about your project or what you're looking for..."
-                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               />
             </div>
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="w-full rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
             >
               {submitting ? "Joining..." : "Join the Waitlist →"}
             </button>

@@ -10,7 +10,7 @@ export default function TermsPage() {
     <div className="mx-auto max-w-3xl px-4 py-16">
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 transition-colors">
-          <Mountain className="h-4 w-4 text-red-500" aria-hidden="true" />
+          <Mountain className="h-4 w-4 text-[#1e40af]" aria-hidden="true" />
           Swiss Startup Hub
         </Link>
       </div>
@@ -22,7 +22,7 @@ export default function TermsPage() {
         <p className="font-semibold text-zinc-900">Responsible Party / Verantwortliche Stelle</p>
         <p className="mt-2">Henri Stähli &amp; Johannes Pilhöfer · Standort: Aargau, Schweiz</p>
         <p className="mt-1">
-          <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">swissstartuphub@gmail.com</a>
+          <a href="mailto:swissstartuphub@gmail.com" className="text-[#1e40af] hover:underline">swissstartuphub@gmail.com</a>
         </p>
         <p className="mt-2 text-xs text-zinc-500">
           Note: Swiss Startup Hub is currently a prototype project. A company formation is planned.
@@ -59,7 +59,7 @@ export default function TermsPage() {
             </li>
             <li>
               You must notify us immediately at{" "}
-              <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+              <a href="mailto:swissstartuphub@gmail.com" className="text-[#1e40af] hover:underline">
                 swissstartuphub@gmail.com
               </a>{" "}
               if you suspect unauthorised access to your account.
@@ -169,11 +169,11 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-zinc-900">12. Contact</h2>
           <p className="mt-2 leading-relaxed">
             Questions about these terms? Contact us at{" "}
-            <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+            <a href="mailto:swissstartuphub@gmail.com" className="text-[#1e40af] hover:underline">
               swissstartuphub@gmail.com
             </a>{" "}
             or visit our{" "}
-            <Link href="/contact" className="text-red-600 hover:underline">
+            <Link href="/contact" className="text-[#1e40af] hover:underline">
               Contact page
             </Link>
             .

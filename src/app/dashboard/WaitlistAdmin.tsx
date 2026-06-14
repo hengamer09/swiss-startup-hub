@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const ROLE_BADGE: Record<string, string> = {
-  FOUNDER: "bg-red-50 text-red-700",
+  FOUNDER: "bg-blue-50 text-blue-700",
   PROFESSIONAL: "bg-blue-50 text-blue-700",
   INVESTOR: "bg-amber-50 text-amber-700",
 };
@@ -80,7 +80,7 @@ export default function WaitlistAdmin() {
         <h2 className="text-sm font-semibold text-zinc-900">📋 Waitlist</h2>
         <a
           href="/api/admin/waitlist/export"
-          className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-md bg-[#1e40af] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
         >
           <Download className="h-3.5 w-3.5" />
           Download CSV ({total} {total === 1 ? "entry" : "entries"})
@@ -116,13 +116,13 @@ export default function WaitlistAdmin() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email..."
-            className="w-full rounded-md border border-zinc-300 py-2 pl-9 pr-3 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="w-full rounded-md border border-zinc-300 py-2 pl-9 pr-3 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
           />
         </div>
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+          className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
         >
           <option value="">All roles</option>
           <option value="FOUNDER">Founders</option>
@@ -170,7 +170,7 @@ export default function WaitlistAdmin() {
                       onClick={() => remove(e.id)}
                       disabled={deleting === e.id}
                       aria-label={`Delete ${e.name}`}
-                      className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+                      className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

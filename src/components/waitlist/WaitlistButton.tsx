@@ -7,9 +7,9 @@ type Variant = "primary" | "nav" | "footer";
 
 const STYLES: Record<Variant, string> = {
   primary:
-    "inline-flex items-center gap-2 rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors",
+    "inline-flex items-center gap-2 rounded-md bg-[#1e40af] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors",
   nav:
-    "text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm",
+    "text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm",
   footer: "hover:text-zinc-700 transition-colors",
 };
 

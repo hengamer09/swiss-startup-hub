@@ -39,7 +39,7 @@ export default function ContactPage() {
     <div className="mx-auto max-w-2xl px-4 py-16">
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 transition-colors">
-          <Mountain className="h-4 w-4 text-red-500" />
+          <Mountain className="h-4 w-4 text-[#1e40af]" />
           Swiss Startup Hub
         </Link>
       </div>
@@ -74,7 +74,7 @@ export default function ContactPage() {
             )}
             <div>
               <label className="block text-sm font-medium text-zinc-700">
-                Name <span className="text-red-500">*</span>
+                Name <span className="text-[#1e40af]">*</span>
               </label>
               <input
                 type="text"
@@ -87,7 +87,7 @@ export default function ContactPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700">
-                Email <span className="text-red-500">*</span>
+                Email <span className="text-[#1e40af]">*</span>
               </label>
               <input
                 type="email"
@@ -100,7 +100,7 @@ export default function ContactPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700">
-                Message <span className="text-red-500">*</span>
+                Message <span className="text-[#1e40af]">*</span>
               </label>
               <textarea
                 required
@@ -114,7 +114,7 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="w-full rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
             >
               {submitting ? "Sending..." : "Send Message"}
             </button>

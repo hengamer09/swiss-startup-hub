@@ -128,7 +128,7 @@ export default function NewEventPage() {
         </div>
 
         <div>
-          <button type="submit" disabled={submitting} className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+          <button type="submit" disabled={submitting} className="rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8]">
             {submitting ? "Creating…" : "Create Event"}
           </button>
         </div>

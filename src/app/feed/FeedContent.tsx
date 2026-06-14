@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Compass, MapPin, Users, Star, RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
 import ProfileCompletionNudge from "@/components/layout/ProfileCompletionNudge";
 import BookmarkButton from "@/components/BookmarkButton";
-import { formatStage, parseRolesNeeded } from "@/lib/utils";
+import { formatStage, parseRolesNeeded, stageBadgeClass } from "@/lib/utils";
 
 const INDUSTRIES = [
   "FinTech", "DeepTech", "Health", "Climate", "EdTech",
@@ -329,7 +329,7 @@ export default function FeedContent({ userId }: { userId: string }) {
         <button
           type="button"
           onClick={() => router.push("/projects/new")}
-          className="rounded-md bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
+          className="rounded-md bg-[#1e40af] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
         >
           Create a project
         </button>
@@ -353,7 +353,7 @@ export default function FeedContent({ userId }: { userId: string }) {
           {projects.length === 0 ? (
             <Link
               href="/search"
-              className="mt-4 rounded-md bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              className="mt-4 rounded-md bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
             >
               Discover Projects
             </Link>
@@ -389,7 +389,7 @@ export default function FeedContent({ userId }: { userId: string }) {
                         <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
                           {project.industry}
                         </span>
-                        <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${stageBadgeClass(project.stage)}`}>
                           {formatStage(project.stage)}
                         </span>
                         <span className="text-xs text-zinc-400 flex items-center gap-0.5">

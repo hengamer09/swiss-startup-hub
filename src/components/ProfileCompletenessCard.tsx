@@ -29,7 +29,7 @@ export default function ProfileCompletenessCard({
           )}
         </p>
         {!compact && !complete && (
-          <Link href="/profile/edit" className="text-xs font-medium text-red-600 hover:text-red-700">
+          <Link href="/profile/edit" className="text-xs font-medium text-[#1e40af] hover:text-[#1e40af]">
             Complete profile
           </Link>
         )}
@@ -37,14 +37,14 @@ export default function ProfileCompletenessCard({
 
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200">
         <div
-          className={`h-2 rounded-full transition-all ${complete ? "bg-green-500" : "bg-red-600"}`}
+          className={`h-2 rounded-full transition-all ${complete ? "bg-green-500" : "bg-[#1e40af]"}`}
           style={{ width: `${percent}%` }}
         />
       </div>
 
       {!complete && nextMissing && (
         <p className="mt-2 text-xs text-zinc-500">
-          <Link href="/profile/edit" className="font-medium text-zinc-700 hover:text-red-600">
+          <Link href="/profile/edit" className="font-medium text-zinc-700 hover:text-[#1e40af]">
             {nextMissing.suggestion}
           </Link>{" "}
           to reach {nextMissing.reachPercent}%.

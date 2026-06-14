@@ -150,12 +150,12 @@ export default function SearchPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search projects, skills, people..."
-              className="w-full rounded-lg border border-zinc-300 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-zinc-300 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             />
           </div>
           <Link
             href="/projects/new"
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            className="rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1d4ed8]"
           >
             Create project
           </Link>
@@ -167,14 +167,14 @@ export default function SearchPage() {
           className={cn(
             "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
             showFilters || hasActiveFilters
-              ? "border-red-500 bg-red-50 text-red-600"
+              ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
               : "border-zinc-300 text-zinc-600 hover:bg-zinc-50"
           )}
         >
           <Filter className="h-4 w-4" />
           Filters
           {hasActiveFilters && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1e40af] text-xs text-white">
               {selectedIndustries.length + selectedStages.length + (location ? 1 : 0) + (minRating > 0 ? 1 : 0) + (verifiedOnly ? 1 : 0) + lookingFor.length}
             </span>
           )}
@@ -197,7 +197,7 @@ export default function SearchPage() {
                       setMinRating(0);
                       setVerifiedOnly(false);
                     }}
-                    className="text-xs text-red-500 hover:text-red-600"
+                    className="text-xs text-[#1e40af] hover:text-[#1e40af]"
                   >
                     Clear all
                   </button>
@@ -229,7 +229,7 @@ export default function SearchPage() {
                       className={cn(
                         "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
                         selectedIndustries.includes(ind)
-                          ? "bg-red-50 text-red-700 border border-red-300"
+                          ? "bg-blue-50 text-[#1e40af] border border-[#1e40af]"
                           : "bg-zinc-50 text-zinc-600 border border-zinc-200 hover:border-zinc-300"
                       )}
                     >
@@ -310,7 +310,7 @@ export default function SearchPage() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="City or canton"
-                  className="w-full rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  className="w-full rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                 />
               </div>
 
@@ -335,7 +335,7 @@ export default function SearchPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs text-zinc-600 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs text-zinc-600 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -365,7 +365,7 @@ export default function SearchPage() {
                     setVerifiedOnly(false);
                     setQuery("");
                   }}
-                  className="mt-4 rounded-md bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                  className="mt-4 rounded-md bg-[#1e40af] px-5 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -408,7 +408,7 @@ function ProjectCard({ project }: { project: any }) {
           {project.name?.charAt(0) || "P"}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-zinc-900 text-sm truncate group-hover:text-red-500 transition-colors">
+          <h3 className="font-semibold text-zinc-900 text-sm truncate group-hover:text-[#1e40af] transition-colors">
             {project.name}
           </h3>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -470,7 +470,7 @@ function PersonCard({ person }: { person: any }) {
           {person.name?.charAt(0) || "U"}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-zinc-900 text-sm truncate group-hover:text-red-500 transition-colors">
+          <h3 className="font-semibold text-zinc-900 text-sm truncate group-hover:text-[#1e40af] transition-colors">
             {person.name}
           </h3>
           {person.location && (

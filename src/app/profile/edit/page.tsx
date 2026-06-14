@@ -194,7 +194,7 @@ export default function EditProfilePage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             />
           </div>
 
@@ -207,7 +207,7 @@ export default function EditProfilePage() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={3}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="Tell the Swiss startup world about yourself..."
             />
             <p className="mt-1 text-xs text-zinc-400">{bio.length}/280</p>
@@ -222,7 +222,7 @@ export default function EditProfilePage() {
                   type="button"
                   key={role}
                   onClick={() => setRoles((prev) => prev.includes(role) ? prev.filter((item) => item !== role) : [...prev, role])}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${roles.includes(role) ? 'border-red-500 bg-red-50 text-red-700' : 'border-zinc-300 text-zinc-700 hover:bg-zinc-50'}`}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${roles.includes(role) ? 'border-[#1e40af] bg-blue-50 text-[#1e40af]' : 'border-zinc-300 text-zinc-700 hover:bg-zinc-50'}`}
                 >
                   {role}
                 </button>
@@ -230,7 +230,7 @@ export default function EditProfilePage() {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {roles.filter((item) => !['FOUNDER','PROFESSIONAL','INVESTOR'].includes(item)).map((item) => (
-                <span key={item} className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">{item}<button type="button" onClick={() => setRoles((prev) => prev.filter((role) => role !== item))} className="text-zinc-400 hover:text-red-500">×</button></span>
+                <span key={item} className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">{item}<button type="button" onClick={() => setRoles((prev) => prev.filter((role) => role !== item))} className="text-zinc-400 hover:text-[#1e40af]">×</button></span>
               ))}
             </div>
             <div className="mt-3 flex gap-2">
@@ -246,13 +246,13 @@ export default function EditProfilePage() {
               {skills.map((skill) => (
                 <span
                   key={skill}
-                  className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-700"
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-[#1e40af]"
                 >
                   {skill}
                   <button
                     type="button"
                     onClick={() => setSkills((prev) => prev.filter((s) => s !== skill))}
-                    className="text-red-400 hover:text-red-600 transition-colors"
+                    className="text-blue-200 hover:text-[#1e40af] transition-colors"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -274,7 +274,7 @@ export default function EditProfilePage() {
                   }
                 }}
                 placeholder="Type a skill and press Enter"
-                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               />
               <button
                 type="button"
@@ -295,7 +295,7 @@ export default function EditProfilePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700">Country</label>
-              <select value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+              <select value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
                 <option value="">Select a country</option>
                 <option value="Switzerland">Switzerland</option>
                 <option value="Germany">Germany</option>
@@ -306,7 +306,7 @@ export default function EditProfilePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-700">City</label>
-              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="e.g. Zurich" />
+              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" placeholder="e.g. Zurich" />
             </div>
           </div>
         </div>
@@ -316,11 +316,11 @@ export default function EditProfilePage() {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">Personal website</label>
-            <input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://" />
+            <input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" placeholder="https://" />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">Portfolio / CV</label>
-            <input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://" />
+            <input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" placeholder="https://" />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">GitHub</label>
@@ -328,17 +328,17 @@ export default function EditProfilePage() {
               type="url"
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="https://github.com/..."
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">LinkedIn</label>
-            <input type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://linkedin.com/in/..." />
+            <input type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" placeholder="https://linkedin.com/in/..." />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700">GitHub / Code</label>
-            <input type="url" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="https://github.com/..." />
+            <input type="url" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" placeholder="https://github.com/..." />
           </div>
           <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -349,7 +349,7 @@ export default function EditProfilePage() {
               <div key={idx} className="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-semibold text-zinc-700">Entry {idx + 1}</p>
-                  <button type="button" onClick={() => setPortfolioProjects((prev) => prev.filter((_, index) => index !== idx))} className="text-zinc-400 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => setPortfolioProjects((prev) => prev.filter((_, index) => index !== idx))} className="text-zinc-400 hover:text-[#1e40af]"><Trash2 className="h-3.5 w-3.5" /></button>
                 </div>
                 <input value={entry.title || ''} onChange={(e) => setPortfolioProjects((prev) => prev.map((item, index) => index === idx ? { ...item, title: e.target.value } : item))} placeholder="Project title" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
                 <textarea value={entry.description || ''} onChange={(e) => setPortfolioProjects((prev) => prev.map((item, index) => index === idx ? { ...item, description: e.target.value } : item))} rows={2} placeholder="Describe the project or achievement" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
@@ -382,7 +382,7 @@ export default function EditProfilePage() {
             <select
               value={preferredStage}
               onChange={(e) => setPreferredStage(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             >
               <option value="">Any stage</option>
               <option value="IDEA">Idea</option>
@@ -401,7 +401,7 @@ export default function EditProfilePage() {
                 type="number"
                 value={ticketSizeMin}
                 onChange={(e) => setTicketSizeMin(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                 placeholder="10000"
               />
             </div>
@@ -413,7 +413,7 @@ export default function EditProfilePage() {
                 type="number"
                 value={ticketSizeMax}
                 onChange={(e) => setTicketSizeMax(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                 placeholder="100000"
               />
             </div>
@@ -423,7 +423,7 @@ export default function EditProfilePage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+          className="w-full rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
         >
           {loading ? "Saving..." : "Save Profile"}
         </button>
@@ -490,7 +490,7 @@ export default function EditProfilePage() {
                   setDeleteError("");
                   deleteTriggerRef.current?.focus();
                 }}
-                className="flex-1 rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors focus:outline-2 focus:outline-red-600"
+                className="flex-1 rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors focus:outline-2 focus:outline-[#1e40af]"
               >
                 Cancel
               </button>
@@ -499,7 +499,7 @@ export default function EditProfilePage() {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={deleting}
-                className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors focus:outline-2 focus:outline-red-800"
+                className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors focus:outline-2 focus:outline-red-600"
               >
                 {deleting ? "Deleting..." : "Yes, delete my account"}
               </button>

@@ -213,11 +213,11 @@ export default function ConversationThread({
         </Link>
         <div className="flex-1">
           <h1 className="flex items-center gap-2 text-lg font-semibold text-zinc-900">
-            {isGroup && <Users className="h-4 w-4 text-red-500" />}
+            {isGroup && <Users className="h-4 w-4 text-[#1e40af]" />}
             {headerTitle}
           </h1>
           {project && (
-            <Link href={`/projects/${project.id}`} className="text-xs text-red-500 hover:underline font-medium">
+            <Link href={`/projects/${project.id}`} className="text-xs text-[#1e40af] hover:underline font-medium">
               {project.name}
             </Link>
           )}
@@ -240,7 +240,7 @@ export default function ConversationThread({
                 <button
                   onClick={() => removeGroupMember(p.userId)}
                   aria-label={`Remove ${p.user?.name || "member"}`}
-                  className="text-zinc-400 hover:text-red-500"
+                  className="text-zinc-400 hover:text-[#1e40af]"
                 >
                   <XCircle className="h-3.5 w-3.5" />
                 </button>
@@ -336,7 +336,7 @@ export default function ConversationThread({
                             value={joinRole || data.applicantRole || ""}
                             onChange={(e) => { setJoinRole(e.target.value); if (joinError) setJoinError(""); }}
                             placeholder="e.g. Frontend Engineer"
-                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                           />
                         </div>
                         <div>
@@ -346,10 +346,10 @@ export default function ConversationThread({
                             onChange={(e) => { setJoinReason(e.target.value); if (joinError) setJoinError(""); }}
                             placeholder="Add a note for the applicant..."
                             rows={2}
-                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                           />
                         </div>
-                        {joinError && <p className="text-xs text-red-600">{joinError}</p>}
+                        {joinError && <p className="text-xs text-[#1e40af]">{joinError}</p>}
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleJoinDecision("APPROVED", data.joinRequestId, data.applicantRole)}
@@ -396,7 +396,7 @@ export default function ConversationThread({
                       <Link href={contextLabel.href} className="block text-xs text-zinc-400 hover:underline mb-1">{contextLabel.name}</Link>
                     )}
                     <p className="text-sm text-red-800">{msg.content}</p>
-                    <p className="mt-1 text-right text-xs text-red-400">{formatTime(msg.createdAt)}</p>
+                    <p className="mt-1 text-right text-xs text-blue-200">{formatTime(msg.createdAt)}</p>
                   </div>
                 </div>
               );
@@ -424,10 +424,10 @@ export default function ConversationThread({
                             onChange={(e) => { setEventReason(e.target.value); if (eventError) setEventError(""); }}
                             placeholder="e.g. Looking forward to seeing you!"
                             rows={2}
-                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                            className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                           />
                         </div>
-                        {eventError && <p className="text-xs text-red-600">{eventError}</p>}
+                        {eventError && <p className="text-xs text-[#1e40af]">{eventError}</p>}
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEventDecision("ACCEPT", msg)}
@@ -474,9 +474,9 @@ export default function ConversationThread({
                     {contextLabel && (
                       <Link href={contextLabel.href} className="block text-xs text-zinc-400 hover:underline mb-1">{contextLabel.name}</Link>
                     )}
-                    <p className="text-xs font-semibold text-red-700 mb-1">Registration Declined</p>
+                    <p className="text-xs font-semibold text-blue-700 mb-1">Registration Declined</p>
                     <p className="text-sm text-red-800">{msg.content}</p>
-                    <p className="mt-1 text-right text-xs text-red-400">{formatTime(msg.createdAt)}</p>
+                    <p className="mt-1 text-right text-xs text-blue-200">{formatTime(msg.createdAt)}</p>
                   </div>
                 </div>
               );
@@ -499,10 +499,10 @@ export default function ConversationThread({
                   )}
                   <div className={cn(
                     "rounded-2xl px-4 py-2.5 text-sm shadow-sm",
-                    isMine ? "bg-red-600 text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
+                    isMine ? "bg-[#1e40af] text-white rounded-br-md" : "bg-zinc-100 text-zinc-800 rounded-bl-md"
                   )}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
-                    <p className={cn("mt-1 text-right text-xs", isMine ? "text-red-200" : "text-zinc-400")}>
+                    <p className={cn("mt-1 text-right text-xs", isMine ? "text-blue-200" : "text-zinc-400")}>
                       {formatTime(msg.createdAt)}
                       {msg.readAt && isMine && <span className="ml-1">✓✓</span>}
                     </p>
@@ -527,7 +527,7 @@ export default function ConversationThread({
         <button
           onClick={sendMessage}
           disabled={!input.trim() || sending}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1e40af] text-white hover:bg-[#1d4ed8] transition-colors disabled:opacity-40"
         >
           <Send className="h-4 w-4" />
         </button>

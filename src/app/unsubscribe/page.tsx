@@ -40,13 +40,13 @@ function UnsubscribeInner() {
           href="/"
           className="mx-auto mb-6 flex w-fit items-center gap-2 text-lg font-semibold text-zinc-900"
         >
-          <Mountain className="h-6 w-6 text-red-600" />
+          <Mountain className="h-6 w-6 text-[#1e40af]" />
           Swiss Startup Hub
         </Link>
 
         {status === "loading" && (
           <div className="py-4">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-red-600" />
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#1e40af]" />
             <p className="mt-4 text-sm text-zinc-600">Updating your preferences…</p>
           </div>
         )}
@@ -62,7 +62,7 @@ function UnsubscribeInner() {
             </p>
             <Link
               href="/"
-              className="mt-6 inline-block rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              className="mt-6 inline-block rounded-md bg-[#1e40af] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
             >
               Back to home
             </Link>
@@ -71,7 +71,7 @@ function UnsubscribeInner() {
 
         {status === "error" && (
           <div className="py-2">
-            <XCircle className="mx-auto h-12 w-12 text-red-600" />
+            <XCircle className="mx-auto h-12 w-12 text-[#1e40af]" />
             <h1 className="mt-4 text-xl font-semibold text-zinc-900">
               This unsubscribe link is invalid.
             </h1>

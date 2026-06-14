@@ -40,7 +40,7 @@ export default function BackupStats() {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-        <Database className="h-4 w-4 text-red-500" />
+        <Database className="h-4 w-4 text-[#1e40af]" />
         Database &amp; Security Stats
       </h2>
 
@@ -67,7 +67,7 @@ export default function BackupStats() {
 
       <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
         <p className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700">
-          <ShieldAlert className="h-3.5 w-3.5 text-red-500" /> Security (last 24h)
+          <ShieldAlert className="h-3.5 w-3.5 text-[#1e40af]" /> Security (last 24h)
         </p>
         <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-zinc-600 sm:grid-cols-3">
           <span>Failed logins: <strong>{stats.security.failedLoginAttempts24h}</strong></span>

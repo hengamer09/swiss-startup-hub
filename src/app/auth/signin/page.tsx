@@ -69,7 +69,7 @@ export default function SignInPage() {
             href="/"
             className="mx-auto mb-4 flex w-fit items-center gap-2 text-lg font-semibold text-zinc-900"
           >
-            <Mountain className="h-6 w-6 text-red-600" />
+            <Mountain className="h-6 w-6 text-[#1e40af]" />
             Swiss Startup Hub
           </Link>
           <h1 className="text-xl font-semibold text-zinc-900">Welcome back</h1>
@@ -93,7 +93,7 @@ export default function SignInPage() {
                       type="button"
                       onClick={handleResend}
                       disabled={resending}
-                      className="font-medium text-red-700 underline hover:text-red-800 disabled:opacity-50"
+                      className="font-medium text-blue-700 underline hover:text-[#1e40af] disabled:opacity-50"
                     >
                       {resending ? "Sending…" : "Resend verification email"}
                     </button>
@@ -112,7 +112,7 @@ export default function SignInPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="you@example.com"
             />
           </div>
@@ -126,14 +126,14 @@ export default function SignInPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="Your password"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+            className="w-full rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
@@ -143,7 +143,7 @@ export default function SignInPage() {
           Don&apos;t have an account?{" "}
           <Link
             href="/auth/signup"
-            className="font-medium text-red-600 hover:text-red-700"
+            className="font-medium text-[#1e40af] hover:text-[#1e40af]"
           >
             Join Free
           </Link>

@@ -52,7 +52,7 @@ export default function ReportModal({
           <>
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <AlertTriangle className="h-5 w-5 text-[#1e40af]" />
                 Report
               </h3>
               <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600">
@@ -69,7 +69,7 @@ export default function ReportModal({
                   onChange={(e) => setReason(e.target.value)}
                   rows={4}
                   required
-                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 resize-none"
+                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] resize-none"
                   placeholder="Please describe why you are reporting this..."
                 />
               </div>
@@ -84,7 +84,7 @@ export default function ReportModal({
                 <button
                   type="submit"
                   disabled={!reason.trim() || sending}
-                  className="flex-1 rounded-full bg-red-500 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-full bg-[#1e40af] py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors disabled:opacity-50"
                 >
                   {sending ? "Submitting..." : "Submit Report"}
                 </button>

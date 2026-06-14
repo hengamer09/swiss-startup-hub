@@ -71,7 +71,7 @@ export default function NewsletterAdmin() {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-        <Megaphone className="h-4 w-4 text-red-500" />
+        <Megaphone className="h-4 w-4 text-[#1e40af]" />
         Send Newsletter
       </h2>
       <p className="mt-0.5 text-xs text-zinc-500">
@@ -86,7 +86,7 @@ export default function NewsletterAdmin() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="What's new at Swiss Startup Hub"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
           />
         </div>
         <div>
@@ -96,14 +96,14 @@ export default function NewsletterAdmin() {
             onChange={(e) => setContent(e.target.value)}
             rows={10}
             placeholder={"# A heading\n\nA normal paragraph of text.\n\n- A bullet point\n- Another bullet point"}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm font-mono focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm font-mono focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
           />
           <p className="mt-1 text-xs text-zinc-400">
             Formatting: <code># </code> for headings, <code>- </code> for bullets, blank lines separate paragraphs.
           </p>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-[#1e40af]">{error}</p>}
         {result && <p className="text-sm text-green-600">{result}</p>}
 
         <div className="flex gap-2">
@@ -116,7 +116,7 @@ export default function NewsletterAdmin() {
           <button
             onClick={openConfirm}
             disabled={sending}
-            className="flex items-center gap-1.5 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             {sending ? "Sending…" : "Send to all subscribers"}
@@ -166,7 +166,7 @@ export default function NewsletterAdmin() {
               </button>
               <button
                 onClick={send}
-                className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                className="flex-1 rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
               >
                 Send now
               </button>

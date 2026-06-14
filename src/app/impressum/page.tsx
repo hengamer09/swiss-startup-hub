@@ -10,7 +10,7 @@ export default function ImpressumPage() {
     <div className="mx-auto max-w-3xl px-4 py-16">
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 transition-colors">
-          <Mountain className="h-4 w-4 text-red-500" aria-hidden="true" />
+          <Mountain className="h-4 w-4 text-[#1e40af]" aria-hidden="true" />
           Swiss Startup Hub
         </Link>
       </div>
@@ -26,7 +26,7 @@ export default function ImpressumPage() {
             <p className="mt-1">Standort: Aargau, Schweiz</p>
             <p className="mt-3">
               <span className="font-medium">E-Mail:</span>{" "}
-              <a href="mailto:swissstartuphub@gmail.com" className="text-red-600 hover:underline">
+              <a href="mailto:swissstartuphub@gmail.com" className="text-[#1e40af] hover:underline">
                 swissstartuphub@gmail.com
               </a>
             </p>
@@ -66,7 +66,7 @@ export default function ImpressumPage() {
           <h2 className="text-lg font-semibold text-zinc-900">Datenschutz</h2>
           <p className="mt-2 leading-relaxed">
             Informationen zum Datenschutz finden Sie in unserer{" "}
-            <Link href="/privacy" className="text-red-600 hover:underline">
+            <Link href="/privacy" className="text-[#1e40af] hover:underline">
               Datenschutzerklärung
             </Link>
             .

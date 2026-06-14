@@ -23,7 +23,7 @@ export default function FloatingFeedbackButton() {
     <>
       <button
         onClick={handleClick}
-        className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-md hover:bg-red-700 transition-colors"
+        className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white shadow-md hover:bg-[#1d4ed8] transition-colors"
         aria-label="Open feedback"
       >
         <MessageSquare className="h-4 w-4" />

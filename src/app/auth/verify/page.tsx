@@ -69,13 +69,13 @@ function VerifyInner() {
           href="/"
           className="mx-auto mb-6 flex w-fit items-center gap-2 text-lg font-semibold text-zinc-900"
         >
-          <Mountain className="h-6 w-6 text-red-600" />
+          <Mountain className="h-6 w-6 text-[#1e40af]" />
           Swiss Startup Hub
         </Link>
 
         {status === "loading" && (
           <div className="py-4">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-red-600" />
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#1e40af]" />
             <p className="mt-4 text-sm text-zinc-600">Verifying your email…</p>
           </div>
         )}
@@ -87,7 +87,7 @@ function VerifyInner() {
             <p className="mt-2 text-sm text-zinc-600">You can now log in to your account.</p>
             <Link
               href="/auth/signin"
-              className="mt-6 inline-block rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              className="mt-6 inline-block rounded-md bg-[#1e40af] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
             >
               Go to sign in
             </Link>
@@ -96,7 +96,7 @@ function VerifyInner() {
 
         {(status === "invalid" || status === "expired" || status === "error") && (
           <div className="py-2">
-            <XCircle className="mx-auto h-12 w-12 text-red-600" />
+            <XCircle className="mx-auto h-12 w-12 text-[#1e40af]" />
             <h1 className="mt-4 text-xl font-semibold text-zinc-900">
               {status === "error" ? "Something went wrong" : "This link is invalid or has expired."}
             </h1>
@@ -122,12 +122,12 @@ function VerifyInner() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                   />
                   <button
                     type="submit"
                     disabled={resending}
-                    className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                    className="w-full rounded-md bg-[#1e40af] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
                   >
                     {resending ? "Sending…" : "Resend verification email"}
                   </button>

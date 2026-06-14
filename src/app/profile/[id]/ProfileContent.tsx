@@ -125,7 +125,7 @@ export default function ProfileContent({
                         key={role}
                         className={cn(
                           "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          role === "FOUNDER" && "bg-red-50 text-red-700",
+                          role === "FOUNDER" && "bg-blue-50 text-blue-700",
                           role === "PROFESSIONAL" && "bg-blue-50 text-blue-700",
                           role === "INVESTOR" && "bg-amber-50 text-amber-700"
                         )}
@@ -205,13 +205,13 @@ export default function ProfileContent({
                 <div className="flex items-center gap-2">
                   <Link
                     href="/messages"
-                    className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                    className="rounded-md bg-[#1e40af] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
                   >
                     Message
                   </Link>
                   <button
                     onClick={() => setShowReport(true)}
-                    className="rounded-full p-2 text-zinc-400 hover:text-red-500 hover:bg-zinc-100 transition-colors"
+                    className="rounded-full p-2 text-zinc-400 hover:text-[#1e40af] hover:bg-zinc-100 transition-colors"
                     title="Report"
                   >
                     <Flag className="h-4 w-4" />
@@ -222,7 +222,7 @@ export default function ProfileContent({
                       "rounded-full p-2 transition-colors",
                       isBlocked
                         ? "text-green-500 hover:bg-green-50"
-                        : "text-zinc-400 hover:text-red-500 hover:bg-zinc-100"
+                        : "text-zinc-400 hover:text-[#1e40af] hover:bg-zinc-100"
                     )}
                     title={isBlocked ? "Unblock" : "Block"}
                   >
@@ -297,7 +297,7 @@ export default function ProfileContent({
                     </span>
                     <span className="text-zinc-400">{m.roleTitle}</span>
                     {m.isFounder && (
-                      <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-[#1e40af]">
                         Founder
                       </span>
                     )}
@@ -323,7 +323,7 @@ export default function ProfileContent({
                         </div>
                         <div className="flex items-center gap-2">
                           <a href={`/events/${e.id}/edit`} className="text-sm text-zinc-600">Edit</a>
-                          <button onClick={async ()=>{ if(!confirm('Delete event?')) return; const res=await fetch(`/api/events/${e.id}`,{method:'DELETE'}); if(res.ok) location.reload(); }} className="text-sm text-red-600">Delete</button>
+                          <button onClick={async ()=>{ if(!confirm('Delete event?')) return; const res=await fetch(`/api/events/${e.id}`,{method:'DELETE'}); if(res.ok) location.reload(); }} className="text-sm text-[#1e40af]">Delete</button>
                         </div>
                       </div>
                     ))}
@@ -344,7 +344,7 @@ export default function ProfileContent({
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="text-sm text-zinc-600">{intent.status || 'Pending'}</div>
-                            <button onClick={async ()=>{ if(!confirm('Cancel registration?')) return; await fetch(`/api/events/${a.eventId}/registrations`,{method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ attendeeId: a.id, action: 'remove' })}); location.reload(); }} className="text-sm text-red-600">Cancel</button>
+                            <button onClick={async ()=>{ if(!confirm('Cancel registration?')) return; await fetch(`/api/events/${a.eventId}/registrations`,{method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ attendeeId: a.id, action: 'remove' })}); location.reload(); }} className="text-sm text-[#1e40af]">Cancel</button>
                           </div>
                         </div>
                       );
@@ -368,7 +368,7 @@ export default function ProfileContent({
       {showBlockConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl">
-            <Ban className="mx-auto h-10 w-10 text-red-400" />
+            <Ban className="mx-auto h-10 w-10 text-blue-200" />
             <h3 className="mt-3 text-lg font-semibold text-zinc-900">
               {isBlocked ? "Unblock user?" : "Block user?"}
             </h3>
@@ -386,7 +386,7 @@ export default function ProfileContent({
               </button>
               <button
                 onClick={handleBlock}
-                className="flex-1 rounded-md bg-red-600 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                className="flex-1 rounded-md bg-[#1e40af] py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors"
               >
                 {isBlocked ? "Unblock" : "Block"}
               </button>

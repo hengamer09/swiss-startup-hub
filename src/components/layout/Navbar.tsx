@@ -38,19 +38,19 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         {/* Left: logo + nav links */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900 focus:outline-2 focus:outline-red-600 focus:rounded-sm">
-            <Mountain className="h-5 w-5 text-red-600" aria-hidden="true" />
+          <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900 focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
+            <Mountain className="h-5 w-5 text-[#1e40af]" aria-hidden="true" />
             <span className="hidden sm:inline">Swiss Startup Hub</span>
           </Link>
           {session && (
             <div className="hidden items-center gap-4 text-sm md:flex">
-              <Link href="/feed" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm">
+              <Link href="/feed" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
                 Feed
               </Link>
-              <Link href="/events" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm">
+              <Link href="/events" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
                 Events
               </Link>
-              <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm">
+              <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
                 Dashboard
               </Link>
             </div>
@@ -58,7 +58,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
           <button
             type="button"
             onClick={openWaitlist}
-            className="hidden rounded-md border border-red-600 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-2 focus:outline-red-600 md:inline-flex"
+            className="hidden rounded-lg border border-[#1e40af] bg-white px-4 py-2 text-sm font-medium text-[#1e40af] transition-colors hover:bg-blue-50 focus:outline-2 focus:outline-[#1e40af] md:inline-flex"
           >
             Join Waitlist
           </button>
@@ -75,18 +75,18 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
                   if (onFeedback) onFeedback();
                 }}
                 aria-label="Open feedback form"
-                className="hidden sm:inline-flex rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 focus:outline-2 focus:outline-red-800"
+                className="hidden sm:inline-flex rounded-lg border border-[#1e40af] bg-white px-4 py-1.5 text-sm font-medium text-[#1e40af] transition-colors hover:bg-blue-50 focus:outline-2 focus:outline-[#1e40af]"
               >
                 Feedback
               </button>
               <Link
                 href="/messages"
                 aria-label={unread > 0 ? `Messages — ${unread} unread` : "Messages"}
-                className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors focus:outline-2 focus:outline-red-600"
+                className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 transition-colors focus:outline-2 focus:outline-[#1e40af]"
               >
                 <MessageSquare className="h-5 w-5" aria-hidden="true" />
                 {unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white" aria-hidden="true">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1e40af] px-1 text-[10px] font-bold text-white" aria-hidden="true">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
@@ -94,9 +94,9 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <Link
                 href="/profile"
                 aria-label={`Go to profile for ${session.user?.name || "your account"}`}
-                className="flex items-center gap-2 rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors focus:outline-2 focus:outline-red-600"
+                className="flex items-center gap-2 rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors focus:outline-2 focus:outline-[#1e40af]"
               >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs text-white" aria-hidden="true">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1e40af] text-xs text-white" aria-hidden="true">
                   {session.user?.name?.charAt(0) || "U"}
                 </div>
                 <span className="hidden sm:inline">{session.user?.name}</span>
@@ -104,7 +104,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 aria-label="Sign out of your account"
-                className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm"
+                className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm"
               >
                 Sign out
               </button>
@@ -113,13 +113,13 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
             <>
               <Link
                 href="/auth/signin"
-                className="text-sm font-medium text-zinc-700 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-red-600 focus:rounded-sm"
+                className="text-sm font-medium text-zinc-700 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm"
               >
                 Login
               </Link>
               <Link
                 href="/auth/signup"
-                className="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors focus:outline-2 focus:outline-red-800"
+                className="rounded-lg bg-[#1e40af] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors focus:outline-2 focus:outline-[#1e40af]"
               >
                 Join for Free
               </Link>
@@ -129,7 +129,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
             aria-label="Open navigation menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
-            className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden focus:outline-2 focus:outline-red-600"
+            className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 transition-colors md:hidden focus:outline-2 focus:outline-[#1e40af]"
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -150,7 +150,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
             <button
               type="button"
               onClick={() => { setMenuOpen(false); openWaitlist(); }}
-              className="py-1 text-left font-medium text-red-600 hover:text-red-700"
+              className="py-1 text-left font-medium text-[#1e40af] hover:text-[#1e40af]"
             >
               Join Waitlist
             </button>

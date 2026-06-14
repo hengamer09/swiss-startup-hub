@@ -159,7 +159,7 @@ export default function EventDetail({
         <h1 className="text-2xl font-semibold text-zinc-900">{event.title}</h1>
         <p className="text-sm text-zinc-500">
           Hosted by{" "}
-          <Link href={`/profile/${event.organizer?.id}`} className="font-medium text-red-500 hover:underline">
+          <Link href={`/profile/${event.organizer?.id}`} className="font-medium text-[#1e40af] hover:underline">
             {event.organizer?.name}
           </Link>
         </p>
@@ -194,7 +194,7 @@ export default function EventDetail({
           {!userId ? (
             <Link
               href="/auth/signin"
-              className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600"
+              className="rounded-full bg-[#1e40af] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d4ed8]"
             >
               Sign in to attend
             </Link>
@@ -209,7 +209,7 @@ export default function EventDetail({
           ) : (
             <button
               onClick={() => setShowRegisterForm((current) => !current)}
-              className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600"
+              className="rounded-full bg-[#1e40af] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d4ed8]"
             >
               Request to Attend
             </button>
@@ -236,14 +236,14 @@ export default function EventDetail({
               onChange={(e) => setRegisterMessage(e.target.value)}
               maxLength={500}
               rows={3}
-              className="mt-2 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-2 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="Optional"
             />
             <div className="mt-3 flex justify-end">
               <button
                 type="submit"
                 disabled={registering}
-                className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+                className="rounded-full bg-[#1e40af] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-50"
               >
                 {registering ? "Sending..." : "Send Request"}
               </button>
@@ -329,13 +329,13 @@ export default function EventDetail({
                     <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>
                     <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                       redBubble
-                        ? "bg-red-600 text-white rounded-bl-md"
+                        ? "bg-[#1e40af] text-white rounded-bl-md"
                         : onRight
                         ? "bg-zinc-100 text-zinc-800 rounded-br-md"
                         : "bg-zinc-100 text-zinc-800 rounded-bl-md"
                     )}>
                       <p className="whitespace-pre-wrap">{post.content}</p>
-                      <p className={cn("mt-1 text-xs text-right", redBubble ? "text-red-200" : "text-zinc-400")}>
+                      <p className={cn("mt-1 text-xs text-right", redBubble ? "text-blue-200" : "text-zinc-400")}>
                         {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
@@ -355,14 +355,14 @@ export default function EventDetail({
               rows={2}
               maxLength={500}
               placeholder="Share a question, prep note, or event thought..."
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
             />
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs text-zinc-400">{postDraft.length}/500</p>
               <button
                 type="submit"
                 disabled={posting || !postDraft.trim()}
-                className="rounded-full bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+                className="rounded-full bg-[#1e40af] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-50"
               >
                 {posting ? "Sending..." : "Send"}
               </button>
@@ -458,7 +458,7 @@ function MessageHostModal({
                 onChange={(e) => setContent(e.target.value)}
                 maxLength={500}
                 rows={4}
-                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                 placeholder="Ask the host a private question..."
               />
               <div className="flex gap-3">
@@ -472,7 +472,7 @@ function MessageHostModal({
                 <button
                   type="submit"
                   disabled={loading || !content.trim()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
                   {loading ? "Sending..." : "Send"}

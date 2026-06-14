@@ -57,7 +57,7 @@ export default function EventsPage() {
           <p className="text-sm text-zinc-500">Discover upcoming community events</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/events/new" className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">
+          <Link href="/events/new" className="rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors">
             Create Event
           </Link>
         </div>

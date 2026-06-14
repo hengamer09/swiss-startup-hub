@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { cn, formatStage, parseRolesNeeded, PROJECT_STAGES } from "@/lib/utils";
+import { cn, formatStage, parseRolesNeeded, PROJECT_STAGES, stageBadgeClass } from "@/lib/utils";
 import RateUserModal from "@/components/projects/RateUserModal";
 import BookmarkButton from "@/components/BookmarkButton";
 
@@ -201,7 +201,7 @@ export default function ProjectDetail({
                   <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
                     {project.industry}
                   </span>
-                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+                  <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", stageBadgeClass(stage))}>
                     {formatStage(stage)}
                   </span>
                   <span className="flex items-center gap-1 text-xs text-zinc-400">
@@ -220,7 +220,7 @@ export default function ProjectDetail({
                 className={cn(
                   "rounded-md border px-4 py-1.5 text-xs font-medium transition-colors",
                   followed
-                    ? "border-red-500 bg-red-50 text-red-600"
+                    ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
                     : "border-zinc-300 text-zinc-700 hover:bg-zinc-50"
                 )}
               >
@@ -265,7 +265,7 @@ export default function ProjectDetail({
                 ) : (
                   <button
                     onClick={() => setShowJoinModal(true)}
-                    className="rounded-md bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
+                    className="rounded-md bg-[#1e40af] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
                   >
                     Request to Join
                   </button>
@@ -284,7 +284,7 @@ export default function ProjectDetail({
               {!userId && (
                 <Link
                   href="/auth/signin"
-                  className="text-xs text-red-500 hover:text-red-600 text-center"
+                  className="text-xs text-[#1e40af] hover:text-[#1e40af] text-center"
                 >
                   Sign in to interact
                 </Link>
@@ -326,9 +326,9 @@ export default function ProjectDetail({
                       className={cn(
                         "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors",
                         isCurrent
-                          ? "bg-red-600 text-white"
+                          ? "bg-[#1e40af] text-white"
                           : isCompleted
-                          ? "bg-red-100 text-red-600"
+                          ? "bg-blue-100 text-[#1e40af]"
                           : "bg-zinc-200 text-zinc-400"
                       )}
                     >
@@ -337,7 +337,7 @@ export default function ProjectDetail({
                     <span
                       className={cn(
                         "text-center text-[10px] font-medium leading-tight",
-                        isCurrent ? "text-red-600" : isCompleted ? "text-zinc-600" : "text-zinc-400"
+                        isCurrent ? "text-[#1e40af]" : isCompleted ? "text-zinc-600" : "text-zinc-400"
                       )}
                     >
                       {s.label}
@@ -363,7 +363,7 @@ export default function ProjectDetail({
                       <div
                         className={cn(
                           "mx-1 h-0.5 flex-1 rounded -translate-y-2",
-                          i < currentIndex ? "bg-red-300" : "bg-zinc-200"
+                          i < currentIndex ? "bg-blue-300" : "bg-zinc-200"
                         )}
                       />
                     )}
@@ -428,7 +428,7 @@ export default function ProjectDetail({
                       <div className="min-w-0 flex-1 space-y-1">
                         <Link
                           href={`/profile/${req.user?.id}`}
-                          className="font-medium text-zinc-900 hover:text-red-500 transition-colors"
+                          className="font-medium text-zinc-900 hover:text-[#1e40af] transition-colors"
                         >
                           {req.user?.name}
                         </Link>
@@ -445,7 +445,7 @@ export default function ProjectDetail({
                             href={req.links}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-red-500 underline"
+                            className="text-xs text-[#1e40af] underline"
                           >
                             {req.links}
                           </a>
@@ -461,7 +461,7 @@ export default function ProjectDetail({
                           setReplies((prev) => ({ ...prev, [req.id]: e.target.value }))
                         }
                         placeholder="Role title (to accept) or reason for declining — required"
-                        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                       />
                     </div>
 
@@ -469,7 +469,7 @@ export default function ProjectDetail({
                       <button
                         onClick={() => handleDecision(req.id, "APPROVED")}
                         disabled={processingId === req.id}
-                        className="flex items-center gap-1.5 rounded-md bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                        className="flex items-center gap-1.5 rounded-md bg-[#1e40af] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
                       >
                         <CheckCircle className="h-3.5 w-3.5" />
                         Accept
@@ -519,13 +519,13 @@ export default function ProjectDetail({
                           <p className="mb-0.5 text-xs font-semibold text-zinc-600">{post.author?.name || "Anonymous"}</p>
                           <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                             redBubble
-                              ? "bg-red-600 text-white rounded-bl-md"
+                              ? "bg-[#1e40af] text-white rounded-bl-md"
                               : onRight
                               ? "bg-zinc-100 text-zinc-800 rounded-br-md"
                               : "bg-zinc-100 text-zinc-800 rounded-bl-md"
                           )}>
                             <p className="whitespace-pre-wrap">{post.content}</p>
-                            <p className={cn("mt-1 text-xs text-right", redBubble ? "text-red-200" : "text-zinc-400")}>
+                            <p className={cn("mt-1 text-xs text-right", redBubble ? "text-blue-200" : "text-zinc-400")}>
                               {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </p>
                           </div>
@@ -545,14 +545,14 @@ export default function ProjectDetail({
                     rows={2}
                     maxLength={500}
                     placeholder="Share an update, ask a question, or welcome the team..."
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                   />
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs text-zinc-400">{postDraft.length}/500</p>
                     <button
                       type="submit"
                       disabled={posting || !postDraft.trim()}
-                      className="rounded-md bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-md bg-[#1e40af] px-4 py-2 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {posting ? "Sending..." : "Send"}
                     </button>
@@ -597,7 +597,7 @@ export default function ProjectDetail({
                     <div className="flex-1">
                       <Link
                         href={`/profile/${m.user.id}`}
-                        className="font-medium text-zinc-700 hover:text-red-500 transition-colors"
+                        className="font-medium text-zinc-700 hover:text-[#1e40af] transition-colors"
                       >
                         {m.user.name}
                       </Link>
@@ -808,7 +808,7 @@ function JoinModal({
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700">
-              Your role / what you do <span className="text-red-500">*</span>
+              Your role / what you do <span className="text-[#1e40af]">*</span>
             </label>
             <input
               type="text"
@@ -822,19 +822,19 @@ function JoinModal({
               className={cn(
                 "mt-1 block w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1",
                 errors.applicantRole
-                  ? "border-red-400 focus:border-red-500 focus:ring-red-500"
-                  : "border-zinc-300 focus:border-red-500 focus:ring-red-500"
+                  ? "border-red-400 focus:border-[#3b82f6] focus:ring-[#3b82f6]"
+                  : "border-zinc-300 focus:border-[#3b82f6] focus:ring-[#3b82f6]"
               )}
               placeholder="e.g. Frontend Developer, Marketing, Investor…"
             />
             {errors.applicantRole && (
-              <p className="mt-1 text-xs text-red-600">{errors.applicantRole}</p>
+              <p className="mt-1 text-xs text-[#1e40af]">{errors.applicantRole}</p>
             )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">
-              Why you want to join & what you bring <span className="text-red-500">*</span>
+              Why you want to join & what you bring <span className="text-[#1e40af]">*</span>
             </label>
             <textarea
               required
@@ -848,14 +848,14 @@ function JoinModal({
               className={cn(
                 "mt-1 block w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1",
                 errors.message
-                  ? "border-red-400 focus:border-red-500 focus:ring-red-500"
-                  : "border-zinc-300 focus:border-red-500 focus:ring-red-500"
+                  ? "border-red-400 focus:border-[#3b82f6] focus:ring-[#3b82f6]"
+                  : "border-zinc-300 focus:border-[#3b82f6] focus:ring-[#3b82f6]"
               )}
               placeholder="Tell the founder about yourself, your experience, and why you want to join this project…"
             />
             <div className="mt-1 flex items-center justify-between">
               {errors.message ? (
-                <p className="text-xs text-red-600">{errors.message}</p>
+                <p className="text-xs text-[#1e40af]">{errors.message}</p>
               ) : (
                 <span />
               )}
@@ -873,7 +873,7 @@ function JoinModal({
               maxLength={300}
               value={links}
               onChange={(e) => setLinks(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="https://linkedin.com/in/yourname"
             />
           </div>
@@ -889,7 +889,7 @@ function JoinModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="flex-1 rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
             >
               {loading ? "Sending…" : "Send Request"}
             </button>
@@ -960,7 +960,7 @@ function AskModal({
               onChange={(e) => setContent(e.target.value)}
               maxLength={300}
               rows={3}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
               placeholder="Ask anything about the project..."
             />
             <p className="mt-1 text-xs text-zinc-400">{content.length}/300</p>
@@ -976,7 +976,7 @@ function AskModal({
             <button
               type="submit"
               disabled={loading || !content.trim()}
-              className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="flex-1 rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
             >
               {loading ? "Sending..." : "Send"}
             </button>
