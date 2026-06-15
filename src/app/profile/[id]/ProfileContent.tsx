@@ -319,7 +319,7 @@ export default function ProfileContent({
                       <div key={e.id} className="flex items-center justify-between rounded-md border px-3 py-2">
                         <div>
                           <div className="font-medium">{e.title}</div>
-                          <div className="text-xs text-zinc-500">{new Date(e.date).toLocaleDateString()}</div>
+                          <div className="text-xs text-zinc-500">{new Date(e.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
                         </div>
                         <div className="flex items-center gap-2">
                           <a href={`/events/${e.id}/edit`} className="text-sm text-zinc-600">Edit</a>
@@ -340,7 +340,7 @@ export default function ProfileContent({
                         <div key={a.id} className="flex items-center justify-between rounded-md border px-3 py-2">
                           <div>
                             <div className="font-medium">{a.event?.title}</div>
-                            <div className="text-xs text-zinc-500">{new Date(a.event?.date).toLocaleDateString()} • {intent.regType}</div>
+                            <div className="text-xs text-zinc-500">{new Date(a.event?.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} • {intent.regType}</div>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="text-sm text-zinc-600">{intent.status || 'Pending'}</div>

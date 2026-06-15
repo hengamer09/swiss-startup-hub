@@ -33,7 +33,7 @@ function getPrimaryRole(roles: string) {
 }
 
 function formatTime(date: string) {
-  return new Date(date).toLocaleString([], {
+  return new Date(date).toLocaleString("en-GB", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -173,7 +173,7 @@ export default function EventDetail({
                 {event.eventType}
               </span>
               <span className="text-sm text-zinc-600">
-                {new Date(event.date).toLocaleString()}
+                {new Date(event.date).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
               </span>
               <span className="text-sm text-zinc-600">{event.location}</span>
             </div>

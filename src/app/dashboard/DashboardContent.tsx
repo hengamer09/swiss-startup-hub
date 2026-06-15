@@ -342,7 +342,7 @@ export default function DashboardContent({ data }: { data: any }) {
                     <div className="min-w-0">
                       <p className="font-semibold text-zinc-900 truncate">{event.title}</p>
                       <p className="text-xs text-zinc-500 mt-0.5">
-                        {new Date(event.date).toLocaleDateString("en-CH", {
+                        {new Date(event.date).toLocaleDateString("en-GB", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",

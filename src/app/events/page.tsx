@@ -104,7 +104,7 @@ export default function EventsPage() {
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className="text-sm font-medium text-zinc-900">{new Date(ev.date).toLocaleString()}</div>
+                    <div className="text-sm font-medium text-zinc-900">{new Date(ev.date).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
                     <div className="mt-2 text-xs text-zinc-500">{ev._count?.attendees || 0} attending</div>
                   </div>
                 </div>

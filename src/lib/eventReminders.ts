@@ -11,7 +11,7 @@ const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
 function dateLabelFor(date: Date): string {
-  return new Date(date).toLocaleString("en-CH", {
+  return new Date(date).toLocaleString("en-GB", {
     weekday: "long", day: "numeric", month: "short",
     hour: "2-digit", minute: "2-digit",
   });

@@ -83,7 +83,7 @@ export default function MessagesInbox({ userId }: { userId: string }) {
       if (hours < 24) return `${hours}h ago`;
       const days = Math.floor(hours / 24);
       if (days < 7) return `${days}d ago`;
-      return new Date(date).toLocaleDateString();
+      return new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     } catch {
       return "";
     }
