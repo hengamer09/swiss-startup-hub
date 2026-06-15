@@ -70,6 +70,8 @@ model User {
   emailSubscriptions EmailSubscription[]
   bookmarks          Bookmark[]
   pinnedConversations ConversationPin[]
+  projectUpdates     ProjectUpdate[]
+  projectInterests   ProjectInterest[]
 
   @@index([email])
   @@index([location])
@@ -119,6 +121,7 @@ model Project {
   updatedAt       DateTime @updatedAt
   isDormant       Boolean  @default(false)
   followerCount   Int      @default(0)
+  featured        Boolean  @default(false)
 
   ownerId String
   owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])
@@ -143,10 +146,36 @@ model Project {
   ratings      Rating[]
   directMessages  Message[] @relation("MessageProject")
   bookmarks    Bookmark[]
+  updates      ProjectUpdate[]
+  interests    ProjectInterest[]
 
   @@index([stage])
   @@index([industry])
   @@index([location])
+}
+
+model ProjectUpdate {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  progress  String
+  challenge String?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}
+
+model ProjectInterest {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
 }
 
 model ProjectMember {

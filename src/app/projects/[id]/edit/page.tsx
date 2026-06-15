@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { industries, parseRolesNeeded } from "@/lib/utils";
+import ProjectQualityCard from "@/components/projects/ProjectQualityCard";
 
 interface RoleEntry { title: string; description: string; }
 
@@ -130,6 +131,19 @@ export default function EditProjectPage() {
       </Link>
 
       <h1 className="text-xl font-semibold text-zinc-900">Edit Project</h1>
+
+      <div className="mt-4">
+        <ProjectQualityCard
+          project={{
+            name,
+            problem,
+            solution,
+            rolesCount: rolesNeeded.filter((r) => r.title.trim()).length,
+            logo,
+            stage,
+          }}
+        />
+      </div>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         {error && (

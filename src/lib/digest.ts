@@ -1,7 +1,7 @@
 // Server-only — weekly digest sender shared by the admin and cron routes.
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
-import { weeklyDigestEmail } from "@/lib/emailTemplates";
+import { weeklyDigestEmail, updateReminderEmail } from "@/lib/emailTemplates";
 import { makeUnsubscribeToken } from "@/lib/emailTokens";
 import { parseRolesNeeded, formatStage, APP_URL } from "@/lib/utils";
 import { logger } from "@/lib/logger";
@@ -101,5 +101,56 @@ export async function runWeeklyDigest(): Promise<{ sent: number; failed: number;
   }
 
   logger.info("Weekly digest sent", { sent, failed, skipped });
-  return { sent, failed, skipped };
+
+  const reminders = await runFounderUpdateReminders();
+  return { sent: sent + reminders.sent, failed: failed + reminders.failed, skipped };
+}
+
+// Feature 1.4 — remind founders who haven't posted an update in the last 7 days.
+// One email per founder, listing all of their projects that need an update.
+export async function runFounderUpdateReminders(): Promise<{ sent: number; failed: number }> {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const owners = await prisma.user.findMany({
+    where: { ownedProjects: { some: {} } },
+    take: 500,
+    select: {
+      name: true,
+      email: true,
+      ownedProjects: {
+        select: {
+          id: true,
+          name: true,
+          followerCount: true,
+          updates: { where: { createdAt: { gte: weekAgo } }, select: { id: true }, take: 1 },
+        },
+      },
+    },
+  });
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const owner of owners) {
+    if (!owner.email) continue;
+    const stale = owner.ownedProjects.filter((p) => p.updates.length === 0);
+    if (stale.length === 0) continue;
+
+    const projects = stale.map((p) => ({
+      name: p.name,
+      url: `${APP_URL}/projects/${p.id}`,
+      followers: p.followerCount,
+    }));
+    const { html, text } = updateReminderEmail(owner.name || "there", projects);
+    const ok = await sendEmail({
+      to: owner.email,
+      subject: `Your followers are waiting — post a quick update on ${stale[0].name}`,
+      text,
+      html,
+      type: "update_reminder",
+    });
+    ok ? sent++ : failed++;
+  }
+
+  logger.info("Founder update reminders sent", { sent, failed });
+  return { sent, failed };
 }

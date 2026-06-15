@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Send, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, APP_URL } from "@/lib/utils";
+import ShareCard from "@/components/ShareCard";
+import EventStats from "@/components/events/EventStats";
 
 type Toast = {
   open: boolean;
@@ -249,6 +251,18 @@ export default function EventDetail({
               </button>
             </div>
           </form>
+        )}
+
+        {userId && event.organizerId === userId && (
+          <div className="mt-8 border-t border-zinc-100 pt-6 space-y-4">
+            <EventStats eventId={event.id} />
+            <ShareCard
+              qrSrc={`/api/events/${event.id}/qr`}
+              pageUrl={`${APP_URL}/events/${event.id}`}
+              downloadName={`${event.title || "event"}-qr.png`}
+              label="Scan to view this event"
+            />
+          </div>
         )}
 
         {userId && event.organizerId === userId && (

@@ -6,7 +6,9 @@ import Link from "next/link";
 import { Compass, MapPin, Users, Star, RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
 import BookmarkButton from "@/components/BookmarkButton";
-import { formatStage, parseRolesNeeded, stageBadgeClass } from "@/lib/utils";
+import InterestButton from "@/components/projects/InterestButton";
+import { formatStage, parseRolesNeeded, stageBadgeClass, cn } from "@/lib/utils";
+import { computeProjectCompleteness } from "@/lib/projectCompleteness";
 import type { CompletenessInput } from "@/lib/profileCompleteness";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -176,6 +178,11 @@ export default function FeedContent({
     }
     return true;
   });
+
+  // Featured projects float to the top of the loaded list.
+  const displayProjects = [...filteredProjects].sort(
+    (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+  );
 
   // Build active chips for display
   const activeChips: { label: string; onRemove: () => void }[] = [];
@@ -450,11 +457,21 @@ export default function FeedContent({
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredProjects.map((project: any) => (
+          {displayProjects.map((project: any) => {
+            const q = computeProjectCompleteness({
+              name: project.name, problem: project.problem, solution: project.solution,
+              rolesCount: parseRolesNeeded(project.rolesNeeded).length, logo: project.logo,
+              stage: project.stage, memberCount: project._count?.members ?? project.teamSize,
+              updateCount: project._count?.updates ?? 0, postCount: project._count?.posts ?? 0,
+            });
+            return (
             <Link
               key={project.id}
               href={`/projects/${project.id}`}
-              className="block rounded-xl border border-[#e2e8f0] bg-white p-5 transition-shadow hover:shadow-sm"
+              className={cn(
+                "block rounded-xl border border-[#e2e8f0] bg-white p-5 transition-shadow hover:shadow-sm",
+                project.featured && "border-l-4 border-l-[#1e40af]"
+              )}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -471,11 +488,19 @@ export default function FeedContent({
                         {project.name}
                       </h3>
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        {project.featured && (
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#1e40af]">
+                            ⭐ Featured
+                          </span>
+                        )}
                         <span className="rounded bg-[#f1f5f9] px-2 py-0.5 text-xs font-medium text-[#475569]">
                           {project.industry}
                         </span>
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${stageBadgeClass(project.stage)}`}>
                           {formatStage(project.stage)}
+                        </span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${q.badge.className}`}>
+                          {q.badge.label}
                         </span>
                         <span className="text-xs text-[#94a3b8] flex items-center gap-0.5">
                           <MapPin className="h-3 w-3" />
@@ -518,13 +543,15 @@ export default function FeedContent({
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <BookmarkButton projectId={project.id} initialSaved={bookmarkedIds.has(project.id)} />
+                  {project.owner?.id !== userId && <InterestButton projectId={project.id} />}
                   <span className="inline-flex rounded-lg border border-[#e2e8f0] px-3 py-1 text-xs font-medium text-[#475569]">
                     Follow
                   </span>
                 </div>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
 

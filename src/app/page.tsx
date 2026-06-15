@@ -11,7 +11,7 @@ export default async function HomePage() {
   const [projects, userCount] = await Promise.all([
     prisma.project.findMany({
       take: 6,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
       include: {
         _count: {
           select: { members: true, followers: true },
@@ -196,6 +196,11 @@ function ProjectCard({ project }: { project: any }) {
             {project.name}
           </h3>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            {project.featured && (
+              <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#1e40af]">
+                ⭐ Featured
+              </span>
+            )}
             <span className="inline-flex items-center rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
               {project.industry || "Startup"}
             </span>

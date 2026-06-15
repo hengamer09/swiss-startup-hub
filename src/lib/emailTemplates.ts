@@ -159,6 +159,51 @@ export function skillMatchEmail(
   return { html: layout(content), text };
 }
 
+export function updateReminderEmail(
+  name: string,
+  projects: { name: string; url: string; followers: number }[]
+): { html: string; text: string } {
+  const safeName = escapeHtml(name || "there");
+  const multiple = projects.length > 1;
+  const first = projects[0];
+  const list = projects
+    .map(
+      (p) =>
+        `<li style="margin:0 0 8px 0;"><a href="${p.url}" style="color:#1e40af;font-weight:600;text-decoration:none;">${escapeHtml(p.name)}</a> — ${p.followers} follower${p.followers === 1 ? "" : "s"}</li>`
+    )
+    .join("");
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">Your followers are waiting 👀</h2>
+    <p style="margin:0 0 8px 0;">Hi ${safeName},</p>
+    <p style="margin:0 0 8px 0;">It's been a week since your last update on ${multiple ? "your projects" : escapeHtml(first.name)}. Your followers would love to hear what you've been working on — it only takes 30 seconds!</p>
+    ${multiple ? `<ul style="margin:0 0 8px 0;padding-left:20px;">${list}</ul>` : ""}
+    ${button("Post an Update →", first.url)}
+  `;
+  const text =
+    `Hi ${name || "there"},\n\nIt's been a week since your last update. Your followers would love to hear what you've been working on — it only takes 30 seconds!\n\n` +
+    projects.map((p) => `- ${p.name} (${p.followers} followers): ${p.url}`).join("\n");
+  return { html: layout(content), text };
+}
+
+export function interestEmail(
+  projectName: string,
+  interestedName: string,
+  count: number,
+  projectUrl: string
+): { html: string; text: string } {
+  const headline =
+    count > 1
+      ? `${count} people expressed interest in ${escapeHtml(projectName)}`
+      : `${escapeHtml(interestedName)} is interested in ${escapeHtml(projectName)}`;
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">${headline} 🎯</h2>
+    <p style="margin:0 0 8px 0;">${count > 1 ? "Several people have" : `<strong>${escapeHtml(interestedName)}</strong> has`} expressed interest in your project. Open the project to see who and invite them to apply.</p>
+    ${button("View interested people", projectUrl)}
+  `;
+  const text = `${headline}\n\nOpen your project to see who and invite them to apply: ${projectUrl}`;
+  return { html: layout(content), text };
+}
+
 interface DigestProject {
   name: string;
   description: string;

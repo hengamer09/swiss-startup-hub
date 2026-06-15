@@ -14,20 +14,35 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { cn, formatStage, parseRolesNeeded, PROJECT_STAGES, stageBadgeClass } from "@/lib/utils";
+import { cn, formatStage, parseRolesNeeded, PROJECT_STAGES, stageBadgeClass, APP_URL } from "@/lib/utils";
 import RateUserModal from "@/components/projects/RateUserModal";
 import BookmarkButton from "@/components/BookmarkButton";
+import InterestButton from "@/components/projects/InterestButton";
+import ShareCard from "@/components/ShareCard";
+import FounderUpdates from "@/components/projects/FounderUpdates";
+import InterestedPeople from "@/components/projects/InterestedPeople";
+import ProjectQualityCard from "@/components/projects/ProjectQualityCard";
 
 export default function ProjectDetail({
   project,
   pendingRequests: initialPendingRequests,
   myRequest,
+  updates = [],
+  updatesCursor = null,
+  interests = [],
+  myInterest = false,
+  quality,
   userId,
   userName,
 }: {
   project: any;
   pendingRequests: any[];
   myRequest: { id: string; status: string } | null;
+  updates?: any[];
+  updatesCursor?: string | null;
+  interests?: any[];
+  myInterest?: boolean;
+  quality?: any;
   userId: string | null;
   userName?: string | null;
 }) {
@@ -272,6 +287,14 @@ export default function ProjectDetail({
                 )
               )}
 
+              {userId && !isOwner && !isMember && (
+                <InterestButton
+                  projectId={project.id}
+                  initialInterested={myInterest}
+                  onToast={(message) => setToast({ open: true, message, tone: "success" })}
+                />
+              )}
+
               {userId && (
                 <button
                   onClick={() => setShowAskModal(true)}
@@ -488,6 +511,28 @@ export default function ProjectDetail({
               </div>
             </div>
           )}
+
+          {/* Founder tools, updates & interested people */}
+          <div className="mt-6 border-t border-zinc-100 pt-6 space-y-4">
+            {isOwner && (
+              <ShareCard
+                qrSrc={`/api/projects/${project.id}/qr`}
+                pageUrl={`${APP_URL}/projects/${project.id}`}
+                downloadName={`${project.name || "project"}-qr.png`}
+                label="Scan to view this project"
+              />
+            )}
+            {isOwner && quality && <ProjectQualityCard project={quality} />}
+            <FounderUpdates
+              projectId={project.id}
+              isOwner={isOwner}
+              initialUpdates={updates}
+              initialCursor={updatesCursor}
+            />
+            {isOwner && interests.length > 0 && (
+              <InterestedPeople projectId={project.id} interests={interests} />
+            )}
+          </div>
 
           {/* Discussion Board */}
           <div className="mt-6 border-t border-zinc-100 pt-6 space-y-6">

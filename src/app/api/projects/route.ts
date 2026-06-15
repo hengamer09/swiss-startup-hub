@@ -148,7 +148,7 @@ export async function GET(request: Request) {
             },
           },
         },
-        _count: { select: { followers: true } },
+        _count: { select: { followers: true, members: true, updates: true, posts: true } },
       },
     });
 
