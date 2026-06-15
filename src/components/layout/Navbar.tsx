@@ -104,7 +104,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 aria-label="Sign out of your account"
-                className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm"
+                className="hidden text-xs text-zinc-500 hover:text-zinc-700 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm sm:block"
               >
                 Sign out
               </button>
@@ -136,28 +136,57 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — full-width dropdown, large tap targets */}
       {menuOpen && (
-        <div className="border-t border-zinc-200 bg-white px-4 py-3 md:hidden">
-          <div className="flex flex-col gap-2 text-sm">
-            {session && (
+        <div className="border-t border-zinc-200 bg-white md:hidden">
+          <div className="flex flex-col divide-y divide-zinc-100 px-4 text-sm">
+            {session ? (
               <>
-                <Link href="/feed" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Feed</Link>
-                <Link href="/events" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Events</Link>
-                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Dashboard</Link>
+                <Link href="/feed" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Feed</Link>
+                <Link href="/events" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Events</Link>
+                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Dashboard</Link>
+                <Link href="/messages" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center justify-between text-zinc-700 hover:text-[#1e40af]">
+                  <span>Messages</span>
+                  {unread > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1e40af] px-1 text-[10px] font-bold text-white">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Profile</Link>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); openWaitlist(); }}
+                  className="flex min-h-12 items-center text-left font-medium text-[#1e40af]"
+                >
+                  Join Waitlist
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); setFeedbackOpen(true); }}
+                  className="flex min-h-12 items-center text-left text-zinc-700 hover:text-[#1e40af]"
+                >
+                  Feedback
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                  className="flex min-h-12 items-center text-left text-zinc-500 hover:text-zinc-700"
+                >
+                  Sign out
+                </button>
               </>
-            )}
-            <button
-              type="button"
-              onClick={() => { setMenuOpen(false); openWaitlist(); }}
-              className="py-1 text-left font-medium text-[#1e40af] hover:text-[#1e40af]"
-            >
-              Join Waitlist
-            </button>
-            {!session && (
+            ) : (
               <>
-                <Link href="/auth/signin" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Login</Link>
-                <Link href="/auth/signup" onClick={() => setMenuOpen(false)} className="py-1 text-zinc-700 hover:text-zinc-900">Join for Free</Link>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); openWaitlist(); }}
+                  className="flex min-h-12 items-center text-left font-medium text-[#1e40af]"
+                >
+                  Join Waitlist
+                </button>
+                <Link href="/auth/signin" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Login</Link>
+                <Link href="/auth/signup" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center font-medium text-[#1e40af]">Join for Free</Link>
               </>
             )}
           </div>

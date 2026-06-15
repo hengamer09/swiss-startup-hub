@@ -26,11 +26,11 @@ export default async function HomePage() {
       <section className="border-b border-zinc-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl md:text-5xl lg:text-6xl">
               Find your co-founder, team, or investor in{" "}
               <span className="text-[#1e40af]">Switzerland</span>
             </h1>
-            <p className="mt-6 text-lg leading-8 text-zinc-500">
+            <p className="mt-6 text-base leading-8 text-zinc-500 sm:text-lg">
               The networking hub built exclusively for the Swiss startup ecosystem.
               Connect with founders, skilled professionals, and active investors —
               all in one place.

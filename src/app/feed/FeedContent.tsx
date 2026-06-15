@@ -234,7 +234,7 @@ export default function FeedContent({
       </div>
 
       {/* Search bar + filter button */}
-      <div className="mb-2 flex gap-2" ref={filterRowRef}>
+      <div className="mb-2 flex flex-col gap-2 sm:flex-row" ref={filterRowRef}>
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 pointer-events-none" />
           <input
@@ -247,11 +247,11 @@ export default function FeedContent({
         </div>
 
         {/* Filter button + panel */}
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setFilterOpen((v) => !v)}
-            className={`flex h-full items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors ${
+            className={`flex h-full w-full items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors sm:w-auto sm:justify-start sm:py-0 ${
               filterOpen || hasActiveFilters
                 ? "border-[#1e40af] bg-blue-50 text-[#1e40af]"
                 : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#f8fafc]"
@@ -396,7 +396,7 @@ export default function FeedContent({
         <button
           type="button"
           onClick={() => router.push("/projects/new")}
-          className="rounded-lg bg-[#1e40af] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors"
+          className="w-full rounded-lg bg-[#1e40af] px-4 py-2 text-xs font-medium text-white hover:bg-[#1d4ed8] transition-colors sm:w-auto sm:py-1.5"
         >
           Create a project
         </button>
