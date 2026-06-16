@@ -131,6 +131,12 @@ export async function PUT(request: Request) {
     if (data.roles !== undefined) updateData.roles = JSON.stringify(data.roles);
     if (data.openToMessages !== undefined)
       updateData.openToMessages = data.openToMessages;
+    if (data.availableForMentoring !== undefined)
+      updateData.availableForMentoring = Boolean(data.availableForMentoring);
+    if (data.mentoringStyle !== undefined)
+      updateData.mentoringStyle = data.mentoringStyle ? stripTags(String(data.mentoringStyle).trim()).slice(0, 50) : null;
+    if (data.mentorBio !== undefined)
+      updateData.mentorBio = stripTags(String(data.mentorBio).trim()).slice(0, 500);
     if (data.preferredStage !== undefined)
       updateData.preferredStage = data.preferredStage;
     if (data.ticketSizeMin !== undefined)

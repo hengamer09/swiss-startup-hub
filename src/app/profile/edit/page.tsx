@@ -28,6 +28,9 @@ export default function EditProfilePage() {
   const [preferredStage, setPreferredStage] = useState("");
   const [ticketSizeMin, setTicketSizeMin] = useState("");
   const [ticketSizeMax, setTicketSizeMax] = useState("");
+  const [availableForMentoring, setAvailableForMentoring] = useState(false);
+  const [mentoringStyle, setMentoringStyle] = useState("");
+  const [mentorBio, setMentorBio] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -55,6 +58,9 @@ export default function EditProfilePage() {
       setRoles(parseRoles(user.roles || "[]"));
       setSkills(Array.isArray(user.skills) ? user.skills.map((s: any) => s.skill?.name || s.name || s).filter(Boolean) : []);
       setPortfolioProjects(Array.isArray(user.portfolioProjects) ? user.portfolioProjects : []);
+      setAvailableForMentoring(Boolean(user.availableForMentoring));
+      setMentoringStyle(user.mentoringStyle || "");
+      setMentorBio(user.mentorBio || "");
     }
     loadProfile();
   }, []);
@@ -140,6 +146,9 @@ export default function EditProfilePage() {
         ticketSizeMin: ticketSizeMin ? parseInt(ticketSizeMin) : null,
         ticketSizeMax: ticketSizeMax ? parseInt(ticketSizeMax) : null,
         skills,
+        availableForMentoring,
+        mentoringStyle,
+        mentorBio,
       }),
     });
 
@@ -356,6 +365,49 @@ export default function EditProfilePage() {
                 <input value={entry.link || ''} onChange={(e) => setPortfolioProjects((prev) => prev.map((item, index) => index === idx ? { ...item, link: e.target.value } : item))} placeholder="https://example.com" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" />
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-purple-200 bg-purple-50/40 p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-zinc-900">🎯 Mentoring</h2>
+          <p className="text-xs text-zinc-400">
+            Help young entrepreneurs grow. Mentors appear on the Find a Mentor page.
+          </p>
+
+          <label className="flex items-center gap-2 text-sm text-zinc-700">
+            <input
+              type="checkbox"
+              checked={availableForMentoring}
+              onChange={(e) => setAvailableForMentoring(e.target.checked)}
+              className="rounded border-zinc-300"
+            />
+            Available for mentoring
+          </label>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Mentoring style</label>
+            <select
+              value={mentoringStyle}
+              onChange={(e) => setMentoringStyle(e.target.value)}
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
+            >
+              <option value="">Select a style</option>
+              <option>One-time advice</option>
+              <option>Weekly check-ins</option>
+              <option>Project-based</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">Mentor bio</label>
+            <textarea
+              value={mentorBio}
+              onChange={(e) => setMentorBio(e.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="Describe your experience and how you can help young entrepreneurs..."
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
+            />
           </div>
         </div>
 
