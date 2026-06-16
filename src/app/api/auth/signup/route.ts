@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, email, password, role, skills, acceptedTerms, confirmedAge } = await request.json();
+    const { name, email, password, role, skills, acceptedTerms, confirmedAge, isStudent, schoolId } = await request.json();
 
     if (!name || !email || !password || !role) {
       return NextResponse.json(
@@ -55,12 +55,14 @@ export async function POST(request: Request) {
     if (String(password).length < 8) return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
     if (String(password).length > 128) return NextResponse.json({ error: "Password too long" }, { status: 400 });
 
-    if (!["FOUNDER", "PROFESSIONAL", "INVESTOR"].includes(role)) {
+    if (!["FOUNDER", "PROFESSIONAL", "INVESTOR", "MENTOR"].includes(role)) {
       return NextResponse.json(
         { error: "Invalid role" },
         { status: 400 }
       );
     }
+
+    const wantsStudent = isStudent === true;
 
     const existingUser = await prisma.user.findUnique({
       where: { email: cleanEmail },
@@ -91,9 +93,25 @@ export async function POST(request: Request) {
         emailVerified: false,
         verificationToken,
         verificationTokenExpiry,
+        isStudent: wantsStudent,
+        availableForMentoring: role === "MENTOR",
       },
       select: { id: true },
     });
+
+    // If a student selected a verified school, create the membership.
+    if (wantsStudent && typeof schoolId === "string" && schoolId) {
+      try {
+        const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { verified: true } });
+        if (school?.verified) {
+          await prisma.schoolMembership.create({
+            data: { schoolId, userId: user.id, role: "STUDENT" },
+          });
+        }
+      } catch (err) {
+        logger.error("Student school membership failed at signup", { userId: user.id, error: String(err) });
+      }
+    }
 
     if (skills && Array.isArray(skills) && skills.length > 0) {
       for (const skillName of skills.slice(0, 3)) {

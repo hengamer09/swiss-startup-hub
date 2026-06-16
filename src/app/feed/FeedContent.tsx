@@ -63,6 +63,7 @@ export default function FeedContent({
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [studentOnly, setStudentOnly] = useState(false);
   const filterRowRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
 
@@ -155,6 +156,7 @@ export default function FeedContent({
     filters.lookingFor.length > 0;
 
   const filteredProjects = projects.filter((p: any) => {
+    if (studentOnly && !p.isStudentProject) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       if (!p.name?.toLowerCase().includes(q) && !p.problem?.toLowerCase().includes(q)) return false;
@@ -239,6 +241,19 @@ export default function FeedContent({
           Following
         </button>
       </div>
+
+      {/* Student projects toggle */}
+      <button
+        type="button"
+        onClick={() => setStudentOnly((v) => !v)}
+        className={`mb-3 ml-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors sm:ml-3 ${
+          studentOnly
+            ? "border-purple-300 bg-purple-50 text-purple-700"
+            : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#f8fafc]"
+        }`}
+      >
+        🎓 Student projects only
+      </button>
 
       {/* Search bar + filter button */}
       <div className="mb-2 flex flex-col gap-2 sm:flex-row" ref={filterRowRef}>
@@ -487,7 +502,15 @@ export default function FeedContent({
                       <h3 className="font-semibold text-[#0f172a] truncate">
                         {project.name}
                       </h3>
+                      {project.isStudentProject && project.school?.name && (
+                        <p className="text-xs text-purple-700">from {project.school.name}</p>
+                      )}
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        {project.isStudentProject && (
+                          <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">
+                            🎓 Student Project
+                          </span>
+                        )}
                         {project.featured && (
                           <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#1e40af]">
                             ⭐ Featured

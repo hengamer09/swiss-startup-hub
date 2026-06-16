@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Mountain, Briefcase, Banknote, MailCheck } from "lucide-react";
+import { Mountain, Briefcase, Banknote, MailCheck, Target } from "lucide-react";
 
 const SKILL_OPTIONS = [
   "React", "TypeScript", "Python", "Go", "Rust", "Solidity",
@@ -25,6 +25,16 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [isStudent, setIsStudent] = useState(false);
+  const [schoolId, setSchoolId] = useState("");
+  const [schools, setSchools] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/schools")
+      .then((r) => (r.ok ? r.json() : { schools: [] }))
+      .then((d) => setSchools(d.schools || []))
+      .catch(() => {});
+  }, []);
 
   function toggleSkill(skill: string) {
     setSkills((prev) =>
@@ -63,7 +73,7 @@ export default function SignUpPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role, skills, acceptedTerms, confirmedAge }),
+        body: JSON.stringify({ name, email, password, role, skills, acceptedTerms, confirmedAge, isStudent, schoolId: isStudent ? schoolId : null }),
       });
 
       const data = await res.json();
@@ -187,12 +197,13 @@ export default function SignUpPage() {
             <label className="block text-sm font-medium text-zinc-700 mb-2">
               I am a...
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(
                 [
                   { value: "FOUNDER", label: "Founder", icon: RocketIcon },
                   { value: "PROFESSIONAL", label: "Professional", icon: Briefcase },
                   { value: "INVESTOR", label: "Investor", icon: Banknote },
+                  { value: "MENTOR", label: "Mentor", icon: Target },
                 ] as const
               ).map(({ value, label, icon: Icon }) => (
                 <button
@@ -210,6 +221,38 @@ export default function SignUpPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Student toggle + school select */}
+          <div className="rounded-lg border border-purple-200 bg-purple-50 p-3">
+            <label className="flex items-center justify-between gap-3 cursor-pointer">
+              <span className="text-sm font-medium text-purple-800">🎓 Are you a student?</span>
+              <input
+                type="checkbox"
+                checked={isStudent}
+                onChange={(e) => setIsStudent(e.target.checked)}
+                className="h-4 w-4 rounded border-purple-300"
+              />
+            </label>
+            {isStudent && (
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-purple-800">Select your school</label>
+                <select
+                  value={schoolId}
+                  onChange={(e) => setSchoolId(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none"
+                >
+                  <option value="">Select your school (optional)</option>
+                  {schools.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-purple-600">
+                  School not listed?{" "}
+                  <Link href="/schools/register" className="font-medium underline">Suggest it →</Link>
+                </p>
+              </div>
+            )}
           </div>
 
           <div>

@@ -59,6 +59,15 @@ export async function POST(request: Request) {
       } catch { return null; }
     })();
 
+    // Auto-tag student projects: link to the creator's school membership (server-determined).
+    const me = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isStudent: true, schoolMemberships: { take: 1, select: { schoolId: true } } },
+    });
+    const studentSchoolId = me?.isStudent ? me.schoolMemberships[0]?.schoolId ?? null : null;
+    const schoolClass = data.schoolClass ? stripTags(String(data.schoolClass).trim()).slice(0, 100) : null;
+    const supervisor = data.supervisor ? stripTags(String(data.supervisor).trim()).slice(0, 100) : null;
+
     const project = await prisma.project.create({
       data: {
         name,
@@ -82,6 +91,10 @@ export async function POST(request: Request) {
         rolesNeeded: rolesNeeded || null,
         ownerId: userId,
         teamSize: 1,
+        isStudentProject: Boolean(studentSchoolId),
+        schoolId: studentSchoolId,
+        schoolClass,
+        supervisor,
         members: {
           create: {
             userId,
@@ -148,6 +161,7 @@ export async function GET(request: Request) {
             },
           },
         },
+        school: { select: { id: true, name: true } },
         _count: { select: { followers: true, members: true, updates: true, posts: true } },
       },
     });
