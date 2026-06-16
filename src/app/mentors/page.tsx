@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Target, X } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -31,12 +32,14 @@ export default function MentorsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-semibold text-[#0f172a]">🎯 Find a Mentor</h1>
-      <p className="mt-1 text-sm text-[#475569]">
-        Connect with experienced professionals who want to help your startup grow.
-      </p>
+      <PageHeader
+        kicker="Mentors"
+        title="Find a Mentor"
+        subtitle="Connect with experienced founders and operators who want to help your startup grow."
+        tick="bg-teal-600"
+      />
 
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <select
           value={style}
           onChange={(e) => setStyle(e.target.value)}
@@ -64,9 +67,10 @@ export default function MentorsPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {mentors.map((m) => (
-            <div key={m.id} className="rounded-xl border border-[#e2e8f0] bg-white p-5">
+            <div key={m.id} className="relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-5">
+              <span className="absolute inset-y-0 left-0 w-1 bg-teal-600" aria-hidden="true" />
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-purple-50 text-base font-bold text-purple-700">
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-teal-50 text-base font-bold text-teal-700">
                   {m.image ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={m.image} alt={m.name} className="h-full w-full object-cover" />
@@ -75,11 +79,11 @@ export default function MentorsPage() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <Link href={`/profile/${m.id}`} className="truncate font-semibold text-[#0f172a] hover:text-[#1e40af]">
+                  <Link href={`/profile/${m.id}`} className="block truncate font-semibold text-zinc-900 hover:text-teal-700">
                     {m.name}
                   </Link>
                   {m.mentoringStyle && (
-                    <span className="block rounded-full text-xs font-medium text-purple-700">{m.mentoringStyle}</span>
+                    <span className="block text-[0.65rem] font-semibold uppercase tracking-wider text-teal-700">{m.mentoringStyle}</span>
                   )}
                 </div>
               </div>

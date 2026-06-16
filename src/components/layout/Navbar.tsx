@@ -1,19 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Mountain, MessageSquare, Menu } from "lucide-react";
+import { MessageSquare, Menu } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import FeedbackModal from "@/components/FeedbackModal";
 import { useWaitlist } from "@/components/waitlist/WaitlistProvider";
 
+// Primary areas of the app, each with its own accent underline so the active
+// section is unmistakable.
+const NAV_LINKS = [
+  { href: "/feed", label: "Feed", accent: "border-blue-600" },
+  { href: "/events", label: "Events", accent: "border-amber-500" },
+  { href: "/schools", label: "Schools", accent: "border-purple-600" },
+  { href: "/mentors", label: "Mentors", accent: "border-teal-600" },
+  { href: "/dashboard", label: "Dashboard", accent: "border-zinc-900" },
+];
+
 export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   const { data: session } = useSession();
   const { open: openWaitlist } = useWaitlist();
+  const pathname = usePathname();
   const [unread, setUnread] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const isActive = (href: string) =>
+    href === "/feed" ? pathname?.startsWith("/feed") || pathname?.startsWith("/projects") : pathname?.startsWith(href);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -37,37 +52,43 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
     <nav aria-label="Main navigation" className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Left: logo + nav links */}
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900 focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
-            <Mountain className="h-5 w-5 text-[#1e40af]" aria-hidden="true" />
-            <span className="hidden sm:inline">Swiss Startup Hub</span>
+        <div className="flex items-center gap-8">
+          <Link href="/" className="group flex items-center gap-2 focus:rounded-sm focus:outline-2 focus:outline-[#1e40af]">
+            <span className="h-4 w-4 rotate-45 bg-[#1e40af] transition-transform group-hover:rotate-[135deg]" aria-hidden="true" />
+            <span className="hidden text-sm font-bold uppercase tracking-[0.16em] text-zinc-900 sm:inline">
+              Swiss Startup Hub
+            </span>
           </Link>
           {session && (
-            <div className="hidden items-center gap-4 text-sm md:flex">
-              <Link href="/feed" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
-                Feed
-              </Link>
-              <Link href="/events" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
-                Events
-              </Link>
-              <Link href="/schools" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
-                Schools
-              </Link>
-              <Link href="/mentors" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
-                Mentors
-              </Link>
-              <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
-                Dashboard
-              </Link>
+            <div className="hidden items-stretch md:flex">
+              {NAV_LINKS.map((link) => {
+                const active = isActive(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex items-center border-b-2 px-3 text-sm font-medium transition-colors focus:outline-2 focus:outline-[#1e40af] ${
+                      active
+                        ? `${link.accent} text-zinc-900`
+                        : "border-transparent text-zinc-500 hover:text-zinc-900"
+                    }`}
+                    style={{ height: "4rem" }}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </div>
           )}
-          <button
-            type="button"
-            onClick={openWaitlist}
-            className="hidden rounded-lg border border-[#1e40af] bg-white px-4 py-2 text-sm font-medium text-[#1e40af] transition-colors hover:bg-blue-50 focus:outline-2 focus:outline-[#1e40af] md:inline-flex"
-          >
-            Join Waitlist
-          </button>
+          {!session && (
+            <button
+              type="button"
+              onClick={openWaitlist}
+              className="hidden rounded-lg border border-[#1e40af] bg-white px-4 py-2 text-sm font-medium text-[#1e40af] transition-colors hover:bg-blue-50 focus:outline-2 focus:outline-[#1e40af] md:inline-flex"
+            >
+              Join Waitlist
+            </button>
+          )}
         </div>
 
         {/* Right: auth-state-aware actions */}

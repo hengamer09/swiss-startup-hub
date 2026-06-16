@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 type EventItem = any;
 
@@ -50,18 +51,18 @@ export default function EventsPage() {
   }, [q, type, scope, startDate, endDate]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-zinc-900">Events</h1>
-          <p className="text-sm text-zinc-500">Discover upcoming community events</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/events/new" className="rounded-md bg-[#1e40af] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] transition-colors">
+    <div className="mx-auto max-w-5xl px-4 py-10">
+      <PageHeader
+        kicker="Events"
+        title="Events"
+        subtitle="Meetups, workshops, demo days and live pitch competitions across Switzerland."
+        tick="bg-amber-500"
+        action={
+          <Link href="/events/new" className="inline-flex rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-600">
             Create Event
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search events" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm" />
@@ -93,13 +94,14 @@ export default function EventsPage() {
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((ev: any) => (
-              <Link key={ev.id} href={`/events/${ev.id}`} className="block rounded-xl border border-zinc-200 bg-white p-4 hover:shadow-sm">
-                <div className="flex items-start justify-between gap-3">
+              <Link key={ev.id} href={`/events/${ev.id}`} className="group relative block overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 transition-colors hover:bg-zinc-50">
+                <span className="absolute inset-x-0 top-0 h-1 bg-amber-500" aria-hidden="true" />
+                <div className="flex items-start justify-between gap-3 pt-1">
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-zinc-900 truncate">{ev.title}</h3>
-                    <p className="mt-1 text-sm text-zinc-500 line-clamp-2">{ev.description}</p>
+                    <h3 className="truncate font-semibold text-zinc-900 group-hover:text-amber-700">{ev.title}</h3>
+                    <p className="mt-1 line-clamp-2 text-sm text-zinc-500">{ev.description}</p>
                     <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5">{ev.eventType}</span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">{ev.eventType}</span>
                       <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{ev.location}</span>
                     </div>
                   </div>
