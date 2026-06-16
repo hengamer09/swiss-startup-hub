@@ -156,11 +156,11 @@ export default function PitchCompetition({
         {ranked.length === 0 ? (
           <p className="text-sm text-[#94a3b8]">No teams registered yet.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="divide-y divide-[#e2e8f0] rounded-xl border border-[#e2e8f0] bg-white">
             {ranked.map((t, i) => {
               const voted = myVote === t.projectId;
               return (
-                <div key={t.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#e2e8f0] bg-white p-3">
+                <div key={t.id} className="flex items-center justify-between gap-3 p-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="w-6 text-center text-sm">{i < 3 ? MEDALS[i] : `${i + 1}.`}</span>
                     <div className="min-w-0">

@@ -23,6 +23,7 @@ import FounderUpdates from "@/components/projects/FounderUpdates";
 import InterestedPeople from "@/components/projects/InterestedPeople";
 import ProjectQualityCard from "@/components/projects/ProjectQualityCard";
 import FundraiserSection from "@/components/projects/FundraiserSection";
+import UserBadges from "@/components/UserBadges";
 
 export default function ProjectDetail({
   project,
@@ -653,13 +654,9 @@ export default function ProjectDetail({
                       >
                         {m.user.name}
                       </Link>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-2 mt-0.5">
                         <span className="text-xs text-zinc-500">{m.roleTitle}</span>
-                        {m.user.identityVerified && (
-                          <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
-                            Verified
-                          </span>
-                        )}
+                        <UserBadges user={m.user} />
                       </div>
                     </div>
                   </div>

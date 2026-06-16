@@ -157,8 +157,8 @@ function ActiveFundraiser({ projectId, fundraiser, isOwner, currentUser, onChang
             ? <span className="text-[#94a3b8]">{daysLeft(fundraiser.deadline)} days left</span>
             : <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-[#475569]">Closed</span>}
         </div>
-        <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-200">
-          <div className="h-3 rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
+        <div className="mt-2 h-4 w-full overflow-hidden rounded-full bg-gray-200">
+          <div className="h-4 rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
         </div>
         <p className="mt-2 text-sm text-[#0f172a]">
           <strong>CHF {fundraiser.currentAmount}</strong> of CHF {fundraiser.goal} raised · {supporters.length} supporter{supporters.length === 1 ? "" : "s"}

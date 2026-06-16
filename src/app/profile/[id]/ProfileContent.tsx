@@ -17,6 +17,7 @@ import {
 import { cn, parseRoles, formatActivityStatus } from "@/lib/utils";
 import ReportModal from "@/components/ui/ReportModal";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
+import UserBadges from "@/components/UserBadges";
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   FOUNDER: { label: "Founder", color: "red", icon: "🚀" },
@@ -136,6 +137,8 @@ export default function ProfileContent({
                   })}
                 </div>
               </div>
+
+              <UserBadges user={user} className="mt-2 justify-center sm:justify-start" />
 
               <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-sm text-zinc-500 sm:justify-start">
                 {(user.country || user.location) && (

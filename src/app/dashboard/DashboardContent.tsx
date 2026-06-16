@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { cn, parseRoles } from "@/lib/utils";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
+import UserBadges from "@/components/UserBadges";
 import SavedProjectsSection from "./SavedProjectsSection";
 import NewsletterAdmin from "./NewsletterAdmin";
 import BackupStats from "./BackupStats";
@@ -170,6 +171,7 @@ export default function DashboardContent({ data }: { data: any }) {
         <p className="text-sm text-zinc-500">
           Manage your projects, applications, and activity
         </p>
+        <UserBadges user={user} className="mt-2" />
       </div>
 
       {myPendingRequests.length > 0 && (

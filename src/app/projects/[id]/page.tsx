@@ -21,7 +21,7 @@ export default async function ProjectPage(props: {
         members: {
           include: {
             user: {
-              select: { id: true, name: true, image: true, identityVerified: true },
+              select: { id: true, name: true, image: true, identityVerified: true, isStudent: true, roles: true, availableForMentoring: true },
             },
           },
         },

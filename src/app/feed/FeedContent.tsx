@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Compass, MapPin, Users, Star, RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
 import ProfileCompletenessCard from "@/components/ProfileCompletenessCard";
@@ -52,6 +52,7 @@ export default function FeedContent({
   completeness: CompletenessInput;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [view, setView] = useState<View>("all");
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,9 +64,30 @@ export default function FeedContent({
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
-  const [studentOnly, setStudentOnly] = useState(false);
+  const [studentOnly, setStudentOnly] = useState(searchParams.get("student") === "true");
+  const [withFundraiser, setWithFundraiser] = useState(searchParams.get("fundraiser") === "true");
+  const [schoolFilter, setSchoolFilter] = useState(searchParams.get("school") || "");
+  const [schools, setSchools] = useState<{ id: string; name: string }[]>([]);
   const filterRowRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
+
+  // Schools for the dropdown.
+  useEffect(() => {
+    fetch("/api/schools")
+      .then((r) => (r.ok ? r.json() : { schools: [] }))
+      .then((d) => setSchools(d.schools || []))
+      .catch(() => {});
+  }, []);
+
+  // Persist the new filters in the URL.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (studentOnly) params.set("student", "true");
+    if (withFundraiser) params.set("fundraiser", "true");
+    if (schoolFilter) params.set("school", schoolFilter);
+    const qs = params.toString();
+    router.replace(qs ? `/feed?${qs}` : "/feed", { scroll: false });
+  }, [studentOnly, withFundraiser, schoolFilter, router]);
 
   useEffect(() => {
     (async () => {
@@ -153,10 +175,23 @@ export default function FeedContent({
     Boolean(filters.industry) ||
     Boolean(filters.stage) ||
     Boolean(filters.location) ||
-    filters.lookingFor.length > 0;
+    filters.lookingFor.length > 0 ||
+    studentOnly ||
+    withFundraiser ||
+    Boolean(schoolFilter);
+
+  function clearAllFilters() {
+    setFilters(EMPTY_FILTERS);
+    setSearchQuery("");
+    setStudentOnly(false);
+    setWithFundraiser(false);
+    setSchoolFilter("");
+  }
 
   const filteredProjects = projects.filter((p: any) => {
     if (studentOnly && !p.isStudentProject) return false;
+    if (withFundraiser && !p.fundraiser?.isActive) return false;
+    if (schoolFilter && p.school?.id !== schoolFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       if (!p.name?.toLowerCase().includes(q) && !p.problem?.toLowerCase().includes(q)) return false;
@@ -204,6 +239,12 @@ export default function FeedContent({
       onRemove: () => setFilters((f) => ({ ...f, lookingFor: f.lookingFor.filter((v) => v !== lf) })),
     });
   });
+  if (studentOnly) activeChips.push({ label: "🎓 Student projects", onRemove: () => setStudentOnly(false) });
+  if (withFundraiser) activeChips.push({ label: "💰 With fundraiser", onRemove: () => setWithFundraiser(false) });
+  if (schoolFilter) {
+    const sName = schools.find((s) => s.id === schoolFilter)?.name || "School";
+    activeChips.push({ label: `🏫 ${sName}`, onRemove: () => setSchoolFilter("") });
+  }
 
   const countLabel = hasActiveFilters || searchQuery.trim()
     ? "matching filters"
@@ -242,18 +283,45 @@ export default function FeedContent({
         </button>
       </div>
 
-      {/* Student projects toggle */}
-      <button
-        type="button"
-        onClick={() => setStudentOnly((v) => !v)}
-        className={`mb-3 ml-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors sm:ml-3 ${
-          studentOnly
-            ? "border-purple-300 bg-purple-50 text-purple-700"
-            : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#f8fafc]"
-        }`}
-      >
-        🎓 Student projects only
-      </button>
+      {/* Quick filters: student / fundraiser / school */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setStudentOnly((v) => !v)}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+            studentOnly
+              ? "border-purple-300 bg-purple-50 text-purple-700"
+              : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#f8fafc]"
+          }`}
+        >
+          🎓 Student projects
+        </button>
+        <button
+          type="button"
+          onClick={() => setWithFundraiser((v) => !v)}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+            withFundraiser
+              ? "border-green-300 bg-green-50 text-green-700"
+              : "border-[#e2e8f0] bg-white text-[#475569] hover:bg-[#f8fafc]"
+          }`}
+        >
+          💰 With fundraiser
+        </button>
+        {schools.length > 0 && (
+          <select
+            value={schoolFilter}
+            onChange={(e) => setSchoolFilter(e.target.value)}
+            className={`rounded-full border px-3 py-1 text-xs font-medium focus:border-[#3b82f6] focus:outline-none ${
+              schoolFilter ? "border-purple-300 bg-purple-50 text-purple-700" : "border-[#e2e8f0] bg-white text-[#475569]"
+            }`}
+          >
+            <option value="">🏫 All schools</option>
+            {schools.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        )}
+      </div>
 
       {/* Search bar + filter button */}
       <div className="mb-2 flex flex-col gap-2 sm:flex-row" ref={filterRowRef}>
@@ -399,7 +467,7 @@ export default function FeedContent({
           ))}
           <button
             type="button"
-            onClick={() => setFilters(EMPTY_FILTERS)}
+            onClick={clearAllFilters}
             className="ml-1 text-xs text-[#94a3b8] hover:text-[#475569] transition-colors"
           >
             Clear all
@@ -448,7 +516,7 @@ export default function FeedContent({
           {hasActiveFilters || searchQuery.trim() ? (
             <button
               type="button"
-              onClick={() => { setFilters(EMPTY_FILTERS); setSearchQuery(""); }}
+              onClick={clearAllFilters}
               className="mt-4 rounded-lg border border-[#e2e8f0] px-5 py-2 text-sm font-medium text-[#0f172a] hover:bg-[#f8fafc] transition-colors"
             >
               Clear filters

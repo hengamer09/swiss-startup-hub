@@ -162,6 +162,7 @@ export async function GET(request: Request) {
           },
         },
         school: { select: { id: true, name: true } },
+        fundraiser: { select: { isActive: true } },
         _count: { select: { followers: true, members: true, updates: true, posts: true } },
       },
     });
