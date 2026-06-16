@@ -18,6 +18,7 @@ export default async function ProjectPage(props: {
       where: { id },
       include: {
         owner: { select: { id: true, name: true, image: true } },
+        school: { select: { id: true, name: true } },
         members: {
           include: {
             user: {

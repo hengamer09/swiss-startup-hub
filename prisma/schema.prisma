@@ -137,6 +137,11 @@ model Project {
   isStudentProject  Boolean  @default(false)
   schoolClass       String?
   supervisor        String?
+  // School affiliation approval: null = no affiliation, otherwise PENDING / APPROVED / REJECTED.
+  // The school named by schoolId must approve before the project counts as an official school project.
+  schoolAffiliation String?
+  schoolApprovedAt  DateTime?
+  schoolApprovedBy  String?
 
   ownerId String
   owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])

@@ -59,12 +59,17 @@ export async function POST(request: Request) {
       } catch { return null; }
     })();
 
-    // Auto-tag student projects: link to the creator's school membership (server-determined).
-    const me = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isStudent: true, schoolMemberships: { take: 1, select: { schoolId: true } } },
-    });
-    const studentSchoolId = me?.isStudent ? me.schoolMemberships[0]?.schoolId ?? null : null;
+    // Optional school affiliation: the founder picks a verified school; that school
+    // must approve before the project counts as an official school project.
+    const requestedSchoolId = data.linkedSchoolId ? String(data.linkedSchoolId) : null;
+    let linkedSchoolId: string | null = null;
+    if (requestedSchoolId) {
+      const school = await prisma.school.findFirst({
+        where: { id: requestedSchoolId, verified: true },
+        select: { id: true },
+      });
+      linkedSchoolId = school?.id ?? null;
+    }
     const schoolClass = data.schoolClass ? stripTags(String(data.schoolClass).trim()).slice(0, 100) : null;
     const supervisor = data.supervisor ? stripTags(String(data.supervisor).trim()).slice(0, 100) : null;
 
@@ -91,8 +96,9 @@ export async function POST(request: Request) {
         rolesNeeded: rolesNeeded || null,
         ownerId: userId,
         teamSize: 1,
-        isStudentProject: Boolean(studentSchoolId),
-        schoolId: studentSchoolId,
+        isStudentProject: Boolean(linkedSchoolId),
+        schoolId: linkedSchoolId,
+        schoolAffiliation: linkedSchoolId ? "PENDING" : null,
         schoolClass,
         supervisor,
         members: {

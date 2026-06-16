@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { industries } from "@/lib/utils";
 
 interface RoleEntry { title: string; description: string; }
+interface SchoolOption { id: string; name: string; }
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -29,6 +30,16 @@ export default function NewProjectPage() {
   const [logo, setLogo] = useState("");
   const [rolesNeeded, setRolesNeeded] = useState<RoleEntry[]>([{ title: "", description: "" }]);
   const [rolesNeededError, setRolesNeededError] = useState("");
+  const [affiliateSchool, setAffiliateSchool] = useState(false);
+  const [linkedSchoolId, setLinkedSchoolId] = useState("");
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
+
+  useEffect(() => {
+    fetch("/api/schools")
+      .then((r) => (r.ok ? r.json() : { schools: [] }))
+      .then((d) => setSchools((d.schools || []).map((s: SchoolOption) => ({ id: s.id, name: s.name }))))
+      .catch(() => {});
+  }, []);
 
   async function handleUpload(file: File) {
     if (!file) return;
@@ -85,6 +96,7 @@ export default function NewProjectPage() {
           teamCompensation,
           logo,
           rolesNeeded: JSON.stringify(validRoles),
+          linkedSchoolId: affiliateSchool && linkedSchoolId ? linkedSchoolId : "",
         }),
       });
 
@@ -331,6 +343,36 @@ export default function NewProjectPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-zinc-900">🏫 School Affiliation</h2>
+          <label className="flex items-center gap-2 text-sm text-zinc-700">
+            <input
+              type="checkbox"
+              checked={affiliateSchool}
+              onChange={(e) => setAffiliateSchool(e.target.checked)}
+              className="rounded border-zinc-300"
+            />
+            This project is part of a school
+          </label>
+          {affiliateSchool && (
+            <div>
+              <select
+                value={linkedSchoolId}
+                onChange={(e) => setLinkedSchoolId(e.target.value)}
+                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
+              >
+                <option value="">Select a school…</option>
+                {schools.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-zinc-500">
+                Your school admin will review and approve this affiliation before it shows on your project.
+              </p>
+            </div>
+          )}
         </div>
 
         <button

@@ -21,6 +21,7 @@ export default async function SchoolDetailPage(props: { params: Promise<{ id: st
         },
       },
       projects: {
+        where: { schoolAffiliation: "APPROVED" },
         take: 50,
         orderBy: { createdAt: "desc" },
         select: { id: true, name: true, industry: true, stage: true },
@@ -62,7 +63,7 @@ export default async function SchoolDetailPage(props: { params: Promise<{ id: st
           </div>
           <div className="shrink-0">
             {canManage ? (
-              <span className="rounded-lg border border-[#e2e8f0] px-4 py-2 text-sm font-medium text-[#475569]">Manage School</span>
+              <Link href={`/schools/${school.id}/admin`} className="rounded-lg bg-purple-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-800">Manage School</Link>
             ) : userId && !isMember ? (
               <JoinSchoolButton schoolId={school.id} />
             ) : isMember ? (
@@ -97,9 +98,9 @@ export default async function SchoolDetailPage(props: { params: Promise<{ id: st
         </section>
 
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-[#0f172a]">Projects ({school.projects.length})</h2>
+          <h2 className="mb-3 text-sm font-semibold text-[#0f172a]">📋 Affiliated Projects ({school.projects.length})</h2>
           {school.projects.length === 0 ? (
-            <p className="text-sm text-[#94a3b8]">No projects yet.</p>
+            <p className="text-sm text-[#94a3b8]">No projects building from {school.name} yet.</p>
           ) : (
             <div className="space-y-2">
               {school.projects.map((p) => (

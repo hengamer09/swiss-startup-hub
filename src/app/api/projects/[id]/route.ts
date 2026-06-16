@@ -86,6 +86,31 @@ export async function PUT(
       } catch { updateData.rolesNeeded = null; }
     }
 
+    // School affiliation changes. Choosing a new school (re)opens a PENDING request;
+    // clearing it removes the affiliation entirely. Re-selecting the current school is a no-op.
+    if (data.linkedSchoolId !== undefined) {
+      const requested = data.linkedSchoolId ? String(data.linkedSchoolId) : null;
+      if (!requested) {
+        updateData.schoolId = null;
+        updateData.isStudentProject = false;
+        updateData.schoolAffiliation = null;
+        updateData.schoolApprovedAt = null;
+        updateData.schoolApprovedBy = null;
+      } else if (requested !== project.schoolId) {
+        const school = await prisma.school.findFirst({
+          where: { id: requested, verified: true },
+          select: { id: true },
+        });
+        if (school) {
+          updateData.schoolId = school.id;
+          updateData.isStudentProject = true;
+          updateData.schoolAffiliation = "PENDING";
+          updateData.schoolApprovedAt = null;
+          updateData.schoolApprovedBy = null;
+        }
+      }
+    }
+
     const stageChanged =
       typeof updateData.stage === "string" && updateData.stage !== project.stage;
     const rolesChanged =

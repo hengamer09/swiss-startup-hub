@@ -10,10 +10,11 @@ import { useWaitlist } from "@/components/waitlist/WaitlistProvider";
 
 // Primary areas of the app, each with its own accent underline so the active
 // section is unmistakable.
+const ADMIN_EMAIL = "swissstartuphub@gmail.com";
+
 const NAV_LINKS = [
   { href: "/feed", label: "Feed", accent: "border-blue-600" },
   { href: "/events", label: "Events", accent: "border-amber-500" },
-  { href: "/schools", label: "Schools", accent: "border-purple-600" },
   { href: "/mentors", label: "Mentors", accent: "border-teal-600" },
   { href: "/dashboard", label: "Dashboard", accent: "border-zinc-900" },
 ];
@@ -27,6 +28,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
 
+  const isAdmin = session?.user?.email === ADMIN_EMAIL;
   const isActive = (href: string) =>
     href === "/feed" ? pathname?.startsWith("/feed") || pathname?.startsWith("/projects") : pathname?.startsWith(href);
 
@@ -78,6 +80,17 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
                   </Link>
                 );
               })}
+              {isAdmin && (
+                <Link
+                  href="/admin/settings"
+                  className={`flex items-center border-b-2 px-3 text-sm font-medium transition-colors focus:outline-2 focus:outline-[#1e40af] ${
+                    pathname?.startsWith("/admin") ? "border-zinc-900 text-zinc-900" : "border-transparent text-zinc-500 hover:text-zinc-900"
+                  }`}
+                  style={{ height: "4rem" }}
+                >
+                  Settings
+                </Link>
+              )}
             </div>
           )}
           {!session && (
@@ -171,9 +184,11 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <>
                 <Link href="/feed" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Feed</Link>
                 <Link href="/events" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Events</Link>
-                <Link href="/schools" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Schools</Link>
                 <Link href="/mentors" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Mentors</Link>
                 <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Dashboard</Link>
+                {isAdmin && (
+                  <Link href="/admin/settings" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Settings</Link>
+                )}
                 <Link href="/messages" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center justify-between text-zinc-700 hover:text-[#1e40af]">
                   <span>Messages</span>
                   {unread > 0 && (
@@ -214,7 +229,6 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
                 >
                   Join Waitlist
                 </button>
-                <Link href="/schools" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Schools</Link>
                 <Link href="/mentors" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Mentors</Link>
                 <Link href="/auth/signin" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Login</Link>
                 <Link href="/auth/signup" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center font-medium text-[#1e40af]">Join for Free</Link>

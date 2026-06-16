@@ -35,6 +35,17 @@ export default function EditProjectPage() {
   const [useOfFunds, setUseOfFunds] = useState("");
   const [tractionMetrics, setTractionMetrics] = useState("");
   const [investorVisible, setInvestorVisible] = useState(false);
+  const [affiliateSchool, setAffiliateSchool] = useState(false);
+  const [linkedSchoolId, setLinkedSchoolId] = useState("");
+  const [schoolAffiliation, setSchoolAffiliation] = useState<string | null>(null);
+  const [schools, setSchools] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/schools")
+      .then((r) => (r.ok ? r.json() : { schools: [] }))
+      .then((d) => setSchools((d.schools || []).map((s: { id: string; name: string }) => ({ id: s.id, name: s.name }))))
+      .catch(() => {});
+  }, []);
 
   async function handleUpload(file: File) {
     if (!file) return;
@@ -77,6 +88,9 @@ export default function EditProjectPage() {
         setSeriousness(p.seriousness || "SERIOUS_STARTUP");
         setTeamCompensation(p.teamCompensation || "PAID");
         setLogo(p.logo || "");
+        setLinkedSchoolId(p.schoolId || "");
+        setAffiliateSchool(Boolean(p.schoolId));
+        setSchoolAffiliation(p.schoolAffiliation || null);
         const parsed = parseRolesNeeded(p.rolesNeeded);
         setRolesNeeded(parsed.length > 0 ? parsed : [{ title: "", description: "" }]);
       }
@@ -99,6 +113,7 @@ export default function EditProjectPage() {
         investorPitch, fundingAmount: fundingAmount ? parseInt(fundingAmount) : null,
         useOfFunds, tractionMetrics, investorVisible, seriousness, teamCompensation, logo,
         rolesNeeded: JSON.stringify(rolesNeeded.filter((r) => r.title.trim())),
+        linkedSchoolId: affiliateSchool && linkedSchoolId ? linkedSchoolId : "",
       }),
     });
 
@@ -345,6 +360,33 @@ export default function EditProjectPage() {
             <textarea value={tractionMetrics} onChange={(e) => setTractionMetrics(e.target.value)} rows={2}
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]" />
           </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-white p-6 space-y-3">
+          <h2 className="text-sm font-semibold text-zinc-900">🏫 School Affiliation</h2>
+          {schoolAffiliation === "APPROVED" && (
+            <p className="rounded-lg bg-green-50 px-3 py-2 text-xs font-medium text-green-700">✓ Approved as an official school project.</p>
+          )}
+          {schoolAffiliation === "PENDING" && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">⏳ Waiting for the school to approve this affiliation.</p>
+          )}
+          {schoolAffiliation === "REJECTED" && (
+            <p className="rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-600">This affiliation was not approved. You can pick a school and request again.</p>
+          )}
+          <label className="flex items-center gap-2 text-sm text-zinc-700">
+            <input type="checkbox" checked={affiliateSchool} onChange={(e) => setAffiliateSchool(e.target.checked)} className="rounded border-zinc-300" />
+            This project is part of a school
+          </label>
+          {affiliateSchool && (
+            <div>
+              <select value={linkedSchoolId} onChange={(e) => setLinkedSchoolId(e.target.value)}
+                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]">
+                <option value="">Select a school…</option>
+                {schools.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+              </select>
+              <p className="mt-1.5 text-xs text-zinc-500">Changing the school re-submits the affiliation for approval.</p>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3">

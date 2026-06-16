@@ -24,6 +24,7 @@ import InterestedPeople from "@/components/projects/InterestedPeople";
 import ProjectQualityCard from "@/components/projects/ProjectQualityCard";
 import FundraiserSection from "@/components/projects/FundraiserSection";
 import UserBadges from "@/components/UserBadges";
+import SchoolProjectBadge from "@/components/SchoolProjectBadge";
 
 export default function ProjectDetail({
   project,
@@ -226,6 +227,11 @@ export default function ProjectDetail({
                     {project.location}
                     {project.isRemote && " / Remote"}
                   </span>
+                  <SchoolProjectBadge
+                    affiliation={project.schoolAffiliation}
+                    schoolName={project.school?.name}
+                    isOwner={isOwner}
+                  />
                 </div>
               </div>
             </div>
