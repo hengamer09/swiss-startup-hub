@@ -35,7 +35,7 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
 
   return (
     <nav aria-label="Main navigation" className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Left: logo + nav links */}
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900 focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
