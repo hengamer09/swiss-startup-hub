@@ -94,6 +94,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Date must be in the future" }, { status: 400 });
     }
 
+    // Pitch competition fields.
+    const isPitchCompetition = body.isPitchCompetition === true;
+    let participatingSchools: string | null = null;
+    if (isPitchCompetition && Array.isArray(body.participatingSchools)) {
+      const ids = body.participatingSchools.filter((s: unknown) => typeof s === "string").slice(0, 50);
+      participatingSchools = JSON.stringify(ids);
+    }
+    const maxTeamsPerSchool = isPitchCompetition && body.maxTeamsPerSchool ? Math.max(1, Math.floor(Number(body.maxTeamsPerSchool))) : null;
+    const prizeDescription = isPitchCompetition && body.prizeDescription
+      ? stripTags(String(body.prizeDescription).trim()).slice(0, 500)
+      : null;
+
     const event = await prisma.event.create({
       data: {
         title,
@@ -106,6 +118,10 @@ export async function POST(request: Request) {
         maxAttendees: maxAttendees ?? null,
         requireApproval: Boolean(requireApproval),
         organizerId: session.user.id,
+        isPitchCompetition,
+        participatingSchools,
+        maxTeamsPerSchool,
+        prizeDescription,
       },
     });
 

@@ -131,6 +131,21 @@ export default function ConversationThread({
     }
   }
 
+  const [mentorshipProcessing, setMentorshipProcessing] = useState(false);
+  async function handleMentorshipDecision(action: "ACCEPT" | "DECLINE", messageId: string) {
+    setMentorshipProcessing(true);
+    try {
+      const res = await fetch("/api/mentors/respond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageId, action }),
+      });
+      if (res.ok) await fetchMessages();
+    } finally {
+      setMentorshipProcessing(false);
+    }
+  }
+
   async function sendMessage() {
     if (!input.trim() || sending) return;
     setSending(true);
@@ -302,6 +317,65 @@ export default function ConversationThread({
                       <>{" — "}<Link href={discussionUrl} className="underline hover:text-zinc-700 not-italic">View discussion</Link></>
                     )}
                     {!discussionUrl && hasViewLink && " — View discussion"}
+                  </div>
+                </div>
+              );
+            }
+
+            if (type === "MENTORSHIP_REQUEST") {
+              const data = parsed || {};
+              const hasResponse = messages.some(
+                (m: any) => (m.type === "MENTORSHIP_ACCEPTED" || m.type === "MENTORSHIP_DECLINED") && m.createdAt > msg.createdAt
+              );
+              const canAct = msg.receiverId === userId && !hasResponse;
+              return (
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                  <div className="max-w-[85%] rounded-xl border border-purple-200 bg-purple-50 p-4 space-y-1">
+                    <p className="text-sm font-semibold text-purple-900">{data.studentName || msg.sender?.name} is requesting mentorship</p>
+                    {data.projectName && <p className="text-xs text-purple-800"><span className="font-medium">Project:</span> {data.projectName}</p>}
+                    {data.helpText && <p className="text-xs text-purple-800"><span className="font-medium">They need help with:</span> {data.helpText}</p>}
+                    <p className="text-xs text-purple-500">{formatTime(msg.createdAt)}</p>
+                    {canAct && (
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => handleMentorshipDecision("ACCEPT", msg.id)}
+                          disabled={mentorshipProcessing}
+                          className="rounded-lg bg-[#1e40af] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50"
+                        >
+                          Accept Mentorship
+                        </button>
+                        <button
+                          onClick={() => handleMentorshipDecision("DECLINE", msg.id)}
+                          disabled={mentorshipProcessing}
+                          className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    )}
+                    {hasResponse && <p className="text-xs italic text-purple-500">Request resolved</p>}
+                  </div>
+                </div>
+              );
+            }
+
+            if (type === "MENTORSHIP_ACCEPTED") {
+              return (
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                  <div className="max-w-[80%] rounded-xl border border-green-200 bg-green-50 px-4 py-2.5">
+                    <p className="text-sm text-green-800">{msg.content}</p>
+                    <p className="mt-1 text-right text-xs text-green-500">{formatTime(msg.createdAt)}</p>
+                  </div>
+                </div>
+              );
+            }
+
+            if (type === "MENTORSHIP_DECLINED") {
+              return (
+                <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                  <div className="max-w-[80%] rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
+                    <p className="text-sm text-red-800">{msg.content}</p>
+                    <p className="mt-1 text-right text-xs text-red-400">{formatTime(msg.createdAt)}</p>
                   </div>
                 </div>
               );

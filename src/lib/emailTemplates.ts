@@ -261,6 +261,82 @@ export function eventReminderEmail(
   return { html: layout(content), text };
 }
 
+export function pledgeConfirmationEmail(
+  supporterName: string,
+  projectName: string,
+  amount: number,
+  rewardTitle: string | null,
+  voucherCode: string | null,
+  projectUrl: string
+): { html: string; text: string } {
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">Pledge confirmation 🎉</h2>
+    <p style="margin:0 0 8px 0;">Hi ${escapeHtml(supporterName || "there")},</p>
+    <p style="margin:0 0 8px 0;">Thank you for pledging <strong>CHF ${amount}</strong> to ${escapeHtml(projectName)}!</p>
+    ${rewardTitle ? `<p style="margin:0 0 8px 0;"><strong>Your reward:</strong> ${escapeHtml(rewardTitle)}</p>` : ""}
+    ${voucherCode ? `<p style="margin:0 0 4px 0;"><strong>Your voucher code:</strong></p><p style="margin:0 0 8px 0;font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;display:inline-block;">${escapeHtml(voucherCode)}</p><p style="margin:8px 0;font-size:13px;color:#6b7280;">Copy &amp; share this code with the startup to redeem your reward.</p>` : ""}
+    <p style="margin:0 0 8px 0;">The team will contact you about payment details.</p>
+    ${button("View project", projectUrl)}
+  `;
+  const text = `Hi ${supporterName || "there"},\n\nThank you for pledging CHF ${amount} to ${projectName}!${rewardTitle ? `\nYour reward: ${rewardTitle}` : ""}${voucherCode ? `\nYour voucher code: ${voucherCode} (copy & share with the startup)` : ""}\n\nThe team will contact you about payment details.\n\n${projectUrl}`;
+  return { html: layout(content), text };
+}
+
+export function fundraiserClosedEmail(
+  founderName: string,
+  projectName: string,
+  totalAmount: number,
+  pledgeCount: number,
+  goalAmount: number,
+  projectUrl: string
+): { html: string; text: string } {
+  const pct = Math.round((totalAmount / goalAmount) * 100);
+  const reached = totalAmount >= goalAmount;
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">Your fundraiser has closed</h2>
+    <p style="margin:0 0 8px 0;">Hi ${escapeHtml(founderName || "there")}, your fundraiser period for <strong>${escapeHtml(projectName)}</strong> is over.</p>
+    <p style="margin:0 0 8px 0;"><strong>Final results:</strong> CHF ${totalAmount} pledged from ${pledgeCount} supporter${pledgeCount === 1 ? "" : "s"}.</p>
+    <p style="margin:0 0 8px 0;">Goal was CHF ${goalAmount} — you reached <strong>${pct}%</strong>!</p>
+    <p style="margin:0 0 8px 0;">${reached ? "🎉 You've reached your funding goal! Contact your supporters to arrange payment." : "Thank you to your supporters. You can start a new fundraiser anytime."}</p>
+    ${button("View pledges and vouchers", projectUrl)}
+  `;
+  const text = `Hi ${founderName || "there"}, your fundraiser for ${projectName} has closed.\n\nFinal results: CHF ${totalAmount} from ${pledgeCount} supporters.\nGoal: CHF ${goalAmount} — reached ${pct}%.\n\n${reached ? "You reached your goal! Contact supporters to arrange payment." : "Thank you to your supporters."}\n\n${projectUrl}`;
+  return { html: layout(content), text };
+}
+
+export function goalReachedEmail(
+  founderName: string,
+  projectName: string,
+  goal: number,
+  currentAmount: number,
+  projectUrl: string
+): { html: string; text: string } {
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">🎉 ${escapeHtml(projectName)} reached its funding goal!</h2>
+    <p style="margin:0 0 8px 0;">Hi ${escapeHtml(founderName || "there")}, congratulations! You've reached CHF ${goal}.</p>
+    <p style="margin:0 0 8px 0;">Total pledged so far: <strong>CHF ${currentAmount}</strong>.</p>
+    ${button("View pledges and next steps", projectUrl)}
+  `;
+  const text = `Congratulations ${founderName || "there"}! ${projectName} reached its goal of CHF ${goal}. Total pledged: CHF ${currentAmount}.\n\n${projectUrl}`;
+  return { html: layout(content), text };
+}
+
+export function fundraiserDeadlineEmail(
+  founderName: string,
+  projectName: string,
+  daysLeft: number,
+  projectUrl: string
+): { html: string; text: string } {
+  const headline = daysLeft <= 1 ? `Last 24 hours to pledge for ${projectName}` : `Your fundraiser for ${projectName} closes in ${daysLeft} days`;
+  const content = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;color:#18181b;">${escapeHtml(headline)}</h2>
+    <p style="margin:0 0 8px 0;">Hi ${escapeHtml(founderName || "there")}, your fundraiser is closing soon — now's a great time to give it a final push and share it with your network.</p>
+    ${button("Share your fundraiser", projectUrl)}
+  `;
+  const text = `${headline}\n\nHi ${founderName || "there"}, your fundraiser is closing soon. Share it with your network!\n\n${projectUrl}`;
+  return { html: layout(content), text };
+}
+
 export function feedbackConfirmationEmail(
   type: "review" | "bug",
   rating?: number,

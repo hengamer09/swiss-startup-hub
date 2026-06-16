@@ -6,6 +6,7 @@ import { MessageSquare, Send, Users } from "lucide-react";
 import { cn, APP_URL } from "@/lib/utils";
 import ShareCard from "@/components/ShareCard";
 import EventStats from "@/components/events/EventStats";
+import PitchCompetition from "@/components/events/PitchCompetition";
 
 type Toast = {
   open: boolean;
@@ -314,6 +315,16 @@ export default function EventDetail({
           </section>
         )}
       </div>
+
+      {event.isPitchCompetition && (
+        <PitchCompetition
+          eventId={event.id}
+          isOrganizer={event.organizerId === userId}
+          loggedIn={Boolean(userId)}
+          participatingSchoolIds={(() => { try { return JSON.parse(event.participatingSchools || "[]"); } catch { return []; } })()}
+          prizeDescription={event.prizeDescription || null}
+        />
+      )}
 
       <section id="discussion" className="mt-6 rounded-xl border border-zinc-200 bg-white p-4">
         <div className="mb-3">

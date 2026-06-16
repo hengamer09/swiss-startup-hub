@@ -165,6 +165,7 @@ model Project {
   interests    ProjectInterest[]
   fundraiser   Fundraiser?
   eventVotes   EventVote[]
+  eventTeams   EventTeam[] @relation("ProjectEventTeams")
 
   @@index([stage])
   @@index([industry])
@@ -409,11 +410,25 @@ model Event {
   schoolId          String?
   school            School?  @relation("SchoolEvents", fields: [schoolId], references: [id])
   isSchoolEvent     Boolean  @default(false)
+  isPitchCompetition Boolean @default(false)
   maxTeamsPerSchool Int?
   prizeDescription  String?
   participatingSchools String? // JSON array of school ids
   votingClosed      Boolean  @default(false)
+  votingClosedAt    DateTime?
   votes             EventVote[]
+  teams             EventTeam[]
+}
+
+model EventTeam {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation("ProjectEventTeams", fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, projectId])
 }
 
 model EventPost {
@@ -506,6 +521,9 @@ model Fundraiser {
   description   String
   deadline      DateTime
   isActive      Boolean  @default(true)
+  goalReachedNotified Boolean @default(false)
+  closedAt      DateTime?
+  closedBy      String?  // "auto" or "manual"
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

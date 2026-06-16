@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function NewEventPage() {
   const router = useRouter();
+  const [schools, setSchools] = useState<any[]>([]);
+  const [participatingSchools, setParticipatingSchools] = useState<string[]>([]);
+  const [maxTeamsPerSchool, setMaxTeamsPerSchool] = useState<number | "">("");
+  const [prizeDescription, setPrizeDescription] = useState("");
+  useEffect(() => {
+    fetch("/api/schools").then((r) => (r.ok ? r.json() : { schools: [] })).then((d) => setSchools(d.schools || []));
+  }, []);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
@@ -41,6 +50,8 @@ export default function NewEventPage() {
     if (!title.trim() || !description.trim() || !date || !time || !eventType) return alert("Please fill required fields");
     const dt = new Date(`${date}T${time}`);
     if (isNaN(dt.getTime()) || dt <= new Date()) return alert("Please choose a future date/time");
+    const isPitchCompetition = eventType === "Pitch Competition";
+    if (isPitchCompetition && participatingSchools.length === 0) return alert("Select at least one participating school");
 
     setSubmitting(true);
     const payload = {
@@ -53,6 +64,10 @@ export default function NewEventPage() {
       maxAttendees: maxAttendees || null,
       requireApproval,
       image,
+      isPitchCompetition,
+      participatingSchools: isPitchCompetition ? participatingSchools : null,
+      maxTeamsPerSchool: isPitchCompetition && maxTeamsPerSchool ? Number(maxTeamsPerSchool) : null,
+      prizeDescription: isPitchCompetition ? prizeDescription : null,
     };
 
     const res = await fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -103,6 +118,7 @@ export default function NewEventPage() {
             <option>Workshop</option>
             <option>Networking</option>
             <option>Hackathon</option>
+            <option>Pitch Competition</option>
             <option>Other</option>
           </select>
           <select value={locationScope} onChange={(e) => setLocationScope(e.target.value)} className="w-full rounded-lg border border-zinc-200 px-3 py-2">
@@ -119,6 +135,39 @@ export default function NewEventPage() {
             <input type="checkbox" checked={requireApproval} onChange={(e) => setRequireApproval(e.target.checked)} /> Require approval for registrations
           </label>
         </div>
+
+        {eventType === "Pitch Competition" && (
+          <div className="space-y-3 rounded-xl border border-purple-200 bg-purple-50/40 p-4">
+            <p className="text-sm font-semibold text-[#0f172a]">🏫 Pitch Competition Setup</p>
+            <div>
+              <label className="block text-xs font-medium text-zinc-700">Participating schools</label>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {schools.length === 0 ? (
+                  <p className="text-xs text-zinc-400">No verified schools yet.</p>
+                ) : schools.map((s) => {
+                  const on = participatingSchools.includes(s.id);
+                  return (
+                    <button key={s.id} type="button"
+                      onClick={() => setParticipatingSchools((prev) => on ? prev.filter((x) => x !== s.id) : [...prev, s.id])}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${on ? "border-[#1e40af] bg-blue-50 text-[#1e40af]" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300"}`}>
+                      {s.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-zinc-700">Max teams per school (optional)</label>
+                <input type="number" min={1} value={maxTeamsPerSchool === "" ? "" : String(maxTeamsPerSchool)} onChange={(e) => setMaxTeamsPerSchool(e.target.value === "" ? "" : Number(e.target.value))} className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-700">Prize description (optional)</label>
+              <textarea value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} maxLength={500} rows={2} placeholder="e.g. CHF 1000 + mentoring" className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm" />
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-zinc-700">Event image</label>

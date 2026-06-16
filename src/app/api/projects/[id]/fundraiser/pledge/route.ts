@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { stripTags, APP_URL } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { sendEmail } from "@/lib/email";
+import { pledgeConfirmationEmail, goalReachedEmail } from "@/lib/emailTemplates";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
 
@@ -29,7 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const fundraiser = await prisma.fundraiser.findUnique({
       where: { projectId: id },
-      include: { project: { select: { name: true, owner: { select: { email: true } } } }, rewards: true },
+      include: { project: { select: { name: true, owner: { select: { name: true, email: true } } } }, rewards: true },
     });
     if (!fundraiser || !fundraiser.isActive) {
       return NextResponse.json({ error: "This fundraiser is not accepting pledges" }, { status: 400 });
@@ -69,9 +70,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         },
       });
 
-      await tx.fundraiser.update({
+      const updatedFundraiser = await tx.fundraiser.update({
         where: { id: fundraiser.id },
         data: { currentAmount: { increment: amount } },
+        select: { currentAmount: true, goal: true, goalReachedNotified: true },
       });
 
       let voucherCode: string | null = null;
@@ -87,19 +89,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         });
         voucherCode = voucher.code;
       }
-      return { voucherCode };
+
+      // Flag goal-reached once, inside the transaction to avoid double-sends.
+      let justReachedGoal = false;
+      if (!updatedFundraiser.goalReachedNotified && updatedFundraiser.currentAmount >= updatedFundraiser.goal) {
+        await tx.fundraiser.update({ where: { id: fundraiser.id }, data: { goalReachedNotified: true } });
+        justReachedGoal = true;
+      }
+
+      return { voucherCode, justReachedGoal, currentAmount: updatedFundraiser.currentAmount };
     });
 
     const projectName = fundraiser.project.name;
     const projectUrl = `${APP_URL}/projects/${id}`;
 
     // Supporter confirmation
-    sendEmail({
-      to: email,
-      subject: `Thank you for pledging to ${projectName} — Swiss Startup Hub`,
-      text: `Thank you for pledging CHF ${amount} to ${projectName}.${result.voucherCode ? `\n\nYour voucher code: ${result.voucherCode}\nRedeem it with the team to get "${reward?.title}".` : ""}\n\nThe team will contact you about payment details.\n\n${projectUrl}`,
-      type: "pledge_confirmation",
-    }).catch((err) => logger.error("Pledge supporter email failed", { error: String(err) }));
+    {
+      const { html, text } = pledgeConfirmationEmail(name, projectName, amount, reward?.title ?? null, result.voucherCode, projectUrl);
+      sendEmail({
+        to: email,
+        subject: `Pledge confirmation — ${projectName}`,
+        text, html, type: "pledge_confirmation",
+      }).catch((err) => logger.error("Pledge supporter email failed", { error: String(err) }));
+    }
 
     // Founder notification
     if (fundraiser.project.owner?.email) {
@@ -109,6 +121,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         text: `${name} pledged CHF ${amount} for ${projectName}${reward ? ` with reward: ${reward.title}` : ""}.${message ? `\n\nMessage: "${message}"` : ""}\n\n${projectUrl}`,
         type: "pledge_founder",
       }).catch((err) => logger.error("Pledge founder email failed", { error: String(err) }));
+
+      // Goal-reached notification (once)
+      if (result.justReachedGoal) {
+        const { html, text } = goalReachedEmail(fundraiser.project.owner.name || "there", projectName, fundraiser.goal, result.currentAmount, projectUrl);
+        sendEmail({
+          to: fundraiser.project.owner.email,
+          subject: `🎉 ${projectName} reached its funding goal!`,
+          text, html, type: "goal_reached",
+        }).catch((err) => logger.error("Goal-reached email failed", { error: String(err) }));
+      }
     }
 
     return NextResponse.json({ success: true, voucherCode: result.voucherCode, rewardTitle: reward?.title ?? null }, { status: 201 });
