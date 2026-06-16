@@ -3,12 +3,13 @@ import { ArrowRight, Users, Briefcase, Banknote } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { formatSchoolType, formatStage } from "@/lib/utils";
 import WaitlistSection from "@/components/waitlist/WaitlistSection";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
-  const [projects, userCount] = await Promise.all([
+  const [projects, userCount, partnerSchools, studentProjects, mentors] = await Promise.all([
     prisma.project.findMany({
       take: 6,
       orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
@@ -19,6 +20,24 @@ export default async function HomePage() {
       },
     }),
     prisma.user.count(),
+    prisma.school.findMany({
+      where: { verified: true },
+      take: 4,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, type: true, canton: true, logo: true, _count: { select: { students: true } } },
+    }),
+    prisma.project.findMany({
+      where: { isStudentProject: true },
+      take: 4,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, industry: true, stage: true, school: { select: { name: true } } },
+    }),
+    prisma.user.findMany({
+      where: { availableForMentoring: true, roles: { contains: "MENTOR" } },
+      take: 4,
+      orderBy: { averageRating: "desc" },
+      select: { id: true, name: true, image: true, mentoringStyle: true },
+    }),
   ]);
   return (
     <div className="flex flex-col">
@@ -117,6 +136,76 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Partner Schools / Student Projects / Mentors */}
+      {(partnerSchools.length > 0 || studentProjects.length > 0 || mentors.length > 0) && (
+        <section className="mx-auto w-full max-w-7xl px-4 py-12 space-y-10">
+          {partnerSchools.length > 0 && (
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[#0f172a]">🏫 Partner Schools</h2>
+                <Link href="/schools" className="text-sm font-medium text-[#1e40af] hover:underline">View all schools →</Link>
+              </div>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {partnerSchools.map((s) => (
+                  <Link key={s.id} href={`/schools/${s.id}`} className="rounded-xl border border-[#e2e8f0] bg-white p-4 transition-shadow hover:shadow-sm">
+                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-purple-50 text-sm font-bold text-purple-700">
+                      {s.logo ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={s.logo} alt={s.name} className="h-full w-full object-cover" />
+                      ) : s.name.charAt(0)}
+                    </div>
+                    <p className="mt-2 truncate text-sm font-semibold text-[#0f172a]">{s.name}</p>
+                    <p className="text-xs text-[#94a3b8]">{formatSchoolType(s.type)} · {s.canton}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {studentProjects.length > 0 && (
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[#0f172a]">🎓 Student Projects</h2>
+                <Link href="/feed" className="text-sm font-medium text-[#1e40af] hover:underline">View all →</Link>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {studentProjects.map((p) => (
+                  <Link key={p.id} href={`/projects/${p.id}`} className="rounded-xl border border-[#e2e8f0] bg-white p-4 transition-shadow hover:shadow-sm">
+                    <span className="inline-flex rounded-full bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">🎓 Student</span>
+                    <p className="mt-2 truncate text-sm font-semibold text-[#0f172a]">{p.name}</p>
+                    {p.school?.name && <p className="text-xs text-purple-700">from {p.school.name}</p>}
+                    <p className="text-xs text-[#94a3b8]">{p.industry || "—"} · {formatStage(p.stage)}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mentors.length > 0 && (
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[#0f172a]">🎯 Featured Mentors</h2>
+                <Link href="/mentors" className="text-sm font-medium text-[#1e40af] hover:underline">Find a mentor →</Link>
+              </div>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {mentors.map((m) => (
+                  <Link key={m.id} href={`/profile/${m.id}`} className="rounded-xl border border-[#e2e8f0] bg-white p-4 text-center transition-shadow hover:shadow-sm">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-purple-50 text-base font-bold text-purple-700">
+                      {m.image ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={m.image} alt={m.name} className="h-full w-full object-cover" />
+                      ) : m.name?.charAt(0) || "M"}
+                    </div>
+                    <p className="mt-2 truncate text-sm font-semibold text-[#0f172a]">{m.name}</p>
+                    {m.mentoringStyle && <p className="text-xs text-[#94a3b8]">{m.mentoringStyle}</p>}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Join the Waitlist */}
       <WaitlistSection />
