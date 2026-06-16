@@ -44,6 +44,12 @@ model User {
   acceptedTermsAt  DateTime?
   confirmedAge     Boolean  @default(false)
 
+  isStudent             Boolean  @default(false)
+  dateOfBirth           DateTime?
+  availableForMentoring Boolean  @default(false)
+  mentoringStyle        String?
+  mentorBio             String?
+
   averageRating   Float    @default(0)
   ratingCount     Int      @default(0)
 
@@ -72,6 +78,9 @@ model User {
   pinnedConversations ConversationPin[]
   projectUpdates     ProjectUpdate[]
   projectInterests   ProjectInterest[]
+  schoolMemberships  SchoolMembership[]
+  pledges            FundingPledge[]
+  eventVotes         EventVote[]
 
   @@index([email])
   @@index([location])
@@ -123,6 +132,12 @@ model Project {
   followerCount   Int      @default(0)
   featured        Boolean  @default(false)
 
+  schoolId          String?
+  school            School?  @relation("SchoolProjects", fields: [schoolId], references: [id])
+  isStudentProject  Boolean  @default(false)
+  schoolClass       String?
+  supervisor        String?
+
   ownerId String
   owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])
 
@@ -148,10 +163,13 @@ model Project {
   bookmarks    Bookmark[]
   updates      ProjectUpdate[]
   interests    ProjectInterest[]
+  fundraiser   Fundraiser?
+  eventVotes   EventVote[]
 
   @@index([stage])
   @@index([industry])
   @@index([location])
+  @@index([schoolId])
 }
 
 model ProjectUpdate {
@@ -387,6 +405,15 @@ model Event {
   requireApproval Boolean @default(false)
   locationScope String? // Local / National / International / Online
   directMessages  Message[] @relation("MessageEvent")
+
+  schoolId          String?
+  school            School?  @relation("SchoolEvents", fields: [schoolId], references: [id])
+  isSchoolEvent     Boolean  @default(false)
+  maxTeamsPerSchool Int?
+  prizeDescription  String?
+  participatingSchools String? // JSON array of school ids
+  votingClosed      Boolean  @default(false)
+  votes             EventVote[]
 }
 
 model EventPost {
@@ -433,4 +460,118 @@ model WaitlistEntry {
   role      String
   message   String?
   createdAt DateTime @default(now())
+}
+
+model School {
+  id           String   @id @default(cuid())
+  name         String
+  type         String   // GYMNASIUM, BERUFSSCHULE, UNIVERSITY, ORGANIZATION
+  canton       String
+  city         String
+  website      String?
+  contactName  String?
+  contactEmail String?
+  logo         String?
+  description  String?
+  verified     Boolean  @default(false)
+  verifiedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  students     SchoolMembership[]
+  projects     Project[] @relation("SchoolProjects")
+  events       Event[]   @relation("SchoolEvents")
+
+  @@index([verified])
+}
+
+model SchoolMembership {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("STUDENT") // STUDENT, TEACHER, MENTOR, ADMIN
+  joinedAt  DateTime @default(now())
+
+  @@unique([schoolId, userId])
+}
+
+model Fundraiser {
+  id            String   @id @default(cuid())
+  projectId     String   @unique
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  goal          Int
+  currentAmount Int      @default(0)
+  currency      String   @default("CHF")
+  description   String
+  deadline      DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  pledges  FundingPledge[]
+  rewards  FundraiserReward[]
+  vouchers Voucher[]
+}
+
+model FundraiserReward {
+  id           String   @id @default(cuid())
+  fundraiserId String
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id], onDelete: Cascade)
+  amount       Int
+  description  String
+  title        String
+  limit        Int?
+  claimed      Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  pledges  FundingPledge[]
+  vouchers Voucher[]
+}
+
+model FundingPledge {
+  id           String   @id @default(cuid())
+  fundraiserId String
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id], onDelete: Cascade)
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name         String
+  email        String
+  amount       Int
+  message      String?
+  status       String   @default("PLEDGED") // PLEDGED, CONFIRMED, CANCELLED
+  rewardId     String?
+  reward       FundraiserReward? @relation(fields: [rewardId], references: [id])
+  voucher      Voucher?
+  createdAt    DateTime @default(now())
+
+  @@index([fundraiserId])
+}
+
+model Voucher {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  fundraiserId String
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id], onDelete: Cascade)
+  rewardId     String
+  reward       FundraiserReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  pledgeId     String   @unique
+  pledge       FundingPledge @relation(fields: [pledgeId], references: [id], onDelete: Cascade)
+  usedAt       DateTime?
+  usedBy       String?
+  createdAt    DateTime @default(now())
+}
+
+model EventVote {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  voterId   String
+  voter     User     @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, voterId])
+  @@index([eventId, projectId])
 }

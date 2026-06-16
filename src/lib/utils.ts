@@ -112,6 +112,25 @@ export const industries = [
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+export const SWISS_CANTONS = [
+  "Aargau", "Appenzell Ausserrhoden", "Appenzell Innerrhoden", "Basel-Landschaft",
+  "Basel-Stadt", "Bern", "Fribourg", "Geneva", "Glarus", "Graubünden", "Jura",
+  "Lucerne", "Neuchâtel", "Nidwalden", "Obwalden", "Schaffhausen", "Schwyz",
+  "Solothurn", "St. Gallen", "Thurgau", "Ticino", "Uri", "Valais", "Vaud",
+  "Zug", "Zürich",
+];
+
+export const SCHOOL_TYPES = [
+  { value: "GYMNASIUM", label: "Gymnasium" },
+  { value: "BERUFSSCHULE", label: "Berufsschule" },
+  { value: "UNIVERSITY", label: "University" },
+  { value: "ORGANIZATION", label: "Organization (e.g. YES Project)" },
+];
+
+export function formatSchoolType(type: string): string {
+  return SCHOOL_TYPES.find((t) => t.value === type)?.label || type;
+}
+
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")

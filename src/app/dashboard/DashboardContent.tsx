@@ -9,6 +9,7 @@ import NewsletterAdmin from "./NewsletterAdmin";
 import BackupStats from "./BackupStats";
 import WaitlistAdmin from "./WaitlistAdmin";
 import FeatureProjectsAdmin from "./FeatureProjectsAdmin";
+import SchoolAdmin from "./SchoolAdmin";
 
 const ADMIN_EMAIL = "swissstartuphub@gmail.com";
 import {
@@ -779,6 +780,7 @@ export default function DashboardContent({ data }: { data: any }) {
             Admin
           </h2>
           <div className="space-y-4">
+            <SchoolAdmin />
             <WaitlistAdmin />
             <FeatureProjectsAdmin />
             <NewsletterAdmin />

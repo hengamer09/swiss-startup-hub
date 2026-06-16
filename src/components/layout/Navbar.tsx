@@ -50,6 +50,12 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <Link href="/events" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
                 Events
               </Link>
+              <Link href="/schools" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
+                Schools
+              </Link>
+              <Link href="/mentors" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
+                Mentors
+              </Link>
               <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-2 focus:outline-[#1e40af] focus:rounded-sm">
                 Dashboard
               </Link>
@@ -144,6 +150,8 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
               <>
                 <Link href="/feed" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Feed</Link>
                 <Link href="/events" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Events</Link>
+                <Link href="/schools" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Schools</Link>
+                <Link href="/mentors" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Mentors</Link>
                 <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Dashboard</Link>
                 <Link href="/messages" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center justify-between text-zinc-700 hover:text-[#1e40af]">
                   <span>Messages</span>
@@ -185,6 +193,8 @@ export default function Navbar({ onFeedback }: { onFeedback?: () => void }) {
                 >
                   Join Waitlist
                 </button>
+                <Link href="/schools" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Schools</Link>
+                <Link href="/mentors" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Mentors</Link>
                 <Link href="/auth/signin" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center text-zinc-700 hover:text-[#1e40af]">Login</Link>
                 <Link href="/auth/signup" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center font-medium text-[#1e40af]">Join for Free</Link>
               </>
