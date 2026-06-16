@@ -22,6 +22,7 @@ import ShareCard from "@/components/ShareCard";
 import FounderUpdates from "@/components/projects/FounderUpdates";
 import InterestedPeople from "@/components/projects/InterestedPeople";
 import ProjectQualityCard from "@/components/projects/ProjectQualityCard";
+import FundraiserSection from "@/components/projects/FundraiserSection";
 
 export default function ProjectDetail({
   project,
@@ -523,6 +524,12 @@ export default function ProjectDetail({
               />
             )}
             {isOwner && quality && <ProjectQualityCard project={quality} />}
+            <FundraiserSection
+              projectId={project.id}
+              isOwner={isOwner}
+              isStudentProject={Boolean(project.isStudentProject)}
+              currentUser={userId ? { name: userName ?? null, email: null } : null}
+            />
             <FounderUpdates
               projectId={project.id}
               isOwner={isOwner}
