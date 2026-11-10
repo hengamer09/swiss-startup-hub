@@ -50,3 +50,20 @@ dev.db-wal
 
 # Claude Code local files
 .claude/
+
+# Geheimnisse und Sitzungen (ergaenzt am 10.11.2026 beim Umzug aus OneDrive)
+.env
+.env.*
+!.env.example
+*_token.json
+*token*.json
+*_session.json
+*.session
+*.session-journal
+credentials/
+**/credentials/
+*.pem
+*.key
+*.p12
+id_rsa*
+web_profile/
